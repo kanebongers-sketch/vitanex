@@ -64,6 +64,7 @@ Kopieer daarna het ondertekeningsgeheim (begint met `whsec_`).
 | `AIYOURGYM_STRIPE_PRIJS_ALLES` | het prijs-id van de bundel (alle zes samen) van stap 2 |
 | `AIYOURGYM_RESEND_FROM` (optioneel) | afzender voor de welkomstmail met de inloglink, bijv. `AI Your Gym <welkom@aiyourgym.com>`. Alleen als dat domein in Resend geverifieerd is. Zonder deze variabele wordt er niet gemaild en staat de link alleen op de welkomstpagina. |
 | `AIYOURGYM_PROEFMAILS` (optioneel) | `1` = drie startmails met tips op dag 1, 3 en 7 na het aanmelden (cron `/api/aiyourgym/cron/proefmails`, header `x-cron-secret`). De naam is historisch: er is geen proefperiode meer en de mails noemen er ook geen. Standaard uit. |
+| `CLUB_CRON_SECRET` (aanbevolen) | eigen geheim voor de crons van AI Your Gym (ook `/api/aiyourgym/cron/proefmails`), alleen in een kop. Zolang leeg telt `CRON_SECRET`. Stappen in `docs/aiyourgym/CRON-EN-REMMEN.md`. |
 | `AIYOURGYM_PORTAAL_URL` (optioneel) | basis voor de inloglink zolang subdomeinen uit staan. Met `AIYOURGYM_SITE_ACTIEF=1` telt hij alleen als hij op aiyourgym.com of een subdomein ervan staat; een ander domein (zoals fitfactorypt.nl) wordt dan genegeerd en de link komt niet in mail of op de welkomstpagina. |
 
 Render deployt na het opslaan vanzelf opnieuw.

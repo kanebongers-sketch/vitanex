@@ -66,7 +66,7 @@
 @keyframes club-lidapp-adem { 50% { opacity: 0.45; } }
 
 /* Kleine labels in een rij (geboekt, wachtlijst). */
-.club-lidapp-chip { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 700; line-height: 1.5; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
+.club-lidapp-chip { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; line-height: 1.5; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
 .club-lidapp-chip--merk { background: var(--brand); color: var(--brand-inkt, var(--bg-app)); }
 .club-lidapp-chip--info { background: var(--club-info-zacht); color: var(--club-info); }
 
@@ -150,7 +150,7 @@
 .club-lidapp-qr-kop { justify-self: stretch; display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 28px; }
 .club-lidapp-qr h3 { display: inline-flex; align-items: center; gap: 8px; margin: 0; font-family: var(--ff-kop); font-size: 17px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
 .club-lidapp-qr h3 svg { color: var(--brand-tekst, var(--brand)); }
-.club-lidapp-qr-live { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; background: var(--club-ok-zacht); color: var(--club-ok); font-size: 11.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+.club-lidapp-qr-live { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; background: var(--club-ok-zacht); color: var(--club-ok); font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
 .club-lidapp-qr-live span { width: 7px; height: 7px; border-radius: 999px; background: currentColor; animation: club-lidapp-adem 2s ease-in-out infinite; }
 /* Wit vlak, altijd licht (ook in het donkere thema): camera's lezen donker op wit het best. */
 .club-lidapp-qr-vlak { box-sizing: border-box; width: min(100%, 280px); aspect-ratio: 1; padding: 12px; border-radius: 20px; background: #ffffff; box-shadow: 0 0 0 1px var(--line), 0 16px 36px -14px rgb(0 0 0 / 0.35); }
@@ -238,7 +238,7 @@ button.club-lidapp-qr-kaart:active { transform: scale(0.985); }
 .club-lidapp-les-meter[data-vol] span { background: var(--text-3); }
 .club-lidapp-les[data-mijn='geboekt'] .club-lidapp-les-meter span { background: var(--brand); }
 .club-lidapp-waarschuwing { margin-top: 4px; font-size: 13px; line-height: 1.4; color: var(--club-let-op); }
-.club-lidapp-les > .club-lidapp-label { padding: 0 6px; font-size: 11.5px; }
+.club-lidapp-les > .club-lidapp-label { padding: 0 6px; font-size: 12px; }
 .club-lidapp-waarschuwing { display: grid; justify-items: start; gap: 2px; }
 .club-lidapp-houden { justify-self: start; margin-left: -6px; padding: 0 6px; color: var(--text-1); }
 /* Smalle telefoons (320 tot 380px): de knop onder de les, zodat naam en tijd ruimte houden. */

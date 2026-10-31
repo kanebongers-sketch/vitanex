@@ -2,15 +2,15 @@
 // Drie tips in de eerste dagen (dag 1, 3 en 7). Er is geen proefperiode meer
 // (besluit Kane 30-10-2026); het pad heet nog proefmails zodat een bestaande
 // cron-taak blijft werken.
-// Bijvoorbeeld elk uur via cron-job.org. Slot: het gedeelde CRON_SECRET in de
-// header x-cron-secret (fail-closed: leeg = niemand komt binnen; nooit in de URL).
+// Bijvoorbeeld elk uur via cron-job.org. Slot: CLUB_CRON_SECRET (zolang leeg:
+// CRON_SECRET) in een kop, zie src/lib/club/kern/cron-geheim.ts (fail-closed: leeg = niemand komt binnen; nooit in de URL).
 // Er gaat alleen iets weg met AIYOURGYM_PROEFMAILS=1 plus AIYOURGYM_RESEND_FROM
 // en RESEND_API_KEY; anders antwoordt de route met aan: false en doet niets.
 // Zie src/lib/aiyourgym/proefmails/.
 
 import { type NextRequest, NextResponse } from 'next/server'
 import { clubDatabase } from '@/lib/club/kern/database'
-import { geheimGelijk } from '@/lib/club/kern/pin'
+import { clubCronToegestaan } from '@/lib/club/kern/cron-geheim'
 import { verstuurProefmails } from '@/lib/aiyourgym/proefmails/versturen'
 
 export const runtime = 'nodejs'
@@ -21,7 +21,7 @@ function antwoord(body: Record<string, unknown>, status = 200): NextResponse {
 }
 
 async function verwerk(req: NextRequest): Promise<NextResponse> {
-  if (!geheimGelijk(process.env.CRON_SECRET ?? '', req.headers.get('x-cron-secret'))) return antwoord({ fout: 'Unauthorized' }, 401)
+  if (!clubCronToegestaan(req)) return antwoord({ fout: 'Unauthorized' }, 401)
   try {
     const verslag = await verstuurProefmails(clubDatabase(), new Date())
     return verslag ? antwoord({ ...verslag }) : antwoord({ fout: 'De aanmeldingen konden niet gelezen worden.' }, 502)

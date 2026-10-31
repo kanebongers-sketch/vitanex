@@ -7,7 +7,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { sessieKlaar, type AfgerondeSessie, type AygEvent } from './stripe-event'
 import { pakkettenVanPrijzen } from './pakket-wijziging'
-import { bewaarOrganisatie, claimEvent, zetPakkettenVanAbonnement, claimInrichten, geefEventVrij, geefInrichtingVrij, rondInrichtingAf, vindAanmelding, werkStatusBij, type AanmeldingRij } from './opslag'
+import { bewaarOrganisatie, claimEvent, zetPakkettenVanAbonnement, claimInrichten, geefEventVrij, geefInrichtingVrij, rondInrichtingAf, zetNaarNakijken, vindAanmelding, werkStatusBij, type AanmeldingRij } from './opslag'
 import type { SportschoolUitslag } from './sportschool'
 
 export interface VerwerkDeps {
@@ -16,10 +16,12 @@ export interface VerwerkDeps {
   /** Na een geslaagde inrichting, best-effort (mag niet laten mislukken). */
   welkom: (admin: SupabaseClient, a: AanmeldingRij, organisatieId: string) => Promise<void>
   nu: () => Date
+  /** Een melding voor Kane (zonder gegevens van de aanmelder), best-effort. */
+  meld?: (wat: string) => Promise<void>
 }
 
-/** 'klaar' = niets (meer) te doen; 'fout' = Stripe moet het opnieuw proberen. */
-export type SessieUitkomst = 'ingericht' | 'klaar' | 'fout'
+/** 'klaar' = niets (meer) te doen; 'nakijken' = aanvraag voor Kane; 'fout' = Stripe moet het opnieuw proberen. */
+export type SessieUitkomst = 'ingericht' | 'klaar' | 'nakijken' | 'fout'
 
 export async function verwerkSessie(admin: SupabaseClient, s: AfgerondeSessie, deps: VerwerkDeps): Promise<SessieUitkomst> {
   if (!sessieKlaar(s) || !s.aanmeldingId) return 'klaar'
@@ -32,6 +34,13 @@ export async function verwerkSessie(admin: SupabaseClient, s: AfgerondeSessie, d
   if (a.organisatieId) await deps.ruimOp(admin, a.organisatieId)
 
   const uit = await deps.maakSportschool(admin, a, (id) => bewaarOrganisatie(admin, a.id, id))
+  if (!uit.ok && uit.reden === 'email_bezet') {
+    // Het adres kan al inloggen: geen tweede sportschool, geen herhaling van Stripe.
+    // Een aanvraag voor Kane, die het met de klant oplost (bijvoorbeeld terugbetalen).
+    await zetNaarNakijken(admin, a.id)
+    await deps.meld?.('Aanmelding met een e-mailadres dat al een account heeft: Kane kijkt hem na').catch(() => undefined)
+    return 'nakijken'
+  }
   if (!uit.ok) {
     await geefInrichtingVrij(admin, a.id)
     return 'fout'

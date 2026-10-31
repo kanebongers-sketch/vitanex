@@ -1,6 +1,6 @@
 // ─── GET/POST /api/aiyourgym/cron/club-outbox: opdrachten aan Stripe ───────
-// Elke minuut via cron-job.org. Slot: het gedeelde CRON_SECRET in de header
-// x-cron-secret (fail-closed: leeg = niemand komt binnen; nooit in de URL).
+// Elke minuut via cron-job.org. Slot: CLUB_CRON_SECRET (zolang leeg: CRON_SECRET)
+// in een kop, zie src/lib/club/kern/cron-geheim.ts (fail-closed: leeg = niemand komt binnen; nooit in de URL).
 // Doet niets zonder CLUB_BETALEN_ACTIEF=1 en CLUB_LIDGELD_ACTIEF=1 plus de
 // Stripe-sleutel. Twee runs tegelijk voeren nooit dubbel uit (skip locked en
 // een vaste idempotentiesleutel per opdracht). Zie src/lib/club/betalen/outbox/.
@@ -11,7 +11,7 @@ import { supabaseOutbox } from '@/lib/club/betalen/outbox/opslag-supabase'
 import { echteStripe } from '@/lib/club/betalen/outbox/stripe-client'
 import { werkOutboxAf } from '@/lib/club/betalen/outbox/werker'
 import { clubDatabase } from '@/lib/club/kern/database'
-import { geheimGelijk } from '@/lib/club/kern/pin'
+import { clubCronToegestaan } from '@/lib/club/kern/cron-geheim'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -23,7 +23,7 @@ function antwoord(body: Record<string, unknown>, status = 200): NextResponse {
 }
 
 async function verwerk(req: NextRequest): Promise<NextResponse> {
-  if (!geheimGelijk(process.env.CRON_SECRET ?? '', req.headers.get('x-cron-secret'))) return antwoord({ fout: 'Unauthorized' }, 401)
+  if (!clubCronToegestaan(req)) return antwoord({ fout: 'Unauthorized' }, 401)
   const sleutel = clubStripeSleutel()
   if (!betalenActief() || !lidgeldActief() || !sleutel) return antwoord({ aan: false })
   try {

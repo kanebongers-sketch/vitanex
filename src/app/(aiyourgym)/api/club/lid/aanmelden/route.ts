@@ -15,6 +15,7 @@ import { NextResponse, after, type NextRequest } from 'next/server'
 import { clubDatabase } from '@/lib/club/kern/database'
 import { ipVan, isZelfdeOorsprong } from '@/lib/club/kern/verzoek'
 import { isRateLimited } from '@/lib/utils/rate-limit'
+import { isGeremd } from '@/lib/club/kern/rem-db'
 import { clubFout, clubJson } from '@/lib/club/toegang'
 import { leesJsonOfTeGroot } from '@/lib/club/kern/body'
 import { remSleutel } from '@/lib/club/kern/rem-hash'
@@ -49,7 +50,7 @@ export async function POST(req: NextRequest) {
   const f = AANMELDEN[taal].fouten
   if (!isZelfdeOorsprong(req.headers)) return clubFout(f.nietVanApp, 403)
   const ip = ipVan(req)
-  if (isRateLimited(`club-lid-aanmelden:${ip}`, IP_MAX, VENSTER_MS) || isRateLimited('club-lid-aanmelden:alles', 600, VENSTER_MS)) {
+  if (await isGeremd({ soort: 'club-lid-aanmelden', max: IP_MAX, vensterMs: VENSTER_MS, bijStoring: 'geheugen' }, ip) || isRateLimited('club-lid-aanmelden:alles', 600, VENSTER_MS)) {
     return clubFout(f.teVeel, 429)
   }
   const gelezen = await leesJsonOfTeGroot(req, 2000)

@@ -1,6 +1,6 @@
 # AI Your Gym | ledenbetalingen via Stripe Connect | bouwplan
 
-Status: ontwerp, nog niets gebouwd. Datum: 23-10-2026.
+Status: deels gebouwd, alles achter schakelaars die uit staan (`CLUB_BETALEN_ACTIEF`, `CLUB_LIDGELD_ACTIEF`). Gebouwd en getest in `src/lib/club/betalen/`: geldregels (`geld/`), contractregels (`contract/`), factuurnummers en opbouw (`factuur/`), incassoschema (`incasso/`), inbox en outbox voor Stripe (`inbox/`, `outbox/`), losse verkoop en Connect-onboarding. Nog niet live, nog geen echte betalingen. Ontwerp: 23-10-2026, bijgewerkt 31-10-2026.
 Doel (besluit Kane 23-10-2026): sportscholen en studio's draaien hun eigen ledenabonnementen, facturen en incasso's in AI Your Gym. Geld en facturen mogen nooit fout gaan: idempotent, controleerbaar, getest.
 
 Feiten over Stripe en het Nederlandse recht staan in `ONDERZOEK-STRIPE.md`. Waar dit plan een wettelijke of Stripe-waarde nodig heeft staat **[CHECK]**: die waarde komt in een getest regelbestand, niet verspreid door de code.
@@ -9,10 +9,10 @@ Feiten over Stripe en het Nederlandse recht staan in `ONDERZOEK-STRIPE.md`. Waar
 
 | Onderdeel | Waar | Wat het doet |
 |---|---|---|
-| Connect-account per sportschool | `club_betalen_accounts` (migratie 439), `src/lib/club/betalen/stripe-api.ts` | Express-account, direct charges, kop `Stripe-Account`, onboarding-link, dashboard-link |
+| Connect-account per sportschool | `club_betalen_accounts` (migratie 439), `src/lib/club/betalen/stripe-api.ts` | Connect-account met Standard-gedrag via controller-instellingen (`fees.payer = account`, `losses.payments = stripe`, `requirement_collection = stripe`, `stripe_dashboard.type = full`), direct charges, kop `Stripe-Account`, onboarding-link, link naar het volledige Stripe-dashboard |
 | Webhook Connect | `src/app/(aiyourgym)/api/club-betalen/stripe/route.ts` | Handtekening (`stripe-handtekening.ts`), elk event een keer (`club_betalen_stripe_events`) |
 | Losse verkoop | `club_betalen_producten`, `_verkopen`, `_tegoeden`, `_mutaties` | Losse les, strippenkaart, PT-pakket, product; afronden en terugbetalen in databasefuncties |
-| Schakelaars | `src/lib/club/betalen/config.ts` | `CLUB_BETALEN_ACTIEF`, `CLUB_STRIPE_SECRET_KEY`, `CLUB_STRIPE_WEBHOOK_SECRET`, `PLATFORM_FEE_PROCENT = 0` |
+| Schakelaars | `src/lib/club/betalen/config.ts` | `CLUB_BETALEN_ACTIEF`, `CLUB_STRIPE_SECRET_KEY`, `CLUB_STRIPE_WEBHOOK_SECRET`, `CLUB_LIDGELD_ACTIEF`, `PLATFORM_FEE_CENT = 0` (geen platformdeel) |
 | Lidmaatschapsvormen | `club_lidmaatschapsvormen` (417), `src/lib/club/lidmaatschappen/` | Toegangsregels (vestigingen, lessen, daluren), nu zonder geld |
 | AVG | `src/lib/club/leden/avg/tabellen.ts`, `club_lid_definitief_verwijderen` (449), `club_privacy_opruimen` | Elke tabel met `lid_id` verplicht geregeld, test dwingt dit af |
 | Platformabonnement | `src/lib/aiyourgym/stripe-*.ts`, `docs/aiyourgym/STRIPE.md` | Het abonnement van de sportschool bij AI Your Gym. Blijft volledig los hiervan. |
@@ -193,9 +193,9 @@ Totaal ongeveer 47 werkdagen, daarna de schaduwmaanden. Elke fase is een PR met 
 
 ## 8. Open beslissingen voor Kane
 
-1. **Connect-type**: nu Express (platform draagt risico van negatieve saldo's en verloren geschillen) of Standard-gedrag (sportschool draagt het, aanbevolen in het onderzoek).
-2. **Jouw deel per betaling**: nu 0.
-3. **Wie betaalt de Stripe-kosten**: bij direct charges de sportschool.
+1. **Connect-type**: besloten (Kane 23-10-2026): Standard-gedrag. De sportschool is verkoper, betaalt de Stripe-kosten, draagt het risico en werkt in het volledige Stripe-dashboard. Gebouwd 31-10-2026 met controller-instellingen in `accountFormulier()` (getest).
+2. **Jouw deel per betaling**: besloten: geen. Er gaat nooit een `application_fee_amount` mee (test bewaakt dit).
+3. **Wie betaalt de Stripe-kosten**: besloten: de sportschool (direct charges, `fees.payer = account`).
 4. **Stripe Tax**: advies nee.
 5. **Stripe Billing of eigen facturatie**: advies eigen facturatie.
 6. **Menu-item Financien** onder Beheer, of tabblad onder Rapporten.

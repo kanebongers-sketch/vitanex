@@ -83,7 +83,7 @@
   .club-training-beeld.is-repdb:not(.is-enkel) .club-training-beeld-houding { gap: 0; }
   .club-training-beeld.is-repdb:not(.is-enkel) .club-training-beeld-label { padding: 2px 0; }
   .club-training-beeld-houding { grid-area: auto; grid-template-rows: minmax(0, 1fr) auto; gap: 2px; animation: none; opacity: 1; }
-  .club-training-beeld-label { display: block; text-align: center; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
+  .club-training-beeld-label { display: block; text-align: center; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
   .club-training-beeld--groot .club-training-beeld-label { font-size: 12px; }
 }
 

@@ -1,11 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ExternalLink, LifeBuoy, Activity } from 'lucide-react'
+import { ExternalLink, LifeBuoy, Activity, ShieldCheck } from 'lucide-react'
 import { eisPlatformEigenaar } from '@/lib/club/toegang'
 import { MAX_AANMELDINGEN, haalPlatform } from '@/lib/club/platform/opslag'
 import { formatDatum } from '@/lib/aiyourgym/taal/formaat'
 import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
 import { PLATFORM } from '@/lib/aiyourgym/taal/woorden/club/platform'
+import { TWEESTAPS } from '@/lib/aiyourgym/taal/woorden/club/tweestaps'
 import { Kerncijfers } from '@/components/club/platform/Kerncijfers'
 import { Sportscholen } from '@/components/club/platform/Sportscholen'
 import { Aanmeldingen } from '@/components/club/platform/Aanmeldingen'
@@ -42,6 +43,9 @@ export default async function PlatformPagina() {
         <nav aria-label={p.nav} className="club-acties">
           <Link href="/club/hulp/meldingen" className="club-knop club-knop--klein">
             <LifeBuoy size={14} aria-hidden /> {p.support}
+          </Link>
+          <Link href="/club/platform/beveiliging" className="club-knop club-knop--klein">
+            <ShieldCheck size={14} aria-hidden /> {TWEESTAPS[taal].navKnop}
           </Link>
           <Link href="/club/systeem" className="club-knop club-knop--klein">
             <Activity size={14} aria-hidden /> {p.systeem}

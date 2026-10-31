@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, clubJson } from '@/lib/club/toegang'
 import { leesJsonOfTeGroot } from '@/lib/club/kern/body'
-import { isRateLimited } from '@/lib/utils/rate-limit'
+import { isGeremd } from '@/lib/club/kern/rem-db'
 import { MAX_BODY_BYTES, leesMelding } from '@/lib/club/hulp/melding'
 import { bewaarMelding, eigenMeldingen, teVeelMeldingen, vereisHulpToegang } from '@/lib/club/hulp/opslag'
 
@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const t = await vereisHulpToegang(req)
   if (t instanceof NextResponse) return t
-  if (isRateLimited(`club-hulp:${t.userId}:${t.persoonId ?? 'kane'}`, 5, 10 * 60_000)) return clubFout('Te veel meldingen achter elkaar. Probeer het over een paar minuten opnieuw.', 429)
+  if (await isGeremd({ soort: 'club-hulp', max: 5, vensterMs: 10 * 60_000, bijStoring: 'geheugen' }, `${t.userId}:${t.persoonId ?? 'kane'}`)) return clubFout('Te veel meldingen achter elkaar. Probeer het over een paar minuten opnieuw.', 429)
   const gelezen = await leesJsonOfTeGroot(req, MAX_BODY_BYTES)
   if (gelezen instanceof NextResponse) return gelezen
   const invoer = leesMelding(gelezen.body)

@@ -16,6 +16,7 @@ import { maakOrganisatie } from '@/lib/club/kern/organisatie-opslag'
 import { maakVestiging } from '@/lib/club/instellingen/vestigingen-opslag'
 import { maakBeheerder } from '@/lib/club/beheerders/beheerder-opslag'
 import { naamMetAdres } from './sportschool-naam'
+import { emailHeeftAccount } from './dubbel'
 import type { AanmeldingRij } from './opslag'
 
 /**
@@ -48,13 +49,16 @@ export async function ruimSportschoolOp(admin: SupabaseClient, organisatieId: st
   if (error) console.error('[aiyourgym] opruimen mislukt', error.code ?? '')
 }
 
-export type SportschoolUitslag = { ok: true; organisatieId: string } | { ok: false }
+/** `email_bezet`: het adres van de eigenaar heeft al een account. Geen herhaling van Stripe, maar een aanvraag voor Kane. */
+export type SportschoolUitslag = { ok: true; organisatieId: string } | { ok: false; reden?: 'email_bezet' }
 
 export async function maakSportschool(admin: SupabaseClient, a: AanmeldingRij, onthoud: (organisatieId: string) => Promise<boolean>): Promise<SportschoolUitslag> {
   const beheerderId = platformEigenaarId()
   const organisaties = await organisatiesVan(admin, beheerderId)
   if (!organisaties || organisaties.length === 0) return { ok: false }
   const t = systeemToegang(admin, beheerderId, organisaties, beheerderId)
+  // Nooit een tweede sportschool of een overschreven account voor een adres dat al kan inloggen.
+  if (await emailHeeftAccount(admin, a.eigenaarEmail)) return { ok: false, reden: 'email_bezet' }
 
   let uit = await maakOrganisatie(t, a.sportschoolNaam)
   if (!uit.ok && uit.status === 409) uit = await maakOrganisatie(t, naamMetAdres(a.sportschoolNaam, a.slug))
@@ -84,7 +88,8 @@ export async function maakSportschool(admin: SupabaseClient, a: AanmeldingRij, o
   const eigenaar = vestiging.ok ? await maakBeheerder(admin, id, { naam: a.eigenaarNaam, email: a.eigenaarEmail.trim().toLowerCase(), rol: 'eigenaar' }, a.eigenaarWachtwoordHash) : null
   if (!eigenaar) {
     await ruimSportschoolOp(admin, id, beheerderId)
-    return { ok: false }
+    // Tegelijk door een andere aanmelding met hetzelfde adres ingericht (unieke index, migratie 455).
+    return (await emailHeeftAccount(admin, a.eigenaarEmail)) ? { ok: false, reden: 'email_bezet' } : { ok: false }
   }
   return { ok: true, organisatieId: id }
 }

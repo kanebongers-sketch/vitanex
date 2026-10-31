@@ -9,12 +9,11 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubDatabase } from '@/lib/club/kern/database'
 import { ipVan, isZelfdeOorsprong } from '@/lib/club/kern/verzoek'
-import { isRateLimited } from '@/lib/utils/rate-limit'
+import { isGeremd } from '@/lib/club/kern/rem-db'
 import { clubFout, clubJson } from '@/lib/club/toegang'
 import { leesJsonOfTeGroot } from '@/lib/club/kern/body'
 import { isUuid } from '@/lib/club/kern/organisatie'
 import { MAX_LENGTE, normaalEmail } from '@/lib/club/kern/wachtwoord-regels'
-import { remSleutel } from '@/lib/club/kern/rem-hash'
 import { CLUB_LEDEN_LOGIN } from '@/lib/club/ledenlogin/schakelaar'
 import { logInMetEmail } from '@/lib/club/ledenlogin/inloggen'
 import { DICHT_TEKST, INLOG_FOUT, blokkadeTekst, zetLidCookies } from '@/lib/club/ledenlogin/inlog-api'
@@ -41,7 +40,7 @@ function lees(body: unknown): { email: string | null; wachtwoord: string | null;
 export async function POST(req: NextRequest) {
   if (!CLUB_LEDEN_LOGIN) return clubFout('Niet gevonden.', 404)
   if (!isZelfdeOorsprong(req.headers)) return clubFout('Dit verzoek komt niet van de app zelf.', 403)
-  if (isRateLimited(`club-lid-inloggen:${ipVan(req)}`, IP_MAX, VENSTER_MS)) {
+  if (await isGeremd({ soort: 'club-lid-inloggen', max: IP_MAX, vensterMs: VENSTER_MS, bijStoring: 'geheugen' }, ipVan(req))) {
     return clubFout('Te veel inlogpogingen vanaf dit netwerk. Probeer het over een kwartier opnieuw.', 429)
   }
   const gelezen = await leesJsonOfTeGroot(req, 1000)
@@ -49,7 +48,7 @@ export async function POST(req: NextRequest) {
   const { email, wachtwoord, sportschool } = lees(gelezen.body)
   if (!wachtwoord) return clubFout('Vul je e-mailadres en wachtwoord in.', 400)
   if (!email) return clubFout(INLOG_FOUT, 401)
-  if (isRateLimited(`club-lid-inloggen-email:${remSleutel('lid-inloggen', email)}`, EMAIL_MAX, VENSTER_MS)) {
+  if (await isGeremd({ soort: 'club-lid-inloggen-email', max: EMAIL_MAX, vensterMs: VENSTER_MS, bijStoring: 'geheugen' }, email)) {
     return clubFout('Te veel inlogpogingen voor dit e-mailadres. Probeer het over een kwartier opnieuw.', 429)
   }
 

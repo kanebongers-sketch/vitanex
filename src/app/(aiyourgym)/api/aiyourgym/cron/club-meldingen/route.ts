@@ -1,6 +1,6 @@
 // ─── GET/POST /api/cron/club-meldingen: de wachtrij met meldingen aan leden ──
-// Elke 5 minuten via cron-job.org. Slot: het gedeelde CRON_SECRET in de header
-// x-cron-secret (fail-closed: leeg = niemand komt binnen; nooit in de URL).
+// Elke 5 minuten via cron-job.org. Slot: CLUB_CRON_SECRET (zolang leeg: CRON_SECRET)
+// in een kop, zie src/lib/club/kern/cron-geheim.ts (fail-closed: leeg = niemand komt binnen; nooit in de URL).
 // Verstuurt wat aan de beurt is (zie src/lib/club/meldingen/versturen.ts).
 // Mailen alleen met CLUB_MAILS_ACTIEF=1 plus CLUB_RESEND_API_KEY en
 // CLUB_RESEND_FROM; zonder die worden mails overgeslagen en verschijnen de
@@ -10,7 +10,7 @@
 
 import { type NextRequest, NextResponse } from 'next/server'
 import { clubDatabase } from '@/lib/club/kern/database'
-import { geheimGelijk } from '@/lib/club/kern/pin'
+import { clubCronToegestaan } from '@/lib/club/kern/cron-geheim'
 import { verwerkWachtrij } from '@/lib/club/meldingen/versturen'
 import { pushActief } from '@/lib/club/push/sleutels'
 import { ruimProfielfotosOp } from '@/lib/club/profielfoto/opslag'
@@ -23,7 +23,7 @@ function antwoord(body: Record<string, unknown>, status = 200): NextResponse {
 }
 
 async function verwerk(req: NextRequest): Promise<NextResponse> {
-  if (!geheimGelijk(process.env.CRON_SECRET ?? '', req.headers.get('x-cron-secret'))) return antwoord({ fout: 'Unauthorized' }, 401)
+  if (!clubCronToegestaan(req)) return antwoord({ fout: 'Unauthorized' }, 401)
   try {
     const admin = clubDatabase()
     const verslag = await verwerkWachtrij(admin)

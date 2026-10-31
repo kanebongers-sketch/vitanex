@@ -43,7 +43,9 @@ export function WachtwoordKiezen({ api, merk, rol, email, naam }: WachtwoordKiez
       setBezig(false)
       return setFout(uit.fout)
     }
-    window.location.assign('/club?start=1')
+    // Met tweestapsverificatie aan (master account) volgt eerst de code.
+    const tweestaps = typeof uit.data === 'object' && uit.data !== null && (uit.data as { staat?: unknown }).staat === 'tweestaps'
+    window.location.assign(tweestaps ? '/clubinloggen/tweestaps' : '/club?start=1')
   }
 
   return (

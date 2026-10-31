@@ -41,7 +41,7 @@
 .club-ve-rond:active { transform: scale(0.94); }
 
 .club-ve-voortgang { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
-.club-ve-voortgang li { display: grid; gap: 6px; font-size: 11.5px; font-weight: 600; color: var(--text-3); }
+.club-ve-voortgang li { display: grid; gap: 6px; font-size: 12px; font-weight: 600; color: var(--text-3); }
 .club-ve-voortgang li::before { content: ''; height: 4px; border-radius: 999px; background: var(--line); transition: background 300ms var(--ve-ease); }
 .club-ve-voortgang li.is-gedaan { color: var(--text-1); }
 .club-ve-voortgang li.is-gedaan::before { background: var(--brand); }

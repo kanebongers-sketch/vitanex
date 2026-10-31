@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { accountFormulier, checkoutFormulier } from './stripe-api'
+import { CONTROLLER_STANDAARD, STRIPE_DASHBOARD_URL, accountFormulier, checkoutFormulier, eersteBetalingFormulier, incassoFormulier, lidTerugbetalingFormulier } from './stripe-api'
 import { leesAccount, leesClubEvent, sessieBetaald } from './stripe-event'
 import { verwerkClubEvent, type VerwerkOpslag } from './verwerk'
 
@@ -14,8 +14,8 @@ function event(type: string, object: unknown, account: string | null = 'acct_TES
 }
 
 describe('checkout en account', () => {
-  it('checkout: payment, iDEAL en kaart, bedrag uit onze verkoop, geen fee bij 0', () => {
-    const f = checkoutFormulier({ verkoopId: VERKOOP, organisatieId: 'org', productNaam: 'Strip 10', bedragCent: 9900, platformFeeCent: 0, email: null, succesUrl: 'https://a/s', terugUrl: 'https://a/t' })
+  it('checkout: payment, iDEAL en kaart, bedrag uit onze verkoop, nooit een application fee', () => {
+    const f = checkoutFormulier({ verkoopId: VERKOOP, organisatieId: 'org', productNaam: 'Strip 10', bedragCent: 9900, email: null, succesUrl: 'https://a/s', terugUrl: 'https://a/t' })
     expect(f.get('mode')).toBe('payment')
     expect(f.get('payment_method_types[0]')).toBe('ideal')
     expect(f.get('payment_method_types[1]')).toBe('card')
@@ -25,17 +25,36 @@ describe('checkout en account', () => {
     expect(f.has('customer_email')).toBe(false)
   })
 
-  it('checkout met fee en e-mail', () => {
-    const f = checkoutFormulier({ verkoopId: VERKOOP, organisatieId: 'org', productNaam: 'x', bedragCent: 1000, platformFeeCent: 50, email: 'a@b.nl', succesUrl: 'https://a', terugUrl: 'https://b' })
-    expect(f.get('payment_intent_data[application_fee_amount]')).toBe('50')
+  it('checkout met e-mail', () => {
+    const f = checkoutFormulier({ verkoopId: VERKOOP, organisatieId: 'org', productNaam: 'x', bedragCent: 1000, email: 'a@b.nl', succesUrl: 'https://a', terugUrl: 'https://b' })
     expect(f.get('customer_email')).toBe('a@b.nl')
   })
 
-  it('express-account in Nederland met iDEAL', () => {
+  it('account met Standard-gedrag: sportschool betaalt kosten, Stripe draagt verliezen, volledig dashboard', () => {
     const f = accountFormulier('org', 'Fit Factory')
-    expect(f.get('type')).toBe('express')
+    expect(f.has('type')).toBe(false)
+    expect(f.get('controller[fees][payer]')).toBe('account')
+    expect(f.get('controller[losses][payments]')).toBe('stripe')
+    expect(f.get('controller[requirement_collection]')).toBe('stripe')
+    expect(f.get('controller[stripe_dashboard][type]')).toBe('full')
+    expect(Object.keys(CONTROLLER_STANDAARD)).toHaveLength(4)
     expect(f.get('country')).toBe('NL')
     expect(f.get('capabilities[ideal_payments][requested]')).toBe('true')
+    expect(f.get('capabilities[sepa_debit_payments][requested]')).toBe('true')
+    expect(f.has('capabilities[transfers][requested]')).toBe(false)
+    expect(STRIPE_DASHBOARD_URL).toBe('https://dashboard.stripe.com/')
+  })
+
+  it('geen enkel formulier stuurt een platformdeel mee', () => {
+    const k = { organisatieId: 'org', factuurId: VERKOOP, betalingId: VERKOOP }
+    const formulieren = [
+      eersteBetalingFormulier({ ...k, klant: 'cus_1', omschrijving: 'x', bedragCent: 100, succesUrl: 'https://a', terugUrl: 'https://b' }),
+      incassoFormulier({ ...k, factuurId: VERKOOP, klant: 'cus_1', betaalmethode: 'pm_1', mandaat: 'mandate_1', bedragCent: 100, omschrijving: 'x' }),
+      lidTerugbetalingFormulier({ organisatieId: 'org', betalingId: VERKOOP, terugbetalingId: VERKOOP, paymentIntent: 'pi_1', bedragCent: 100 }),
+    ]
+    for (const f of formulieren) {
+      for (const sleutel of f.keys()) expect(sleutel).not.toMatch(/application_fee|transfer_data|on_behalf_of/)
+    }
   })
 
   it('leest de accountstand', () => {

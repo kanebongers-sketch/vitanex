@@ -220,7 +220,7 @@
 .club-training-meer-paneel button[data-gevaar] { color: var(--club-let-op-inkt); }
 .club-training-meer-paneel button[data-gevaar] > svg { color: currentColor; }
 .club-training-meer-paneel li:has(> [data-gevaar]):not(:first-child) { margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--line); }
-.club-training-meer-voet { margin: 6px 0 0; padding: 8px 10px 4px; border-top: 1px solid var(--line); font-size: 11.5px; line-height: 1.9; color: var(--text-3); }
+.club-training-meer-voet { margin: 6px 0 0; padding: 8px 10px 4px; border-top: 1px solid var(--line); font-size: 12px; line-height: 1.9; color: var(--text-3); }
 .club-training-meer-voet kbd { display: inline-block; min-width: 20px; padding: 0 5px; border: 1px solid var(--line-strong); border-bottom-width: 2px; border-radius: 5px; font: inherit; font-size: 11px; color: var(--text-2); text-align: center; }
 @media (max-width: 1100px) { .club-training-meer-voet { display: none; } }
 .club-training-werkmelding a { color: var(--brand-tekst, var(--brand)); }

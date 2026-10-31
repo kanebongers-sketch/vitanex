@@ -41,6 +41,7 @@ const VAST: Readonly<Record<string, string>> = {
   'Gebruik geen twee koppeltekens achter elkaar.': 'Do not use two hyphens in a row.',
   'Dit adres is gereserveerd. Kies een ander.': 'This address is reserved. Choose another one.',
   'Dit adres is al bezet. Kies een ander.': 'This address is already taken. Choose another one.',
+  'Met dit e-mailadres kun je je hier niet aanmelden. Log in als je al een account hebt, of gebruik een ander e-mailadres.': 'You cannot sign up here with this email address. Sign in if you already have an account, or use a different email address.',
   'Dit adres is al bezet.': 'This address is already taken.',
   // Demo en prijs op maat (demo-aanvraag.ts, prijs-aanvraag.ts)
   'Vul een geldig telefoonnummer in, zodat we je kunnen bellen.': 'Enter a valid phone number so we can call you.',

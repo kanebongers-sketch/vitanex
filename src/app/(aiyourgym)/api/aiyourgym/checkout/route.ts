@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server'
 import { ipVan, isZelfdeOorsprong } from '@/lib/club/kern/verzoek'
-import { isRateLimited } from '@/lib/utils/rate-limit'
+import { isGeremd } from '@/lib/club/kern/rem-db'
 import { leesJsonBegrensd } from '@/lib/club/kern/body'
 import { siteActief } from '@/lib/aiyourgym/schakelaar'
 import { MAX_BODY_BYTES, isRobot, leesAanmelding } from '@/lib/aiyourgym/aanmelding'
@@ -9,8 +9,7 @@ import { checkoutAdressen, oorsprongVan, testbetaalAdres } from '@/lib/aiyourgym
 import { nieuweTestSessie } from '@/lib/aiyourgym/testbetaling-opslag'
 import { testbetalenVoor } from '@/lib/aiyourgym/testbetaling'
 import { hashWachtwoord } from '@/lib/club/kern/wachtwoord'
-import { vindBeheerderOpEmail } from '@/lib/club/beheerders/beheerder-opslag'
-import { vindPlatformOpEmail } from '@/lib/club/platform-login/opslag'
+import { EMAIL_NIET_BRUIKBAAR, emailVrijVoorAanmelding } from '@/lib/aiyourgym/dubbel'
 import { koppelSessie, maakAanmelding, slugVrij, teVeelRecent } from '@/lib/aiyourgym/opslag'
 import { maakCheckoutSessie } from '@/lib/aiyourgym/stripe-api'
 import { adminOfNull, aygFout, aygJson, poortOpen, publiekeHost } from '@/lib/aiyourgym/api'
@@ -43,7 +42,7 @@ async function mislukt(stap: string, melding: string, status: number) {
 export async function POST(req: NextRequest) {
   if (!(await poortOpen())) return aygFout('Niet gevonden.', 404)
   if (!isZelfdeOorsprong(req.headers)) return aygFout('Dit verzoek komt niet van de website zelf.', 403)
-  if (isRateLimited(`ayg-checkout:${ipVan(req)}`, 5, 10 * 60_000)) return aygFout('Te veel pogingen. Probeer het over een paar minuten opnieuw.', 429)
+  if (await isGeremd({ soort: 'ayg-checkout', max: 5, vensterMs: 10 * 60_000, bijStoring: 'geheugen' }, ipVan(req))) return aygFout('Te veel pogingen. Probeer het over een paar minuten opnieuw.', 429)
 
   const body = await leesJsonBegrensd(req, MAX_BODY_BYTES)
   if (body === 'te-groot') return aygFout('Het verzoek is te groot.', 413)
@@ -63,10 +62,11 @@ export async function POST(req: NextRequest) {
   const vrij = await slugVrij(admin, a.slug, nu)
   if (vrij === null) return mislukt('adres controleren', MISLUKT, 500)
   if (!vrij) return aygJson(metEngels({ fout: 'Controleer de gemarkeerde velden.', fouten: { slug: 'Dit adres is al bezet. Kies een ander.' } }), 409)
-  // Inloggen gaat op e-mailadres: een adres met een account kan geen tweede eigenaar worden.
-  if ((await vindBeheerderOpEmail(admin, a.eigenaarEmail)) || (await vindPlatformOpEmail(admin, a.eigenaarEmail))) {
-    return aygJson(metEngels({ fout: 'Controleer de gemarkeerde velden.', fouten: { eigenaarEmail: 'Met dit e-mailadres is al een account. Log in, of gebruik een ander adres.' } }), 409)
-  }
+  // Inloggen gaat op e-mailadres: een adres met een account of een lopende aanmelding
+  // kan geen tweede eigenaar worden. Neutrale melding: verraadt niet of er een account is (AVG).
+  const emailVrij = await emailVrijVoorAanmelding(admin, a.eigenaarEmail)
+  if (emailVrij === null) return mislukt('e-mailadres controleren', MISLUKT, 500)
+  if (!emailVrij) return aygJson(metEngels({ fout: 'Controleer de gemarkeerde velden.', fouten: { eigenaarEmail: EMAIL_NIET_BRUIKBAAR } }), 409)
 
   const sleutel = stripeSleutel()
   const regels = stripeRegels(a.pakketten)

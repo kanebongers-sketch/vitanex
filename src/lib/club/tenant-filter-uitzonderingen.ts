@@ -37,7 +37,11 @@ export const TENANT_UITZONDERINGEN: readonly TenantUitzondering[] = [
   { bestand: 'src/lib/club/nieuwe-leden/aanmelden-opslag.ts', tabel: 'club_aanmeldingen', functies: ['tel', 'vindAanmelding', 'ruimAanmeldingenOp'], reden: 'Aanmelden via een link: zoekt op tokenhash, telt de rem op IP-, adres- en linkhash en ruimt rijen ouder dan een dag op.' },
   { bestand: 'src/lib/club/platform-login/opslag.ts', tabel: 'club_platform_accounts', reden: 'Platform-account (Kane) heeft geen sportschool; opgezocht op linkhash, e-mail of id van de sessie.' },
   { bestand: 'src/lib/club/platform-login/opslag.ts', tabel: 'club_platform_sessies', reden: SESSIE },
+  { bestand: 'src/lib/club/tweestaps/opslag.ts', tabel: 'club_tweestaps', reden: 'Tweestapsverificatie van het platform-account (geen sportschool): opgezocht op het account-id uit de sessie of de wachtstap, of op het id van de gevonden rij.' },
+  { bestand: 'src/lib/club/tweestaps/opslag.ts', tabel: 'club_tweestaps_wacht', reden: 'Wachtstap tussen wachtwoord en code: opgezocht op tokenhash of op het account-id van het platform; geen sportschool.' },
 
+  // Remmen tegen misbruik (migratie 483): de sleutel is soort plus HMAC, er is geen sportschool.
+  { bestand: 'src/lib/club/kern/rem-db.ts', tabel: 'club_rem_tik', functies: ['tikInDatabase'], reden: 'Rem: telt per gehashte sleutel (IP, e-mail of lid), los van een sportschool, ook voor inloggen voordat die bekend is.' },
   // Sportschool zoeken voor routering, merk en afmelden
   { bestand: 'src/lib/club/app-uitnodigen/sportschool.ts', tabel: 'club_organisaties', functies: ['zoek'], reden: ROUTING },
   { bestand: 'src/lib/club/ledenapp-pwa/merk-server.ts', tabel: 'club_organisaties', functies: ['zoekOrganisatie'], reden: ROUTING },
@@ -80,6 +84,7 @@ export const TENANT_UITZONDERINGEN: readonly TenantUitzondering[] = [
   // AI Your Gym-platform: aanmelden en betalen gebeuren voordat er een sportschool bestaat.
   // Een rij in ayg_aanmeldingen, ayg_stripe_events, ayg_proefmails of ayg_demo_aanvragen hoort bij een aanmelding, niet bij een sportschool.
   { bestand: 'src/lib/aiyourgym/opslag.ts', tabel: 'ayg_aanmeldingen', reden: 'Aanmelding van een nieuwe sportschool: opgezocht op id, slug of Stripe-sessie uit de webhook, er is nog geen sportschool.' },
+  { bestand: 'src/lib/aiyourgym/dubbel.ts', tabel: 'ayg_aanmeldingen', functies: ['emailInAanmelding'], reden: 'Aanmelden: hoort dit e-mailadres al bij een lopende aanmelding (over alle sportscholen), leest alleen het id.' },
   { bestand: 'src/lib/aiyourgym/opslag.ts', tabel: 'ayg_stripe_events', functies: ['claimEvent', 'geefEventVrij'], reden: 'Stripe-webhook: eventregistratie op event_id, om dubbele verwerking te stoppen.' },
   { bestand: 'src/lib/aiyourgym/opslag.ts', tabel: 'club_organisaties', functies: ['slugVrij'], reden: 'Is een webadres nog vrij: zoekt op slug over alle sportscholen, leest alleen het id.' },
   { bestand: 'src/lib/aiyourgym/demo-aanvraag-opslag.ts', tabel: 'ayg_demo_aanvragen', functies: ['tel', 'bewaarDemoAanvraag'], reden: 'Demo-aanvraag van een bezoeker van de website: er is geen sportschool, de rem telt op e-mail en IP-hash.' },

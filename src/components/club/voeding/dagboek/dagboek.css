@@ -89,7 +89,7 @@ div.club-vd-week-kolom { cursor: default; }
 .club-vd-week-balk { position: absolute; inset: 0; border-radius: 8px; background: color-mix(in srgb, var(--brand) 70%, transparent); transform-origin: bottom; transition: transform 500ms var(--vd-ease); }
 .club-vd-week-balk.is-over { background: var(--vd-over); }
 .club-vd-week-kolom.is-actief .club-vd-week-balk { background: var(--brand); }
-.club-vd-week-dag { font-size: 11.5px; text-align: center; color: var(--text-3); text-transform: capitalize; }
+.club-vd-week-dag { font-size: 12px; text-align: center; color: var(--text-3); text-transform: capitalize; }
 .club-vd-week-kolom.is-actief .club-vd-week-dag { color: var(--text-1); font-weight: 700; }
 
 /* Start en instellingen */

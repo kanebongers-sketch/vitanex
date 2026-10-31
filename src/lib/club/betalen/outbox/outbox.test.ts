@@ -81,7 +81,7 @@ describe('lidgeld-outbox: opdrachten en formulieren', () => {
   })
 
   it('incasso: sepa_debit, off_session, met machtiging en koppeling', () => {
-    const f = incassoFormulier({ organisatieId: ORG, factuurId: FACTUUR, betalingId: BETALING, klant: 'cus_1', betaalmethode: 'pm_1', mandaat: 'mandate_1', bedragCent: 2500, platformFeeCent: 0, omschrijving: 'x' })
+    const f = incassoFormulier({ organisatieId: ORG, factuurId: FACTUUR, betalingId: BETALING, klant: 'cus_1', betaalmethode: 'pm_1', mandaat: 'mandate_1', bedragCent: 2500, omschrijving: 'x' })
     expect(f.get('payment_method_types[0]')).toBe('sepa_debit')
     expect(f.get('off_session')).toBe('true')
     expect(f.get('confirm')).toBe('true')
@@ -91,7 +91,7 @@ describe('lidgeld-outbox: opdrachten en formulieren', () => {
   })
 
   it('eerste betaling: iDEAL met setup_future_usage off_session', () => {
-    const f = eersteBetalingFormulier({ organisatieId: ORG, factuurId: FACTUUR, betalingId: BETALING, klant: 'cus_1', omschrijving: 'Eerste maand', bedragCent: 3000, platformFeeCent: 0, succesUrl: 'https://a/s', terugUrl: 'https://a/t' })
+    const f = eersteBetalingFormulier({ organisatieId: ORG, factuurId: FACTUUR, betalingId: BETALING, klant: 'cus_1', omschrijving: 'Eerste maand', bedragCent: 3000, succesUrl: 'https://a/s', terugUrl: 'https://a/t' })
     expect(f.get('payment_method_types[0]')).toBe('ideal')
     expect(f.get('payment_intent_data[setup_future_usage]')).toBe('off_session')
     expect(f.get('payment_intent_data[metadata][factuur_id]')).toBe(FACTUUR)
@@ -153,7 +153,7 @@ describe('lidgeld-outbox: de werker', () => {
 
   it('zelfde sleutel met andere vraag: geweigerd door Stripe, opdracht vast', async () => {
     const o = opzet()
-    await o.stripe.maakIncasso(ACCOUNT, idempotentieSleutel('incasso', OPDRACHT), { organisatieId: ORG, factuurId: FACTUUR, betalingId: BETALING, klant: 'cus_test0001', betaalmethode: 'pm_test0001', mandaat: 'mandate_test0001', bedragCent: 9999, platformFeeCent: 0, omschrijving: 'anders' })
+    await o.stripe.maakIncasso(ACCOUNT, idempotentieSleutel('incasso', OPDRACHT), { organisatieId: ORG, factuurId: FACTUUR, betalingId: BETALING, klant: 'cus_test0001', betaalmethode: 'pm_test0001', mandaat: 'mandate_test0001', bedragCent: 9999, omschrijving: 'anders' })
     await werkOutboxAf(o.deps, { max: 10 })
     expect(o.stripe.aantal('payment_intent')).toBe(1)
     expect(o.opslag.opdrachten.get(OPDRACHT)?.status).toBe('vast')

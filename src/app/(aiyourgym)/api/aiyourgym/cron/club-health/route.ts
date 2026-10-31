@@ -1,12 +1,12 @@
 // ─── GET/POST /api/aiyourgym/cron/club-health: koppelingen bijwerken ───────
 // Elke 15 minuten via cron-job.org. Haalt per koppeling die aan de beurt is
 // (volgende_sync_op voorbij, of net gemeld door een webhook) de nieuwe gegevens
-// op. Slot: het gedeelde CRON_SECRET in de kop x-cron-secret (nooit in de URL).
+// op. Slot: CLUB_CRON_SECRET (zolang leeg: CRON_SECRET) in de kop x-cron-secret of Authorization: Bearer, zie src/lib/club/kern/cron-geheim.ts (nooit in de URL).
 // Doet niets zonder CLUB_HEALTH_ACTIEF=1 en een geldige CLUB_HEALTH_SLEUTEL.
 
 import { type NextRequest, NextResponse } from 'next/server'
 import { clubDatabase } from '@/lib/club/kern/database'
-import { geheimGelijk } from '@/lib/club/kern/pin'
+import { clubCronToegestaan } from '@/lib/club/kern/cron-geheim'
 import { healthKlaar } from '@/lib/club/health/schakelaar'
 import { koppelingenTeSyncen } from '@/lib/club/health/opslag-cron'
 import { echteHttp, supabaseSyncOpslag } from '@/lib/club/health/opslag'
@@ -23,7 +23,7 @@ function antwoord(body: Record<string, unknown>, status = 200): NextResponse {
 }
 
 async function verwerk(req: NextRequest): Promise<NextResponse> {
-  if (!geheimGelijk(process.env.CRON_SECRET ?? '', req.headers.get('x-cron-secret'))) return antwoord({ fout: 'Unauthorized' }, 401)
+  if (!clubCronToegestaan(req)) return antwoord({ fout: 'Unauthorized' }, 401)
   if (!healthKlaar()) return antwoord({ aan: false })
   try {
     const admin = clubDatabase()

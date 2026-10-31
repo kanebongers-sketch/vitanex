@@ -46,7 +46,7 @@
 .club-start-voortgang a:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
 @media (min-width: 1000px) { .club-start-staptitel { display: block; } }
 @media (max-width: 999px) { .club-start-stapnaam { justify-content: center; } }
-@media (max-width: 520px) { .club-start-voortgang .club-start-bol { width: 20px; height: 20px; font-size: 11px; } .club-start-voortgang ol { gap: 4px; } }
+@media (max-width: 520px) { .club-start-voortgang .club-start-bol { width: 20px; height: 20px; font-size: 12px; } .club-start-voortgang ol { gap: 4px; } }
 
 /* ── Inhoud ──────────────────────────────────────────────────────────────── */
 .club-start-vlak { display: grid; gap: 20px; min-width: 0; animation: club-start-in 320ms var(--ease) both; }
@@ -142,14 +142,14 @@
 .club-start-tel-qr { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; border-radius: 999px; background: var(--brand); color: var(--brand-inkt); font-family: var(--ff-kop); font-size: 16px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; transition: background-color 240ms var(--ease), color 240ms var(--ease); }
 .club-start-tel-kaart { display: grid; gap: 3px; padding: 14px; border-radius: 18px; background: var(--bg-card); border: 1px solid var(--line); }
 .club-start-tel-kaart strong { font-family: var(--ff-kop); font-size: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; }
-.club-start-tel-label { font-family: var(--ff-kop); font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--brand-tekst); }
+.club-start-tel-label { font-family: var(--ff-kop); font-size: 12px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--brand-tekst); }
 .club-start-tel-meta { display: block; font-size: 12.5px; color: var(--text-3); }
 .club-start-tel-knop { justify-self: start; margin-top: 8px; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--brand); color: var(--brand-tekst); font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
 .club-start-tel-kaart--rij { grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 12px; }
 .club-start-tel-kaart--rij > svg { padding: 9px; box-sizing: content-box; border-radius: 12px; background: var(--brand-soft); color: var(--brand-tekst); }
 .club-start-tel-kaart--rij strong { font-size: 16px; }
 .club-start-tel-tabs { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 6px; padding-top: 10px; border-top: 1px solid var(--line); }
-.club-start-tel-tabs span { display: grid; justify-items: center; gap: 3px; font-size: 10.5px; color: var(--text-4); }
+.club-start-tel-tabs span { display: grid; justify-items: center; gap: 3px; font-size: 11px; color: var(--text-4); }
 .club-start-tel-tabs span[data-actief] { color: var(--brand-tekst); font-weight: 600; }
 
 /* ── Stap 3: vestiging ──────────────────────────────────────────────────── */

@@ -1,0 +1,10 @@
+/* Melding boven Club zolang het master account geen tweestapsverificatie heeft. */
+.club-2fa-melding {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px;
+  padding: 8px var(--ff-rand, 16px);
+  border-bottom: 1px solid color-mix(in srgb, var(--club-let-op) 50%, var(--line));
+  background: color-mix(in srgb, var(--club-let-op) 12%, var(--bg-app));
+  font-size: 13px; color: var(--text-1);
+}
+.club-2fa-melding-tekst { display: flex; align-items: center; gap: 8px; margin: 0; flex: 1 1 320px; min-width: 0; line-height: 1.4; }
+.club-2fa-melding-tekst svg { flex: none; color: var(--club-let-op); }

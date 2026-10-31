@@ -176,6 +176,15 @@ export async function rondInrichtingAf(admin: SupabaseClient, id: string, s: { k
   return !error
 }
 
+/**
+ * Het adres van de eigenaar kan al inloggen: de aanmelding wordt een aanvraag
+ * voor Kane. Geen sportschool, en het wachtwoord van deze aanmelding gaat weg.
+ */
+export async function zetNaarNakijken(admin: SupabaseClient, id: string): Promise<void> {
+  const { error } = await admin.from('ayg_aanmeldingen').update({ status: 'aanvraag', organisatie_id: null, eigenaar_wachtwoord_hash: null, bijgewerkt_op: new Date().toISOString() }).eq('id', id).eq('status', 'inrichten')
+  if (error) console.error('[aiyourgym] aanmelding naar nakijken mislukt', error.code ?? '')
+}
+
 /** Mislukt: terug naar wacht_op_betaling, zodat de volgende poging van Stripe het opnieuw doet. */
 export async function geefInrichtingVrij(admin: SupabaseClient, id: string): Promise<void> {
   const { error } = await admin.from('ayg_aanmeldingen').update({ status: 'wacht_op_betaling', organisatie_id: null, bijgewerkt_op: new Date().toISOString() }).eq('id', id).eq('status', 'inrichten')

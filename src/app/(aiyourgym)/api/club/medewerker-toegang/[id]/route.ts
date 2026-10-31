@@ -12,7 +12,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { clubFout, clubJson, logActie, vereisClubToegang, type ClubToegang } from '@/lib/club/toegang'
 import { isUuid } from '@/lib/club/kern/organisatie'
-import { isRateLimited } from '@/lib/utils/rate-limit'
+import { isGeremd } from '@/lib/club/kern/rem-db'
 import { leesLoginActie, uitnodigingPad, type LoginActie } from '@/lib/club/medewerker-login/medewerker-login'
 import { beheerMedewerkerLogin } from '@/lib/club/medewerker-login/opslag'
 import { magMedewerkerLoginsBeheren } from '@/lib/club/medewerker-login/rechten'
@@ -62,7 +62,7 @@ export async function PATCH(req: NextRequest, ctx: Context) {
   if (naam === 'db') return clubFout('Opslaan lukte niet. Probeer het opnieuw.', 500)
   if (naam === null) return clubFout('Deze medewerker bestaat niet (meer).', 404)
 
-  if (invoer.waarde.actie === 'uitnodigen' && isRateLimited(`club-mw-uitnodigen:${t.userId}`, UITNODIGEN_MAX, UITNODIGEN_VENSTER_MS)) {
+  if (invoer.waarde.actie === 'uitnodigen' && await isGeremd({ soort: 'club-mw-uitnodigen', max: UITNODIGEN_MAX, vensterMs: UITNODIGEN_VENSTER_MS, bijStoring: 'geheugen' }, t.userId)) {
     return clubFout('Te veel uitnodigingen in korte tijd. Probeer het over een uur opnieuw.', 429)
   }
 

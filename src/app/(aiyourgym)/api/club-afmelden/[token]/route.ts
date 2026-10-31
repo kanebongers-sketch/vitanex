@@ -10,6 +10,7 @@ import type { NextRequest } from 'next/server'
 import { clubDatabase } from '@/lib/club/kern/database'
 import { ipVan } from '@/lib/club/kern/verzoek'
 import { isRateLimited } from '@/lib/utils/rate-limit'
+import { isGeremd } from '@/lib/club/kern/rem-db'
 import { escape } from '@/lib/club/meldingen/mail-html'
 import { haalAfmeldStand, meldAf, type AfmeldKeuze } from '@/lib/club/meldingen/afmelden'
 
@@ -37,12 +38,12 @@ function onbekend(): Response {
 }
 
 /** Openbaar, dus begrensd: per IP, en met een grens voor iedereen samen (het IP is te vervalsen). */
-function teVeel(req: NextRequest): boolean {
-  return isRateLimited(`club-afmelden:${ipVan(req)}`, 30, 15 * 60_000) || isRateLimited('club-afmelden:alles', 300, 15 * 60_000)
+async function teVeel(req: NextRequest): Promise<boolean> {
+  return (await isGeremd({ soort: 'club-afmelden', max: 30, vensterMs: 15 * 60_000, bijStoring: 'geheugen' }, ipVan(req))) || isRateLimited('club-afmelden:alles', 300, 15 * 60_000)
 }
 
 export async function GET(req: NextRequest, ctx: Context): Promise<Response> {
-  if (teVeel(req)) return pagina('Even rustig aan', '<p style="color:#c9c9c4">Er zijn nu te veel verzoeken. Probeer het over een kwartier opnieuw.</p>', 429)
+  if (await teVeel(req)) return pagina('Even rustig aan', '<p style="color:#c9c9c4">Er zijn nu te veel verzoeken. Probeer het over een kwartier opnieuw.</p>', 429)
   const { token } = await ctx.params
   const stand = await haalAfmeldStand(clubDatabase(), token)
   if (!stand) return onbekend()
@@ -64,7 +65,7 @@ async function leesKeuze(req: NextRequest): Promise<AfmeldKeuze> {
 }
 
 export async function POST(req: NextRequest, ctx: Context): Promise<Response> {
-  if (teVeel(req)) return pagina('Even rustig aan', '<p style="color:#c9c9c4">Er zijn nu te veel verzoeken. Probeer het over een kwartier opnieuw.</p>', 429)
+  if (await teVeel(req)) return pagina('Even rustig aan', '<p style="color:#c9c9c4">Er zijn nu te veel verzoeken. Probeer het over een kwartier opnieuw.</p>', 429)
   const { token } = await ctx.params
   const keuze = await leesKeuze(req)
   const admin = clubDatabase()

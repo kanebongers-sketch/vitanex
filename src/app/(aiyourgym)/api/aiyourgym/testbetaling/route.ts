@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server'
 import { ipVan, isZelfdeOorsprong } from '@/lib/club/kern/verzoek'
-import { isRateLimited } from '@/lib/utils/rate-limit'
+import { isGeremd } from '@/lib/club/kern/rem-db'
 import { leesJsonBegrensd } from '@/lib/club/kern/body'
 import { siteActief } from '@/lib/aiyourgym/schakelaar'
 import { welkomPad } from '@/lib/aiyourgym/links'
@@ -24,7 +24,7 @@ export const dynamic = 'force-dynamic'
 export async function POST(req: NextRequest) {
   if (!(await poortOpen())) return aygFout('Niet gevonden.', 404)
   if (!isZelfdeOorsprong(req.headers)) return aygFout('Dit verzoek komt niet van de website zelf.', 403)
-  if (isRateLimited(`ayg-testbetaling:${ipVan(req)}`, 10, 10 * 60_000)) return aygFout('Te veel pogingen. Probeer het over een paar minuten opnieuw.', 429)
+  if (await isGeremd({ soort: 'ayg-testbetaling', max: 10, vensterMs: 10 * 60_000, bijStoring: 'geheugen' }, ipVan(req))) return aygFout('Te veel pogingen. Probeer het over een paar minuten opnieuw.', 429)
   const body = await leesJsonBegrensd(req, 1024)
   if (body === 'te-groot') return aygFout('Het verzoek is te groot.', 413)
   const sessie = typeof body === 'object' && body !== null ? (body as { sessie?: unknown }).sessie : null

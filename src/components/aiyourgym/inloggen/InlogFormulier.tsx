@@ -51,7 +51,10 @@ export function InlogFormulier() {
     try {
       const res = await fetch('/api/club/inloggen', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, wachtwoord }) })
       if (res.ok) {
-        window.location.assign('/club?start=1')
+        // Met tweestapsverificatie aan volgt eerst de code (/clubinloggen/tweestaps).
+        const data: unknown = await res.json().catch(() => null)
+        const tweestaps = typeof data === 'object' && data !== null && (data as { staat?: unknown }).staat === 'tweestaps'
+        window.location.assign(tweestaps ? '/clubinloggen/tweestaps' : '/club?start=1')
         return
       }
       // De API van Club geeft Nederlands; kiesMeldingen vertaalt het voor de Engelse pagina.

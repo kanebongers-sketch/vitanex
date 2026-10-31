@@ -13,7 +13,7 @@ import { reserveer, trekBoekingIn } from '@/lib/club/rooster/reserveren-opslag'
 import { haalVormVanLid, telLessenVanLid } from '@/lib/club/lidmaatschappen/toegang-opslag'
 import { appMelding, lesAanvraag } from '@/lib/club/lidmaatschappen/koppeling'
 import { magLesBoeken } from '@/lib/club/lidmaatschappen/regels'
-import { NIET_KLAAR, betalenActief, clubStripeSleutel, platformFeeCent } from './config'
+import { NIET_KLAAR, betalenActief, clubStripeSleutel, PLATFORM_FEE_CENT } from './config'
 import { kopenAdressen } from './adressen'
 import { boekTegoedAf, haalBetaalAccount, haalProduct, haalTegoeden, kanAfrekenen, koppelSessie, maakVerkoop, telOpenVanLid } from './opslag'
 import { bruikbaarSaldo, productVoorVestiging, stripBesluit } from './regels'
@@ -39,8 +39,7 @@ export async function koopProduct(l: LidToegang, productId: unknown, oorsprong: 
   if (open === null) return clubFout('Afrekenen lukte niet. Probeer het opnieuw.', 500)
   if (open >= MAX_OPEN_PER_UUR) return clubFout('Je hebt al een paar betalingen openstaan. Probeer het over een uur opnieuw.', 429)
 
-  const fee = platformFeeCent(product.prijsCent)
-  const verkoopId = await maakVerkoop(l.admin, l.userId, { lidId: l.lid.id, vestiging: l.lid.vestiging, product, platformFeeCent: fee, stripeAccountId: account.stripeAccountId })
+  const verkoopId = await maakVerkoop(l.admin, l.userId, { lidId: l.lid.id, vestiging: l.lid.vestiging, product, platformFeeCent: PLATFORM_FEE_CENT, stripeAccountId: account.stripeAccountId })
   if (!verkoopId) return clubFout('Afrekenen lukte niet. Probeer het opnieuw.', 500)
   const adressen = kopenAdressen(oorsprong, null)
   const sessie = await maakCheckoutSessie(sleutel, account.stripeAccountId, {
@@ -48,7 +47,6 @@ export async function koopProduct(l: LidToegang, productId: unknown, oorsprong: 
     organisatieId: l.userId,
     productNaam: product.naam,
     bedragCent: product.prijsCent,
-    platformFeeCent: fee,
     email: l.lid.email,
     succesUrl: adressen.succes,
     terugUrl: adressen.terug,

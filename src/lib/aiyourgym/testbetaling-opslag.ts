@@ -36,7 +36,8 @@ export async function rondTestbetalingAf(admin: SupabaseClient, sessieId: unknow
   if (!testVoor(a)) return { staat: 'onbekend' }
   const uit = await verwerkSessie(admin, testSessie(sessieId, a.id), deps)
   if (uit === 'fout') return { staat: 'fout' }
-  if (uit === 'klaar') return { staat: 'al_klaar' }
+  // Klaar of een aanvraag voor Kane (adres heeft al een account): de welkomstpagina zegt wat er is.
+  if (uit === 'klaar' || uit === 'nakijken') return { staat: 'al_klaar' }
   const klaar = await vindOpSessie(admin, sessieId)
   return klaar?.organisatieId ? { staat: 'ingericht', organisatieId: klaar.organisatieId, email: klaar.eigenaarEmail } : { staat: 'al_klaar' }
 }

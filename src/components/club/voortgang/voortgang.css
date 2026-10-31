@@ -56,7 +56,7 @@
 .club-voortgang-weken { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px; align-items: end; height: 120px; }
 .club-voortgang-weken--compact { height: 84px; gap: 5px; }
 .club-voortgang-week { display: grid; grid-template-rows: auto minmax(0, 1fr); height: 100%; gap: 3px; text-align: center; }
-.club-voortgang-week-getal { font-size: 11px; font-weight: 600; color: var(--text-3); font-variant-numeric: tabular-nums; min-height: 1.2em; }
+.club-voortgang-week-getal { font-size: 12px; font-weight: 600; color: var(--text-3); font-variant-numeric: tabular-nums; min-height: 1.2em; }
 .club-voortgang-week-baan { position: relative; border-radius: 6px; background: color-mix(in srgb, var(--text-1) 4%, transparent); overflow: hidden; }
 .club-voortgang-week-staaf { position: absolute; inset: 0; border-radius: 6px; background: var(--club-data-vlak, var(--brand)); transform-origin: bottom; transition: transform 400ms var(--ease); }
 .club-voortgang-week-staaf--leeg { background: var(--line-strong); }

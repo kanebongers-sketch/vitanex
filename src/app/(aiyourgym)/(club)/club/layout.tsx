@@ -26,6 +26,7 @@ import { AanDeSlagKop } from '@/components/club/shell/AanDeSlagKop'
 import { tellerRechten, welkeTellers } from '@/lib/club/menu/tellers'
 import { magTestRol } from '@/lib/club/rollen/testrol'
 import { TestRolBalk } from '@/components/club/testrol/TestRolBalk'
+import { TweestapsMelding } from '@/components/club/platform/TweestapsMelding'
 import './club.css'
 import '@/components/club/ontwerp/ontwerp.css'
 
@@ -86,6 +87,11 @@ export default async function ClubLayout({ children }: { children: ReactNode }) 
     <div className="club-app" style={stijl} data-thema={org.thema} {...autoAttribuut(org)}>
       <HuisstijlAuto org={org} />
       {testRol && <TestRolBalk actief={t.testAls ?? []} />}
+      {t.isPlatformEigenaar && (
+        <Suspense fallback={null}>
+          <TweestapsMelding />
+        </Suspense>
+      )}
       <MerkProvider merk={merk}>
         <VestigingenProvider vestigingen={t.vestigingen}>
           {poortDicht ? (

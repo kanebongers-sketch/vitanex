@@ -3,7 +3,8 @@
 // 23-10-2026). Volgorde: het master account van het platform, dan eigenaren en
 // clubmanagers, dan medewerkers (medewerker-login/wachtwoord-login.ts). Goed:
 // een httpOnly-sessiecookie voor dit
-// toestel. Een onbekend adres en een fout wachtwoord krijgen hetzelfde antwoord
+// toestel; met tweestapsverificatie aan eerst de code (antwoord staat 'tweestaps').
+// Een onbekend adres en een fout wachtwoord krijgen hetzelfde antwoord
 // (en ongeveer dezelfde rekentijd), zodat niemand kan uitzoeken wie een account heeft.
 
 import type { NextRequest, NextResponse } from 'next/server'
@@ -19,6 +20,7 @@ import { logInPlatform, vindPlatformOpEmail } from '@/lib/club/platform-login/op
 import { zetPlatformCookie } from '@/lib/club/platform-login/route-hulp'
 import { hashWachtwoord, MAX_LENGTE, wachtwoordKlopt } from '@/lib/club/kern/wachtwoord'
 import { logInAlsMedewerker } from '@/lib/club/medewerker-login/wachtwoord-login'
+import { zetWachtCookie } from '@/lib/club/tweestaps/cookie'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -77,7 +79,12 @@ export async function POST(req: NextRequest) {
   const nu = new Date()
   // Eerst het master account van het platform; dat kan altijd, ook met de eigen login van sportscholen uit.
   const platform = await vindPlatformOpEmail(admin, email)
-  if (platform) return antwoord(await logInPlatform(admin, platform, wachtwoord, nu), zetPlatformCookie)
+  if (platform) {
+    const uit = await logInPlatform(admin, platform, wachtwoord, nu)
+    // Tweestapsverificatie aan: nog geen sessie, eerst de code op /clubinloggen/tweestaps.
+    if (uit.staat === 'tweestaps') return zetWachtCookie(clubJson({ staat: 'tweestaps' }), uit.token, uit.verlooptOp)
+    return antwoord(uit, zetPlatformCookie)
+  }
 
   const b = CLUB_EIGEN_LOGIN ? await vindBeheerderOpEmail(admin, email) : null
   if (!b && CLUB_EIGEN_LOGIN) return logInAlsMedewerker(admin, email, wachtwoord)

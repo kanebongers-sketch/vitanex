@@ -54,7 +54,7 @@
 /* Velden in het formulier (echt en voorbeeld). */
 .club-intakevragen-vraag { display: grid; gap: 4px; }
 .club-intakevragen-uitleg { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 0; }
-.club-intakevragen-verplicht { font-family: var(--ff-kop); font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)); }
+.club-intakevragen-verplicht { font-family: var(--ff-kop); font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--brand-tekst, var(--brand)); }
 .club-intakevragen-janee { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 16px; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 14px; line-height: 1.45; }
 .club-intakevragen-janee > span:first-child { flex: 1 1 280px; }
 .club-intakevragen-janee .club-training-ja[aria-pressed='true'] { background: var(--club-let-op-zacht); color: var(--club-let-op); }

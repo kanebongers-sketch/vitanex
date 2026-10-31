@@ -248,7 +248,7 @@ a.club-personeel-urennaam:hover { color: var(--brand-tekst, var(--brand)); }
 @media (max-width: 760px) {
   .club-personeel-pagina { --club-personeel-label: 84px; --club-personeel-baanhoogte: 38px; }
   .club-personeel-bloksoort, .club-personeel-hint { display: none; }
-  .club-personeel-blok { padding: 0 4px 0 5px; font-size: 11px; }
+  .club-personeel-blok { padding: 0 4px 0 5px; font-size: 12px; }
   .club-personeel-dagacties { margin-left: 0; width: 100%; }
   .club-personeel-snel { justify-items: start; }
   .club-personeel-vastrij { grid-template-columns: 1fr; }

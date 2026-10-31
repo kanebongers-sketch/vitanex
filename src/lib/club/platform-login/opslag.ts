@@ -11,6 +11,7 @@ import {
   MAX_PLATFORM_SESSIES, PLATFORM_CODE, PLATFORM_KOLOMMEN, PLATFORM_SESSIE_DAGEN, beoordeelPlatformSessie, linkStand, platformAccountUitRij,
   type PlatformAccount, type PlatformSessieRij,
 } from './platform'
+import { maakWacht, tweestapsNodig, type Wacht } from '@/lib/club/tweestaps/opslag'
 
 const TABEL = 'club_platform_accounts'
 const SESSIES = 'club_platform_sessies'
@@ -48,6 +49,35 @@ async function snoeiSessies(admin: SupabaseClient, accountId: string, nu: Date):
   if (teVeel.length > 0) await admin.from(SESSIES).delete().in('token_hash', teVeel)
 }
 
+/**
+ * Na een goed wachtwoord: staat tweestapsverificatie aan, dan eerst een
+ * wachtstap (de sessie volgt pas na de code, /api/club/inloggen/tweestaps);
+ * anders meteen een sessie.
+ */
+async function naWachtwoord(admin: SupabaseClient, accountId: string, nu: Date): Promise<({ staat: 'ok' } & NieuweSessie) | ({ staat: 'tweestaps' } & Wacht) | { staat: 'db' }> {
+  const nodig = await tweestapsNodig(admin, accountId)
+  if (nodig === 'db') return { staat: 'db' }
+  if (nodig === 'aan') {
+    const wacht = await maakWacht(admin, accountId, nu)
+    return wacht ? { staat: 'tweestaps', ...wacht } : { staat: 'db' }
+  }
+  const sessie = await rondPlatformLoginAf(admin, accountId, nu)
+  return sessie ? { staat: 'ok', ...sessie } : { staat: 'db' }
+}
+
+/** De laatste stap van inloggen (na wachtwoord, of na wachtwoord en code): een sessie voor dit toestel. */
+export async function rondPlatformLoginAf(admin: SupabaseClient, accountId: string, nu: Date): Promise<NieuweSessie | null> {
+  const sessie = await maakSessie(admin, accountId, nu)
+  if (sessie) await admin.from(TABEL).update({ laatst_ingelogd_op: nu.toISOString() }).eq('id', accountId)
+  return sessie
+}
+
+/** Na het aanzetten van tweestapsverificatie: alle andere toestellen uit (die logden in zonder code). */
+export async function logAndereToestellenUit(admin: SupabaseClient, accountId: string, huidigToken: string): Promise<void> {
+  const { error } = await admin.from(SESSIES).delete().eq('account_id', accountId).neq('token_hash', tokenHash(huidigToken))
+  if (error) console.error('[club] andere platform-sessies uitloggen mislukt', error.code ?? '')
+}
+
 async function maakSessie(admin: SupabaseClient, accountId: string, nu: Date): Promise<NieuweSessie | null> {
   const token = nieuwSessieToken()
   const verlooptOp = new Date(nu.getTime() + PLATFORM_SESSIE_DAGEN * 24 * 60 * 60 * 1000)
@@ -67,13 +97,13 @@ async function maakSessie(admin: SupabaseClient, accountId: string, nu: Date): P
 
 // ─── Wachtwoord kiezen (een keer, met de startlink) ─────────────────────────
 
-export type KiesUitkomst = ({ staat: 'ok' } & NieuweSessie) | { staat: 'niet_mogelijk' } | { staat: 'db' }
+export type KiesUitkomst = ({ staat: 'ok' } & NieuweSessie) | ({ staat: 'tweestaps' } & Wacht) | { staat: 'niet_mogelijk' } | { staat: 'db' }
 
 /**
  * Het wachtwoord kiezen kan alleen zolang er geen is en de link nog binnen 24
  * uur is (compare-and-set: twee verzoeken tegelijk kunnen er niet allebei een
  * zetten). De link vervalt meteen en de oude pincode verdwijnt. Daarna meteen
- * ingelogd op dit toestel.
+ * ingelogd op dit toestel, of eerst de code als tweestapsverificatie aan staat.
  */
 export async function kiesPlatformWachtwoord(admin: SupabaseClient, a: PlatformAccount, wachtwoord: string, nu: Date): Promise<KiesUitkomst> {
   if (linkStand(a, nu) !== 'kiezen') return { staat: 'niet_mogelijk' }
@@ -87,8 +117,7 @@ export async function kiesPlatformWachtwoord(admin: SupabaseClient, a: PlatformA
     .select('id')
   if (error) return { staat: 'db' }
   if (!Array.isArray(data) || data.length !== 1) return { staat: 'niet_mogelijk' }
-  const sessie = await maakSessie(admin, a.id, nu)
-  return sessie ? { staat: 'ok', ...sessie } : { staat: 'db' }
+  return naWachtwoord(admin, a.id, nu)
 }
 
 /** Ingelogd (nog met een oude pincode-sessie) een wachtwoord zetten; daarna kan alleen e-mail plus wachtwoord. */
@@ -115,6 +144,7 @@ export async function vindPlatformOpEmail(admin: SupabaseClient, ruw: unknown): 
 
 export type InlogUitkomst =
   | ({ staat: 'ok' } & NieuweSessie)
+  | ({ staat: 'tweestaps' } & Wacht)
   | { staat: 'fout'; over: number }
   | { staat: 'geblokkeerd'; totOp: string }
   | { staat: 'gesloten' }
@@ -131,7 +161,8 @@ async function blokkeer(admin: SupabaseClient, a: PlatformAccount, nu: Date): Pr
 }
 
 /**
- * Wachtwoord controleren; goed: een nieuwe sessie voor dit toestel. Rem in drie
+ * Wachtwoord controleren; goed: een nieuwe sessie voor dit toestel (of eerst
+ * de code, als tweestapsverificatie aan staat). Rem in drie
  * lagen: na MAX_POGINGEN fouten een blokkade die elke keer verdubbelt, na
  * MAX_BLOKKADES dicht tot er een nieuwe startlink komt (SQL), en de route remt
  * daarnaast per IP.
@@ -152,10 +183,9 @@ export async function logInPlatform(admin: SupabaseClient, a: PlatformAccount, w
     return blokkeer(admin, a, nu)
   }
 
-  const sessie = await maakSessie(admin, a.id, nu)
-  if (!sessie) return { staat: 'db' }
-  await admin.from(TABEL).update({ ...TELLERS_SCHOON, laatst_ingelogd_op: nu.toISOString() }).eq('id', a.id)
-  return { staat: 'ok', ...sessie }
+  // Wachtwoord goed: de tellers van het wachtwoord schoon; de code heeft een eigen rem (tweestaps/opslag.ts).
+  await admin.from(TABEL).update(TELLERS_SCHOON).eq('id', a.id)
+  return naWachtwoord(admin, a.id, nu)
 }
 
 /**

@@ -2,12 +2,14 @@
 // Met CLUB_VOEDING_AI_ACTIEF uit (standaard) of zonder sleutel bestaat de route
 // niet (404). Daarna: een lid dat het dagboek gestart heeft, geen voorvertoning,
 // uitdrukkelijke toestemming voor de AI-schatting (403 zonder), en twee remmen
-// per lid: per minuut en per dag (elke aanroep kost geld).
+// per lid: per minuut en per dag (elke aanroep kost geld). Beide tellen in de
+// database (club_remmen, migratie 483) en gaan dicht als die wegvalt: geen
+// AI-kosten zonder werkend plafond.
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, clubJson } from '@/lib/club/toegang'
-import { isRateLimited } from '@/lib/utils/rate-limit'
-import { teVaak, vereisLidVoeding, type LidVoeding } from '../server'
+import { isGeremd, type DbRem, type RemDeps } from '@/lib/club/kern/rem-db'
+import { vereisLidVoeding, type LidVoeding } from '../server'
 import { aiFuncties, type AiFuncties } from './schakelaar'
 import type { AiUitslag } from './server'
 
@@ -24,12 +26,17 @@ function foutMetCode(fout: string, code: string, status: number): NextResponse {
   return NextResponse.json({ fout, code }, { status, headers: { 'Cache-Control': 'no-store' } })
 }
 
-/**
- * De daglimiet. Best-effort per serverinstantie (geheugen, net als de minuutrem);
- * na een herstart begint de telling opnieuw. Als kostenplafond is dat genoeg.
- */
-export function overDaglimiet(lidId: string, nu: number = Date.now()): boolean {
-  return isRateLimited(`club-voeding-ai-dag:${lidId}`, MAX_PER_DAG, DAG_MS, nu)
+export const AI_MINUUT_REM: DbRem = { soort: 'voeding-ai-minuut', max: MAX_PER_MINUUT, vensterMs: 60_000, bijStoring: 'dicht' }
+export const AI_DAG_REM: DbRem = { soort: 'voeding-ai-dag', max: MAX_PER_DAG, vensterMs: DAG_MS, bijStoring: 'dicht' }
+
+/** De minuutrem per lid. */
+export function aiTeVaak(lidId: string, deps?: RemDeps): Promise<boolean> {
+  return isGeremd(AI_MINUUT_REM, lidId, deps)
+}
+
+/** De daglimiet per lid (het kostenplafond); dicht als de database wegvalt. */
+export function overDaglimiet(lidId: string, deps?: RemDeps): Promise<boolean> {
+  return isGeremd(AI_DAG_REM, lidId, deps)
 }
 
 export async function vereisLidAi(req: NextRequest, functie: keyof AiFuncties): Promise<LidVoeding | NextResponse> {
@@ -37,8 +44,8 @@ export async function vereisLidAi(req: NextRequest, functie: keyof AiFuncties): 
   const l = await vereisLidVoeding(req, { schrijft: true, gestart: true })
   if (l instanceof NextResponse) return l
   if (!l.instellingen.aiToestemmingOp) return foutMetCode('Geef eerst toestemming voor de AI-schatting.', AI_CODE.toestemming, 403)
-  if (teVaak('ai', l.lid.id, MAX_PER_MINUUT)) return clubFout('Even rustig aan. Probeer het over een minuut opnieuw.', 429)
-  if (overDaglimiet(l.lid.id)) return foutMetCode('Je hebt vandaag het maximum bereikt. Vul het zelf in of probeer het morgen opnieuw.', AI_CODE.daglimiet, 429)
+  if (await aiTeVaak(l.lid.id)) return clubFout('Even rustig aan. Probeer het over een minuut opnieuw.', 429)
+  if (await overDaglimiet(l.lid.id)) return foutMetCode('Je hebt vandaag het maximum bereikt. Vul het zelf in of probeer het morgen opnieuw.', AI_CODE.daglimiet, 429)
   return l
 }
 

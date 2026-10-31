@@ -29,7 +29,7 @@
 .club-hl-noot { color: var(--text-3) !important; font-size: 12.5px !important; }
 .club-hl-acties { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .club-hl-status {
-  flex: none; padding: 2px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 700; letter-spacing: 0.02em;
+  flex: none; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; letter-spacing: 0.02em;
   border: 1px solid var(--line-strong); color: var(--text-2);
 }
 .club-hl-status[data-toon='aan'] { border-color: transparent; background: var(--club-ok-zacht); color: var(--club-ok); }
@@ -40,7 +40,7 @@
 .club-hl-uitleg p { margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--text-2); }
 .club-hl-tabel { display: grid; gap: 2px; border-radius: var(--hl-radius); overflow: hidden; border: 1px solid var(--line); }
 .club-hl-rij { display: grid; grid-template-columns: 1fr auto auto; gap: 14px; align-items: center; padding: 12px 14px; background: var(--bg-raised); }
-.club-hl-rij--kop { background: transparent; font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); padding-block: 8px; }
+.club-hl-rij--kop { background: transparent; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); padding-block: 8px; }
 .club-hl-rij strong { display: block; font-size: 14.5px; }
 .club-hl-rij span { font-size: 12.5px; color: var(--text-3); }
 .club-hl-vink { width: 22px; height: 22px; accent-color: var(--brand); cursor: pointer; }
@@ -59,7 +59,7 @@
 /* Metingen */
 .club-hl-tegels { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr)); }
 .club-hl-tegel { padding: 12px 14px; border-radius: 14px; background: var(--bg-raised); border: 1px solid var(--line); display: grid; gap: 2px; }
-.club-hl-tegel span { font-size: 11.5px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
+.club-hl-tegel span { font-size: 12px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
 .club-hl-tegel strong { font-family: var(--ff-kop); font-size: 22px; font-variant-numeric: tabular-nums; }
 .club-hl-tegel small { font-size: 12px; color: var(--text-3); }
 .club-hl-via { margin: 0; font-size: 13px; line-height: 1.55; color: var(--text-3); }

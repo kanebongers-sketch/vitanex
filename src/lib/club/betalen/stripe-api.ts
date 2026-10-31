@@ -2,14 +2,18 @@
 // Rechtstreeks via fetch op api.stripe.com met CLUB_STRIPE_SECRET_KEY (het
 // platformaccount van AI Your Gym), zoals src/lib/aiyourgym/stripe-api.ts.
 //
-// Keuze: Express-accounts met DIRECT CHARGES. De betaling staat op het account
-// van de sportschool (kop Stripe-Account): de sportschool is de verkoper, haar
-// naam staat op het afschrift, zij draagt de Stripe-kosten, terugbetalingen en
-// geschillen, en het geld komt rechtstreeks op haar rekening. AI Your Gym kan
-// later een deel inhouden met application_fee_amount (PLATFORM_FEE_PROCENT, nu
-// 0). Bij destination charges zou AI Your Gym de verkoper zijn (en de btw over
-// lessen van een ander moeten afdragen); dat past niet bij verkoop namens de
-// sportschool. De sleutel gaat nooit naar de browser of in een log.
+// Keuze (besluit Kane 23-10-2026): de sportschool is zelf verkoper. Een
+// Connect-account met de controller-instellingen van een Standard-account:
+// de sportschool betaalt de Stripe-kosten zelf (fees.payer = account), Stripe
+// draagt het risico op een negatief saldo en niet het platform (losses.payments
+// = stripe), Stripe vraagt de gegevens op (requirement_collection = stripe) en
+// de sportschool werkt in het volledige Stripe-dashboard (stripe_dashboard.type
+// = full). Alle betalingen zijn DIRECT CHARGES op het account van de
+// sportschool (kop Stripe-Account): haar naam op het afschrift, haar
+// terugbetalingen en geschillen, het geld rechtstreeks op haar rekening.
+// GEEN platformdeel per betaling: we sturen nooit application_fee_amount mee.
+// Bij destination charges zou AI Your Gym de verkoper zijn; dat past niet.
+// De sleutel gaat nooit naar de browser of in een log.
 
 const STRIPE = 'https://api.stripe.com/v1'
 const TIMEOUT_MS = 15_000
@@ -55,15 +59,27 @@ function urlOf(json: unknown): string | null {
 
 // ─── Connect-account en onboarding ──────────────────────────────────────────
 
-/** De velden voor een nieuw Express-account (PUUR, getest). */
+/**
+ * De controller-instellingen van een Standard-account (PUUR, getest). Bron:
+ * docs.stripe.com/connect/migrate-to-controller-properties. Het dashboardtype
+ * is achteraf niet te wijzigen, dus dit moet bij het aanmaken kloppen.
+ */
+export const CONTROLLER_STANDAARD = {
+  'controller[fees][payer]': 'account',
+  'controller[losses][payments]': 'stripe',
+  'controller[requirement_collection]': 'stripe',
+  'controller[stripe_dashboard][type]': 'full',
+} as const
+
+/** De velden voor een nieuw Connect-account van een sportschool (PUUR, getest). Geen `type`: de controller bepaalt het gedrag. */
 export function accountFormulier(organisatieId: string, naam: string): URLSearchParams {
   const f = new URLSearchParams()
-  f.set('type', 'express')
+  for (const [sleutel, waarde] of Object.entries(CONTROLLER_STANDAARD)) f.set(sleutel, waarde)
   f.set('country', 'NL')
   f.set('default_currency', 'eur')
   f.set('capabilities[card_payments][requested]', 'true')
-  f.set('capabilities[transfers][requested]', 'true')
   f.set('capabilities[ideal_payments][requested]', 'true')
+  f.set('capabilities[sepa_debit_payments][requested]', 'true')
   f.set('business_profile[name]', naam.slice(0, 80))
   f.set('metadata[organisatie_id]', organisatieId)
   return f
@@ -80,10 +96,12 @@ export async function maakAccountLink(sleutel: string, account: string, terugUrl
   return urlOf(await stripeVraag(sleutel, '/account_links', { method: 'POST', body: f }))
 }
 
-/** Een inloglink voor het Express-dashboard (uitbetalingen en saldo van de sportschool). */
-export async function maakDashboardLink(sleutel: string, account: string): Promise<string | null> {
-  return urlOf(await stripeVraag(sleutel, `/accounts/${encodeURIComponent(account)}/login_links`, { method: 'POST', body: new URLSearchParams() }))
-}
+/**
+ * Het Stripe-dashboard van de sportschool. Met het volledige dashboard logt de
+ * sportschool zelf in bij Stripe; een login link bestaat alleen voor het
+ * Express-dashboard, dus die maken we niet.
+ */
+export const STRIPE_DASHBOARD_URL = 'https://dashboard.stripe.com/'
 
 export async function haalAccount(sleutel: string, account: string): Promise<unknown | null> {
   return stripeVraag(sleutel, `/accounts/${encodeURIComponent(account)}`, { method: 'GET' })
@@ -96,7 +114,6 @@ export interface CheckoutInvoer {
   organisatieId: string
   productNaam: string
   bedragCent: number
-  platformFeeCent: number
   email: string | null
   succesUrl: string
   terugUrl: string
@@ -120,7 +137,6 @@ export function checkoutFormulier(c: CheckoutInvoer): URLSearchParams {
   f.set('metadata[organisatie_id]', c.organisatieId)
   f.set('payment_intent_data[metadata][verkoop_id]', c.verkoopId)
   f.set('payment_intent_data[description]', c.productNaam.slice(0, 80))
-  if (c.platformFeeCent > 0) f.set('payment_intent_data[application_fee_amount]', String(c.platformFeeCent))
   if (c.email) f.set('customer_email', c.email)
   return f
 }
@@ -133,9 +149,8 @@ export async function maakCheckoutSessie(sleutel: string, account: string, c: Ch
 }
 
 /** Het hele bedrag terugbetalen (op het account van de sportschool). De webhook werkt de verkoop bij. */
-export async function maakTerugbetaling(sleutel: string, account: string, paymentIntent: string, verkoopId: string, metFee: boolean): Promise<boolean> {
+export async function maakTerugbetaling(sleutel: string, account: string, paymentIntent: string, verkoopId: string): Promise<boolean> {
   const f = new URLSearchParams({ payment_intent: paymentIntent, 'metadata[verkoop_id]': verkoopId })
-  if (metFee) f.set('refund_application_fee', 'true')
   const json = await stripeVraag(sleutel, '/refunds', { method: 'POST', body: f, idempotentie: `club_refund_${verkoopId}`, account })
   return idOf(json, 're_') !== null
 }
@@ -258,7 +273,6 @@ export interface EersteBetalingInvoer extends LidgeldKoppeling {
   klant: string
   omschrijving: string
   bedragCent: number
-  platformFeeCent: number
   succesUrl: string
   terugUrl: string
 }
@@ -277,7 +291,6 @@ export function eersteBetalingFormulier(c: EersteBetalingInvoer): URLSearchParam
   f.set('payment_intent_data[description]', c.omschrijving.slice(0, 80))
   zetKoppeling(f, 'payment_intent_data[metadata]', c)
   zetKoppeling(f, 'metadata', c)
-  if (c.platformFeeCent > 0) f.set('payment_intent_data[application_fee_amount]', String(c.platformFeeCent))
   f.set('client_reference_id', c.betalingId)
   f.set('success_url', c.succesUrl)
   f.set('cancel_url', c.terugUrl)
@@ -338,7 +351,6 @@ export interface IncassoInvoer extends LidgeldKoppeling {
   betaalmethode: string
   mandaat: string
   bedragCent: number
-  platformFeeCent: number
   omschrijving: string
 }
 
@@ -354,7 +366,6 @@ export function incassoFormulier(i: IncassoInvoer): URLSearchParams {
   f.set('off_session', 'true')
   f.set('description', i.omschrijving.slice(0, 80))
   zetKoppeling(f, 'metadata', i)
-  if (i.platformFeeCent > 0) f.set('application_fee_amount', String(i.platformFeeCent))
   return f
 }
 
@@ -371,7 +382,6 @@ export interface LidTerugbetalingInvoer {
   terugbetalingId: string
   paymentIntent: string
   bedragCent: number
-  metFee: boolean
 }
 
 export function lidTerugbetalingFormulier(t: LidTerugbetalingInvoer): URLSearchParams {
@@ -381,7 +391,6 @@ export function lidTerugbetalingFormulier(t: LidTerugbetalingInvoer): URLSearchP
   f.set('metadata[organisatie_id]', t.organisatieId)
   f.set('metadata[betaling_id]', t.betalingId)
   f.set('metadata[terugbetaling_id]', t.terugbetalingId)
-  if (t.metFee) f.set('refund_application_fee', 'true')
   return f
 }
 

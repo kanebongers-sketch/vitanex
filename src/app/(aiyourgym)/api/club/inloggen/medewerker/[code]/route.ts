@@ -10,7 +10,7 @@ import { clubDatabase } from '@/lib/club/kern/database'
 import { ipVan, isZelfdeOorsprong } from '@/lib/club/kern/verzoek'
 import { leesJsonBegrensd } from '@/lib/club/kern/body'
 import { wachtwoordFout } from '@/lib/club/kern/wachtwoord'
-import { isRateLimited } from '@/lib/utils/rate-limit'
+import { isGeremd } from '@/lib/club/kern/rem-db'
 import { clubFout, clubJson, haalEigenOrganisatie, hostPastBij } from '@/lib/club/toegang'
 import { kiesWachtwoord, vindUitnodiging } from '@/lib/club/medewerker-login/opslag'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
@@ -30,7 +30,7 @@ interface Context {
 export async function POST(req: NextRequest, ctx: Context) {
   if (!CLUB_EIGEN_LOGIN) return clubFout('Niet gevonden.', 404)
   if (!isZelfdeOorsprong(req.headers)) return clubFout('Dit verzoek komt niet van de app zelf.', 403)
-  if (isRateLimited(`club-mw-uitnodiging:${ipVan(req)}`, IP_MAX, IP_VENSTER_MS)) {
+  if (await isGeremd({ soort: 'club-mw-uitnodiging', max: IP_MAX, vensterMs: IP_VENSTER_MS, bijStoring: 'geheugen' }, ipVan(req))) {
     return clubFout('Te veel pogingen vanaf dit netwerk. Probeer het over een kwartier opnieuw.', 429)
   }
   const { code } = await ctx.params

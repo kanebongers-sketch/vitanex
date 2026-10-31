@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PLATFORM_FEE_PROCENT, betalenActief, clubStripeSleutel, clubWebhookGeheim, platformFeeCent } from './config'
+import { PLATFORM_FEE_CENT, betalenActief, clubStripeSleutel, clubWebhookGeheim } from './config'
 import { btwDeel, euro, productInhoud, productUitRij, tegoedSoortVan, verkoopUitRij } from './model'
 import { bruikbaarSaldo, isPtAfspraakType, magTerugbetalen, productVoorVestiging, stripBesluit, tegoedBruikbaar } from './regels'
 import { leesProductInvoer, productRij } from './invoer'
@@ -18,11 +18,8 @@ describe('config', () => {
     expect(clubWebhookGeheim({ CLUB_STRIPE_WEBHOOK_SECRET: 'whsec_abc' })).toBe('whsec_abc')
   })
 
-  it('platformfee is een beslissing van Kane en staat op 0', () => {
-    expect(PLATFORM_FEE_PROCENT).toBe(0)
-    expect(platformFeeCent(9900)).toBe(0)
-    expect(platformFeeCent(9900, 5)).toBe(495)
-    expect(platformFeeCent(100, 500)).toBe(100)
+  it('geen platformdeel per betaling (besluit Kane 23-10-2026)', () => {
+    expect(PLATFORM_FEE_CENT).toBe(0)
   })
 })
 

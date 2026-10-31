@@ -12,12 +12,12 @@
 type Env = Record<string, string | undefined>
 
 /**
- * Het deel van elke betaling dat naar AI Your Gym gaat (application fee), in
- * procenten. BESLISSING VAN KANE: staat bewust op 0 tot Kane een prijs kiest.
- * Niet zelf invullen. Bij 0 sturen we geen application_fee_amount mee en gaat
- * het hele bedrag (min de Stripe-kosten) naar de sportschool.
+ * Geen platformdeel per betaling (besluit Kane 23-10-2026): betalen zit in het
+ * pakket. We sturen nooit application_fee_amount mee; het hele bedrag (min de
+ * Stripe-kosten, die de sportschool zelf betaalt) gaat naar de sportschool.
+ * De kolom platform_fee_cent blijft voor de boekhouding en is altijd 0.
  */
-export const PLATFORM_FEE_PROCENT = 0
+export const PLATFORM_FEE_CENT = 0
 
 function waarde(env: Env, naam: string): string | null {
   const v = env[naam]?.trim()
@@ -49,12 +49,6 @@ export function clubStripeSleutel(env: Env = process.env): string | null {
 export function clubWebhookGeheim(env: Env = process.env): string | null {
   const v = waarde(env, 'CLUB_STRIPE_WEBHOOK_SECRET')
   return v && v.startsWith('whsec_') ? v : null
-}
-
-/** De platformfee in centen bij dit bedrag (afgerond); 0 zolang het percentage 0 is. */
-export function platformFeeCent(bedragCent: number, procent: number = PLATFORM_FEE_PROCENT): number {
-  if (!Number.isFinite(procent) || procent <= 0) return 0
-  return Math.min(bedragCent, Math.round((bedragCent * procent) / 100))
 }
 
 export const NIET_KLAAR = 'Betalen staat nog niet klaar. Neem contact op met AI Your Gym.'

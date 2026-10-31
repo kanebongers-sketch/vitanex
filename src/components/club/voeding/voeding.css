@@ -74,7 +74,7 @@
 .club-voeding-regel-titel { font-size: 15.5px; font-weight: 600; overflow-wrap: anywhere; }
 .club-voeding-regel-sub { display: block; margin-top: 3px; font-size: 13px; color: var(--text-3); overflow-wrap: anywhere; }
 .club-voeding-regel-kcal { font-family: var(--ff-kop); font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
-.club-voeding-regel-kcal small { display: block; font-size: 11px; letter-spacing: 0.14em; color: var(--text-3); }
+.club-voeding-regel-kcal small { display: block; font-size: 12px; letter-spacing: 0.14em; color: var(--text-3); }
 .club-voeding-regel-kcal.is-tekst { font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); }
 .club-voeding-regel .club-voeding-balk { grid-column: 1 / -1; height: 4px; margin-top: 6px; }
 .club-voeding-zoek { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 12px; }
@@ -166,7 +166,7 @@
 .club-voeding-voorstel thead th { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
 .club-voeding-voorstel tr.is-anders td:last-child { color: var(--brand-tekst, var(--brand)); font-weight: 700; }
 .club-voeding-voorstel-knoppen { display: flex; gap: 8px; flex-wrap: wrap; }
-.club-voeding-regel-badge { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 600; background: color-mix(in srgb, var(--brand) 14%, transparent); color: var(--text-1); vertical-align: 1px; }
+.club-voeding-regel-badge { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; background: color-mix(in srgb, var(--brand) 14%, transparent); color: var(--text-1); vertical-align: 1px; }
 .club-voeding-regels { display: grid; gap: 8px; padding: 14px; border-radius: var(--club-radius-klein); border: 1px solid var(--line); background: var(--club-vlak); }
 .club-voeding-regels h2 { margin: 0; font-size: 15px; }
 .club-voeding-regels p { margin: 0; }

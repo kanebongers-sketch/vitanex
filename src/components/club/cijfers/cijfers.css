@@ -149,9 +149,9 @@
 @media (max-width: 480px) {
   .club-cijfers-plot { --club-cijfers-yas: 34px; height: 168px; gap: 6px; }
   .club-cijfers-plot--laag { height: 96px; }
-  .club-cijfers-xas { margin-left: calc(34px + 6px); font-size: 10.5px; }
+  .club-cijfers-xas { margin-left: calc(34px + 6px); font-size: 11px; }
   .club-cijfers-drukte-raster { grid-auto-rows: 20px; gap: 2px; }
-  .club-cijfers-drukte-uur { font-size: 10px; }
+  .club-cijfers-drukte-uur { font-size: 11px; }
   .club-cijfers-kern-hoofd { padding-right: 0; }
   .club-cijfers-kern-rest > div { padding: 14px 12px 16px 0; }
   .club-cijfers-schaal-max { margin-left: 0; flex-basis: 100%; }

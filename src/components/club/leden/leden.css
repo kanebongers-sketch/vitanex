@@ -79,7 +79,7 @@
   .club-leden-rij { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 12px; padding: 16px 14px 14px; border-bottom: 1px solid var(--line); }
   .club-leden-rij:last-child { border-bottom: 0; }
   .club-leden-rij td { display: grid; gap: 3px; align-content: start; padding: 0; border: 0; text-align: left; font-size: 13.5px; }
-  .club-leden-rij td[data-label]::before { content: attr(data-label); font-family: var(--ff-kop); font-size: 11.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+  .club-leden-rij td[data-label]::before { content: attr(data-label); font-family: var(--ff-kop); font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
   .club-leden-rij td[data-kort]::before { content: attr(data-kort); }
   .club-leden-rij .club-leden-cel-naam, .club-leden-rij .club-leden-cel-behoud { grid-column: 1 / -1; }
   .club-leden-rij .club-leden-cel-naam { padding-right: 104px; }
@@ -188,7 +188,7 @@
 .club-leden-res-notitie--mist { color: var(--club-let-op); }
 .club-leden-datumblok { flex: none; display: grid; justify-items: center; width: 44px; padding: 4px 0; border: 1px solid var(--line); border-radius: var(--club-radius-klein); line-height: 1; }
 .club-leden-datumblok strong { font-family: var(--ff-kop); font-size: 20px; }
-.club-leden-datumblok span { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
+.club-leden-datumblok span { font-size: 12px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
 
 /* ── Notities ─────────────────────────────────────────────────────────────── */
 .club-leden-notitieform { display: grid; gap: 8px; margin-bottom: 14px; }
@@ -225,5 +225,5 @@
 
 /* ── Heeft de app ─────────────────────────────────────────────────────────── */
 .club-leden-naamregel { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
-.club-leden-appchip { flex: none; padding: 1px 8px; font-size: 11px; letter-spacing: 0.04em; }
+.club-leden-appchip { flex: none; padding: 1px 8px; font-size: 12px; letter-spacing: 0.04em; }
 .club-leden-kopknoppen { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }

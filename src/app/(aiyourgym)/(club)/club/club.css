@@ -88,7 +88,6 @@
   .club-groepen a { padding: 0 11px; letter-spacing: 0.05em; }
   .club-merk-naam { max-width: 150px; }
 }
-@media (pointer: coarse) and (min-width: 1000px) { .club-groepen a { min-height: 40px; } }
 
 /* Rij 2: de onderdelen van de groep; onder 1000px met de naam van de groep ervoor. */
 .club-nav {
@@ -130,7 +129,7 @@
 
 /* Onderbalk (telefoon en tablet staand): vier onderdelen en Meer, onder de duim. */
 .club-onderbalk { position: fixed; left: 0; right: 0; bottom: 0; z-index: 75; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 2px; padding: 4px max(6px, env(safe-area-inset-right), calc((100% - 640px) / 2)) max(6px, env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left), calc((100% - 640px) / 2)); background: var(--club-kop-bg, rgba(16, 16, 20, 0.94)); backdrop-filter: blur(16px); border-top: 1px solid var(--line); }
-.club-onderbalk > a, .club-onderbalk > button { position: relative; display: grid; justify-items: center; align-content: center; gap: 3px; min-height: 56px; padding: 6px 2px 4px; border: 0; border-radius: 10px; background: transparent; color: var(--text-3); text-decoration: none; font-family: var(--ff-kop); font-size: 11.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: color 160ms var(--ease), transform 120ms var(--ease); }
+.club-onderbalk > a, .club-onderbalk > button { position: relative; display: grid; justify-items: center; align-content: center; gap: 3px; min-height: 56px; padding: 6px 2px 4px; border: 0; border-radius: 10px; background: transparent; color: var(--text-3); text-decoration: none; font-family: var(--ff-kop); font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: color 160ms var(--ease), transform 120ms var(--ease); }
 .club-onderbalk span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .club-onderbalk > :is(a, button)::before { content: ''; position: absolute; top: -5px; left: 28%; right: 28%; height: 3px; border-radius: 0 0 3px 3px; background: var(--brand); transform: scaleX(0); transition: transform 200ms var(--ease); }
 .club-onderbalk > :is(a[aria-current='page'], button[data-actief='true']) { color: var(--text-1); }
@@ -350,8 +349,8 @@
 .club-zoek-tekst { display: grid; gap: 2px; min-width: 0; }
 .club-zoek-tekst strong { font-family: var(--ff-kop); font-size: 15.5px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .club-zoek-tekst small { font-size: 12.5px; color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.club-zoek-plek { display: inline-flex; align-items: center; gap: 8px; font-size: 11.5px; letter-spacing: 0.04em; color: var(--brand-tekst, var(--brand)); white-space: nowrap; }
-.club-zoek-toets { font-family: inherit; font-size: 10.5px; padding: 1px 5px; border-radius: 5px; border: 1px solid var(--line-strong); color: var(--text-3); }
+.club-zoek-plek { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; letter-spacing: 0.04em; color: var(--brand-tekst, var(--brand)); white-space: nowrap; }
+.club-zoek-toets { font-family: inherit; font-size: 11px; padding: 1px 5px; border-radius: 5px; border: 1px solid var(--line-strong); color: var(--text-3); }
 .club-zoek-enter { color: var(--text-3); }
 .club-zoek-leeg { margin: 0; padding: 20px 16px; color: var(--text-3); font-size: 14px; }
 @media (max-width: 699px) {
@@ -393,3 +392,36 @@
 .club-balk .club-taalkeuze { display: none; }
 @media (min-width: 700px) { .club-balk .club-taalkeuze { display: inline-flex; } }
 .club-menu-taal { display: flex; justify-content: flex-start; padding-top: 12px; border-top: 1px solid var(--line); }
+
+/* ── Tikvlakken op aanraakschermen ──────────────────────────────────────────
+   Op telefoon en tablet (pointer: coarse) is elk bedienbaar element minstens
+   44 x 44 px (--club-tik), ook met bezwete handen op de vloer. Met een muis
+   blijft de compacte pc-maat staan. Deze regels wonen hier omdat club.css in
+   Club en in de ledenapp geladen is; .club-app voor de specificiteit, zodat ze
+   ook winnen van de bladen die later laden. */
+@media (pointer: coarse) {
+  .club-app :is(
+    .club-knop, .club-knop--klein, .club-invoer, .club-vestiging, .club-groepen a,
+    .club-rooster-mijn, .club-rooster-filter select, .club-rooster-afvinkknop,
+    .club-vandaag-meer, .club-vandaag-eerder summary,
+    .club-training-keuze, .club-training-spierknop, .club-training-r-meer, .club-training-r-wissel button,
+    .club-speler-knop, .club-start-chip, .club-start-keuze, .club-startbalk-link,
+    .club-es-wissel button, .club-es-chips button, .club-es-filters button, .club-lidapp-andere-knop,
+    .club-vd-tab, .club-vd-chip, .club-ve-chips button,
+    .club-nl-pil, .club-appuit-keuze, .club-afspraken-plus, .club-instellingen-plus,
+    .club-ic-start, .club-ic-terug, .club-ic-links a, .club-cm-reactie, .club-cm-tekstknop,
+    .club-leads-keuze, .kb-map, .club-personeel-kleurkeuze, .club-leden-filter .club-invoer
+  ) { min-height: var(--club-tik); }
+
+  /* Vierkante icoonknoppen: ook in de breedte 44px. */
+  .club-app :is(
+    .club-ads-weg, .club-welkom-sluit, .club-installeer-sluit, .club-nl-sluit, .club-appuit-sluit,
+    .club-voeding-weg, .club-rooster-positie, .club-es-pijlen button, .club-lidm-kleur,
+    .club-training-r-acties .club-knop--klein, .club-training-dagacties .club-knop--klein
+  ) { min-width: var(--club-tik); min-height: var(--club-tik); }
+  .club-app .club-ads-link { min-height: 40px; }
+
+  /* Te klein om groter te tekenen zonder het beeld eronder te bedekken: een
+     onzichtbaar tikvlak eromheen. */
+  .club-app .club-nl-qr-vergroot::before { content: ''; position: absolute; inset: -9px; }
+}

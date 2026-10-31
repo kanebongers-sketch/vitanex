@@ -61,7 +61,7 @@
 .club-training-spierknop:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .club-training-spierknop[data-staat='primair'] { background: var(--brand); border-color: var(--brand); color: var(--bg-app); font-weight: 600; }
 .club-training-spierknop[data-staat='secundair'] { background: var(--brand-soft); border-color: color-mix(in srgb, var(--brand) 55%, transparent); color: var(--brand-tekst, var(--brand)); }
-.club-training-spierknop-stand { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.85; }
+.club-training-spierknop-stand { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.85; }
 .club-training-spierkeuze-voorbeeld { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: center; padding: 10px; border-radius: var(--club-radius-klein); background: var(--club-vlak); border: 1px solid var(--line); }
 
 /* Overzicht per schema: sets per groep per dag. */
@@ -69,11 +69,11 @@
 .club-training-spieroverzicht table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
 .club-training-spieroverzicht th, .club-training-spieroverzicht td { padding: 6px 4px; text-align: center; border-bottom: 1px solid var(--line); }
 .club-training-spieroverzicht th:first-child, .club-training-spieroverzicht td:first-child { text-align: left; }
-.club-training-spieroverzicht thead th { font-family: var(--ff-kop); font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
+.club-training-spieroverzicht thead th { font-family: var(--ff-kop); font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
 /* Smalle kolom (tablet): de tabel krimpt mee in plaats van de pagina breder te maken. */
 .club-training-spieroverzicht { min-width: 0; overflow-x: auto; }
 @media (max-width: 1279px) {
-  .club-training-spieroverzicht thead th { font-size: 10.5px; letter-spacing: 0.02em; }
+  .club-training-spieroverzicht thead th { font-size: 12px; letter-spacing: 0.02em; }
   .club-training-spieroverzicht th, .club-training-spieroverzicht td { padding: 6px 2px; }
 }
 .club-training-spieroverzicht td[data-nul='true'] { color: var(--text-4); }

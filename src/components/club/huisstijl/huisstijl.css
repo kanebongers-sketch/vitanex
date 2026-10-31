@@ -104,7 +104,7 @@ html:has(.club-huisstijl-opslaan) { scroll-padding-bottom: 110px; }
   border: 1px solid var(--line-strong); background: var(--bg-app); color: var(--text-1); box-shadow: var(--club-schaduw);
   transition: background-color 200ms var(--ease);
 }
-.club-huisstijl-voorbeeldlabel { position: absolute; right: 12px; top: 10px; margin: 0; z-index: 1; font-family: var(--ff-kop); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-4); }
+.club-huisstijl-voorbeeldlabel { position: absolute; right: 12px; top: 10px; margin: 0; z-index: 1; font-family: var(--ff-kop); font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-4); }
 .club-huisstijl-vb-balk { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; padding-right: 90px; background: var(--club-kop-bg); border-bottom: 1px solid var(--line); }
 .club-huisstijl-vb-balk .club-merk img, .club-huisstijl-vb-balk .ff-logo { height: 26px; width: auto; }
 .club-huisstijl-vb-groep { padding: 5px 12px; border-radius: 999px; background: var(--brand); color: var(--brand-inkt); font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }

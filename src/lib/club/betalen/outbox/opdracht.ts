@@ -39,8 +39,8 @@ interface Basis {
   eersteOp: Date | null
 }
 
-/** Zonder platformfee: die rekent de werker bij elke poging gelijk uit. */
-type ZonderFee<T> = Omit<T, 'platformFeeCent' | 'organisatieId'>
+/** De werker zet het id van de sportschool er bij elke poging zelf bij. */
+type ZonderFee<T> = Omit<T, 'organisatieId'>
 
 export type Opdracht = Basis &
   (
@@ -125,7 +125,7 @@ function terugbetaling(g: Obj): Omit<LidTerugbetalingInvoer, 'organisatieId'> | 
   const paymentIntent = idVan(g.payment_intent, 'pi_')
   const bedragCent = bedrag(g.bedrag_cent)
   if (!terugbetalingId || !betalingId || !paymentIntent || bedragCent === null) return null
-  return { terugbetalingId, betalingId, paymentIntent, bedragCent, metFee: g.met_fee === true }
+  return { terugbetalingId, betalingId, paymentIntent, bedragCent }
 }
 
 /** Het deel van een opdracht zonder de basis, per soort apart (distributief). */

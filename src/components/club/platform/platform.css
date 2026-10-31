@@ -100,3 +100,23 @@
 /* Wachtwoord kiezen voor het master account (alleen zolang er nog geen is). */
 .club-ww-form { display: grid; gap: 12px; max-width: 420px; margin-top: 12px; }
 .club-ww-form .club-knop { justify-self: start; }
+
+
+/* Tweestapsverificatie (/club/platform/beveiliging) */
+.club-2fa { display: grid; gap: 14px; max-width: 640px; }
+.club-2fa[data-stand='aan'] { border-color: color-mix(in srgb, var(--brand) 45%, var(--line)); }
+.club-2fa[data-stand='uit'] { border-color: color-mix(in srgb, var(--club-let-op) 40%, var(--line)); }
+.club-2fa-kop { display: flex; align-items: center; gap: 8px; margin: 0; }
+.club-2fa-kop svg { flex: none; }
+.club-2fa[data-stand='aan'] .club-2fa-kop svg { color: var(--brand-tekst, var(--brand)); }
+.club-2fa[data-stand='uit'] .club-2fa-kop svg { color: var(--club-let-op); }
+.club-2fa p, .club-2fa h3 { margin: 0; }
+.club-2fa h3 { font-size: 15px; }
+.club-2fa-uitleg { font-size: 13.5px; color: var(--text-3); }
+.club-2fa-form, .club-2fa-instellen { display: grid; gap: 12px; padding-top: 14px; border-top: 1px solid var(--line); }
+.club-2fa-form .club-veld { max-width: 280px; }
+.club-2fa-code { font-variant-numeric: tabular-nums; letter-spacing: 0.18em; font-size: 18px; }
+.club-2fa-qr { width: 200px; height: 200px; border-radius: var(--club-radius-klein); background: #fff; padding: 6px; }
+.club-2fa-geheim { justify-self: start; max-width: 100%; padding: 8px 12px; border-radius: var(--club-radius-klein); border: 1px solid var(--line-strong); background: var(--club-invoer-bg, rgba(0, 0, 0, 0.25)); font-size: 14px; letter-spacing: 0.08em; word-break: break-all; user-select: all; }
+.club-2fa-herstel { margin: 0; padding: 14px 16px 14px 36px; display: grid; gap: 6px 24px; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); border-radius: var(--club-radius-klein); border: 1px dashed var(--line-strong); font-variant-numeric: tabular-nums; }
+.club-2fa-herstel code { font-size: 15px; letter-spacing: 0.06em; user-select: all; }

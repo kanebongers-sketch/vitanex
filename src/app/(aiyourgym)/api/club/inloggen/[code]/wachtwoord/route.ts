@@ -7,7 +7,7 @@
 import type { NextRequest } from 'next/server'
 import { clubDatabase } from '@/lib/club/kern/database'
 import { ipVan, isZelfdeOorsprong } from '@/lib/club/kern/verzoek'
-import { isRateLimited } from '@/lib/utils/rate-limit'
+import { isGeremd } from '@/lib/club/kern/rem-db'
 import { leesJsonBegrensd } from '@/lib/club/kern/body'
 import { hashWachtwoord, wachtwoordFout } from '@/lib/club/kern/wachtwoord'
 import { clubFout, clubJson, haalEigenOrganisatie, hostPastBij } from '@/lib/club/toegang'
@@ -25,7 +25,7 @@ interface Context {
 export async function POST(req: NextRequest, ctx: Context) {
   if (!CLUB_EIGEN_LOGIN) return clubFout('Niet gevonden.', 404)
   if (!isZelfdeOorsprong(req.headers)) return clubFout('Dit verzoek komt niet van de app zelf.', 403)
-  if (isRateLimited(`club-uitnodiging:${ipVan(req)}`, 10, 15 * 60_000)) return clubFout('Te veel pogingen vanaf dit netwerk. Probeer het over een kwartier opnieuw.', 429)
+  if (await isGeremd({ soort: 'club-uitnodiging', max: 10, vensterMs: 15 * 60_000, bijStoring: 'geheugen' }, ipVan(req))) return clubFout('Te veel pogingen vanaf dit netwerk. Probeer het over een kwartier opnieuw.', 429)
   const { code } = await ctx.params
   const admin = clubDatabase()
   const b = await vindBeheerder(admin, code)

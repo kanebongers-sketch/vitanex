@@ -48,7 +48,7 @@
 .club-rooster-kolomkop { display: grid; grid-template-columns: auto 1fr; align-items: baseline; column-gap: 8px; padding: 10px 12px 9px; border-left: 1px solid var(--line); }
 .club-rooster-kolomkop-dag { font-family: var(--ff-kop); font-size: 14px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
 .club-rooster-kolomkop-nr { font-family: var(--ff-kop); font-size: 28px; line-height: 1; font-weight: 700; color: var(--text-1); }
-.club-rooster-kolomkop-telling { grid-column: 1 / -1; font-size: 11.5px; color: var(--text-4); }
+.club-rooster-kolomkop-telling { grid-column: 1 / -1; font-size: 12px; color: var(--text-4); }
 .club-rooster-kolomkop[data-vandaag] { box-shadow: inset 0 3px 0 var(--brand); }
 .club-rooster-kolomkop[data-vandaag] .club-rooster-kolomkop-dag, .club-rooster-kolomkop[data-vandaag] .club-rooster-kolomkop-nr { color: var(--brand-tekst, var(--brand)); }
 
@@ -69,10 +69,10 @@
 .club-rooster-les[aria-current='true'], .club-rooster-rij[aria-current='true'] { border-color: var(--brand); box-shadow: 0 0 0 1px var(--brand); }
 .club-rooster-les[data-voorbij], .club-rooster-rij[data-voorbij] { opacity: 0.55; }
 .club-rooster-les[data-geannuleerd] .club-rooster-les-naam, .club-rooster-rij[data-geannuleerd] .club-rooster-les-naam { text-decoration: line-through; color: var(--text-3); }
-.club-rooster-les-tijd { font-size: 11.5px; color: var(--text-3); line-height: 1.2; }
+.club-rooster-les-tijd { font-size: 12px; color: var(--text-3); line-height: 1.2; }
 .club-rooster-les-naam { font-family: var(--ff-kop); font-size: 15px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; line-height: 1.05; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.club-rooster-les-meta { font-size: 11.5px; color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.club-rooster-les-uit { margin-top: auto; font-size: 11.5px; font-weight: 600; color: var(--club-let-op); }
+.club-rooster-les-meta { font-size: 12px; color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.club-rooster-les-uit { margin-top: auto; font-size: 12px; font-weight: 600; color: var(--club-let-op); }
 .club-rooster-les .club-rooster-bezetting { margin-top: auto; }
 @container (max-height: 70px) { .club-rooster-les-meta { display: none; } }
 @container (max-height: 52px) { .club-rooster-les-tijd { display: none; } }
@@ -96,7 +96,7 @@
 .club-rooster-bezetting[data-niveau='vol'] { --club-rooster-vulling: var(--club-let-op); }
 .club-rooster-balk { display: block; height: 3px; border-radius: 3px; background: var(--line-strong); overflow: hidden; }
 .club-rooster-balk span { display: block; height: 100%; background: var(--club-rooster-vulling); transform: scaleX(var(--deel)); transform-origin: left; transition: transform 300ms var(--ease); }
-.club-rooster-teller { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; font-size: 11.5px; font-weight: 600; color: var(--text-2); }
+.club-rooster-teller { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; font-size: 12px; font-weight: 600; color: var(--text-2); }
 .club-rooster-bezetting[data-niveau='vol'] .club-rooster-teller .club-getal { color: var(--club-let-op); }
 .club-rooster-wacht { color: var(--club-let-op); font-weight: 600; white-space: nowrap; }
 
@@ -108,7 +108,7 @@
 .club-rooster-dagkiezer a:active { transform: scale(0.97); }
 .club-rooster-dagkiezer span { font-family: var(--ff-kop); font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
 .club-rooster-dagkiezer strong { font-family: var(--ff-kop); font-size: 20px; line-height: 1.1; font-weight: 700; }
-.club-rooster-dagkiezer small { font-size: 10.5px; color: var(--text-3); white-space: nowrap; }
+.club-rooster-dagkiezer small { font-size: 12px; color: var(--text-3); white-space: nowrap; }
 .club-rooster-dagkiezer a[data-leeg] strong { color: var(--text-3); }
 .club-rooster-dagkiezer a[data-vandaag] { border-color: var(--brand); background: var(--brand-soft); }
 .club-rooster-dagkiezer a[data-vandaag] :is(span, strong, small) { color: var(--club-merk-inkt); }

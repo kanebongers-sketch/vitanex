@@ -2,14 +2,15 @@
 
 Leden kopen in de ledenapp losse producten van hun sportschool: een losse les of drop-in, een strippenkaart, een PT-pakket of een los product (bijvoorbeeld een shake, op te halen bij de balie). Het lidmaatschap zelf hoort hier niet bij: dat blijft bij Sportivity of het eigen systeem van de sportschool, net als incasso.
 
-Het geld gaat naar de sportschool zelf, niet naar AI Your Gym. Daarvoor gebruiken we **Stripe Connect** met **Express-accounts** en **direct charges**.
+Het geld gaat naar de sportschool zelf, niet naar AI Your Gym. Daarvoor gebruiken we **Stripe Connect** met een account met **Standard-gedrag** per sportschool en **direct charges** (besluit Kane 23-10-2026). Het account krijgt bij het aanmaken de controller-instellingen `fees.payer = account` (de sportschool betaalt de Stripe-kosten), `losses.payments = stripe` (niet AI Your Gym draagt een negatief saldo), `requirement_collection = stripe` en `stripe_dashboard.type = full` (het volledige Stripe-dashboard; dat is achteraf niet te wijzigen). Code: `accountFormulier()` in `src/lib/club/betalen/stripe-api.ts`.
 
 ## Waarom direct charges
 
 - De betaling staat op het Stripe-account van de sportschool. De sportschool is de verkoper: haar naam staat op het afschrift van het lid, zij betaalt de Stripe-kosten, en terugbetalingen en geschillen zijn van haar.
-- AI Your Gym kan later een deel inhouden (application fee). Dat percentage staat nu op 0 (zie open beslissingen).
+- Geen platformdeel per betaling: betalen zit in het pakket. We sturen nooit een application fee mee (`PLATFORM_FEE_CENT = 0`, test bewaakt het).
 - Bij destination charges zou AI Your Gym de verkoper zijn en de btw over lessen van een ander moeten afdragen. Dat past niet bij verkoop namens de sportschool.
-- Let op: bij Express-accounts blijft het platform (AI Your Gym) volgens Stripe aansprakelijk als een sportschool een negatief saldo heeft (bijvoorbeeld na een geschil zonder saldo). Klein risico, wel goed om te weten.
+- Een negatief saldo (bijvoorbeeld na een geschil zonder saldo) is van de sportschool en Stripe, niet van AI Your Gym (`losses.payments = stripe`).
+- De knop naar het dashboard opent het Stripe-dashboard, waar de sportschool zelf inlogt. Een inloglink via de API bestaat alleen voor het Express-dashboard.
 
 ## Hoe het werkt
 
@@ -23,7 +24,7 @@ Het geld gaat naar de sportschool zelf, niet naar AI Your Gym. Daarvoor gebruike
 
 ## Wat Kane moet doen
 
-1. **Stripe Connect aanzetten** op het Stripe-account van AI Your Gym (Dashboard, Connect, aan de slag). Kies Express, land Nederland, en zet iDEAL en kaart aan als betaalmethoden voor connected accounts. Vul het platformprofiel in (wat AI Your Gym doet, dat sportscholen via ons verkopen).
+1. **Stripe Connect aanzetten** op het Stripe-account van AI Your Gym (Dashboard, Connect, aan de slag). Kies het model waarin de sportschool zelf verkoper is en zelf de Stripe-kosten betaalt (volledig Stripe-dashboard, direct charges), land Nederland, en zet iDEAL, kaart en SEPA-incasso aan als betaalmethoden. Vul het platformprofiel in (wat AI Your Gym doet, dat sportscholen via ons verkopen).
 2. **Webhook voor Connect** maken (Dashboard, Developers, Webhooks, "Events on Connected accounts"):
    - URL: `https://fitfactorypt.nl/api/club-betalen/stripe`
    - Events: `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired`, `charge.refunded`, `account.updated`
@@ -38,13 +39,12 @@ Het geld gaat naar de sportschool zelf, niet naar AI Your Gym. Daarvoor gebruike
 
 - **Algemene voorwaarden voor verkoop namens de sportschool:** de sportschool is de verkoper. AI Your Gym levert alleen de software. Zet dat in de voorwaarden van AI Your Gym voor sportscholen, en laat de sportschool eigen verkoopvoorwaarden voor leden hebben (herroepingsrecht bij diensten die op een datum geleverd worden, geldigheid van strippenkaarten, wat er gebeurt bij sluiting).
 - **Stripe Connect-overeenkomst:** de sportschool accepteert tijdens de onboarding de Stripe Connected Account Agreement.
-- **Btw:** de sportschool draagt de btw af over wat zij verkoopt. Het tarief (9 of 21 procent) kiest de sportschool met haar boekhouder; Club rekent het btw-deel alleen uit voor het overzicht. Een eventuele platformfee is een dienst van AI Your Gym aan de sportschool en valt onder de btw van AI Your Gym.
+- **Btw:** de sportschool draagt de btw af over wat zij verkoopt. Het tarief (9 of 21 procent) kiest de sportschool met haar boekhouder; Club rekent het btw-deel alleen uit voor het overzicht. Er is geen platformfee per betaling; het abonnement bij AI Your Gym valt onder de btw van AI Your Gym.
 - **Facturen:** Stripe stuurt het lid een betaalbewijs. Een echte factuur (als een lid erom vraagt) maakt de sportschool nu zelf.
 - **Privacy:** wij bewaren geen kaart- of bankgegevens, alleen wat er gekocht is, het bedrag en de Stripe-id's. Zet Stripe als verwerker in de privacyverklaring van de sportschool.
 
 ## Open beslissingen (Kane)
 
-- **Platformfee:** `PLATFORM_FEE_PROCENT` in `src/lib/club/betalen/config.ts` staat op 0. Kiest Kane een percentage, dan houdt Stripe dat automatisch in per betaling. Niet zelf invullen.
 - **Wachtlijst met strippenkaart:** nu boek je met een strip alleen een vrije plek. Wachtlijst met strip kan later (strip vasthouden en teruggeven als je er niet in komt).
 - **Strip terug als de sportschool een les annuleert** of de balie het lid afmeldt: nu alleen automatisch als het lid zelf op tijd afmeldt in de app. De rest kan later, of via een terugbetaling.
 - **Drop-in voor de fitness** (zonder groepsles) aan de balie afboeken bij check-in: nu niet; een losse les geldt voor een groepsles.

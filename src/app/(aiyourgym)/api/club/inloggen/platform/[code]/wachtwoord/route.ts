@@ -13,6 +13,7 @@ import { wachtwoordFout } from '@/lib/club/kern/wachtwoord'
 import { clubFout, clubJson } from '@/lib/club/toegang'
 import { kiesPlatformWachtwoord, vindPlatformAccount } from '@/lib/club/platform-login/opslag'
 import { platformGeremd, zetPlatformCookie } from '@/lib/club/platform-login/route-hulp'
+import { zetWachtCookie } from '@/lib/club/tweestaps/cookie'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -36,5 +37,7 @@ export async function POST(req: NextRequest, ctx: Context) {
   const uit = await kiesPlatformWachtwoord(admin, account, String(wachtwoord), new Date())
   if (uit.staat === 'db') return clubFout('Opslaan mislukt. Probeer het opnieuw.', 502)
   if (uit.staat === 'niet_mogelijk') return clubFout('Met deze link kan geen wachtwoord meer gekozen worden. Maak een nieuwe startlink.', 409)
+  // Tweestapsverificatie aan: de sessie volgt pas na de code.
+  if (uit.staat === 'tweestaps') return zetWachtCookie(clubJson({ staat: 'tweestaps' }), uit.token, uit.verlooptOp)
   return zetPlatformCookie(clubJson({ staat: 'ok' }), uit.token, uit.verlooptOp)
 }

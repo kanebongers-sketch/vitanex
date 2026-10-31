@@ -11,12 +11,12 @@ import { onboardingAdressen } from './adressen'
 import { leesProductInvoer, productRij } from './invoer'
 import { bewaarAccountId, claimTerugbetaling, geefTerugbetalingVrij, haalBetaalAccount, haalVerkoopStripe, maakProduct, verwijderProduct, werkAccountStandBij, wijzigProduct, zetBetalenAan } from './opslag'
 import { magTerugbetalen } from './regels'
-import { haalAccount, maakAccount, maakAccountLink, maakDashboardLink, maakTerugbetaling } from './stripe-api'
+import { haalAccount, maakAccount, maakAccountLink, maakTerugbetaling, STRIPE_DASHBOARD_URL } from './stripe-api'
 import { leesAccount } from './stripe-event'
 
 const ONBEREIKBAAR = 'Stripe reageerde niet. Probeer het over een paar minuten opnieuw.'
 
-/** Onboarding starten of hervatten: een Express-account (een keer) en een verse account link. */
+/** Onboarding starten of hervatten: een Connect-account met Standard-gedrag (een keer) en een verse account link. */
 export async function startOnboarding(t: ClubToegang, oorsprong: string | null): Promise<NextResponse> {
   const sleutel = clubStripeSleutel()
   if (!sleutel) return clubFout(NIET_KLAAR, 503)
@@ -51,8 +51,8 @@ export async function dashboardLink(t: ClubToegang): Promise<NextResponse> {
   const huidig = await haalBetaalAccount(t.admin, t.userId)
   if (!sleutel) return clubFout(NIET_KLAAR, 503)
   if (!huidig?.stripeAccountId || !huidig.gegevensCompleet) return clubFout('Rond eerst de onboarding bij Stripe af.', 409)
-  const url = await maakDashboardLink(sleutel, huidig.stripeAccountId)
-  return url ? clubJson({ url }) : clubFout(ONBEREIKBAAR, 502)
+  // Volledig Stripe-dashboard: de sportschool logt daar zelf in (geen login link).
+  return clubJson({ url: STRIPE_DASHBOARD_URL })
 }
 
 export async function zetSchakelaar(t: ClubToegang, aan: unknown): Promise<NextResponse> {
@@ -109,7 +109,7 @@ export async function betaalTerug(t: ClubToegang, id: string): Promise<NextRespo
   if (!v) return clubFout('Niet gevonden.', 404)
   if (!magTerugbetalen(v) || !v.paymentIntent) return clubFout('Deze verkoop kan niet (meer) worden terugbetaald.', 409)
   if (!(await claimTerugbetaling(t.admin, t.userId, id))) return clubFout('Er loopt al een terugbetaling voor deze verkoop.', 409)
-  const ok = await maakTerugbetaling(sleutel, v.stripeAccountId, v.paymentIntent, v.id, v.platformFeeCent > 0)
+  const ok = await maakTerugbetaling(sleutel, v.stripeAccountId, v.paymentIntent, v.id)
   if (!ok) {
     await geefTerugbetalingVrij(t.admin, t.userId, id)
     return clubFout('Stripe kon de terugbetaling niet uitvoeren. Kijk of er genoeg saldo op het Stripe-account staat.', 502)

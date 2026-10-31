@@ -3,7 +3,7 @@
 .club-training-vervangknop span { font-size: 12.5px; }
 @media (max-width: 640px) { .club-training-vervangknop span { display: none; } }
 .club-training-vervanglijst { margin-top: 4px; }
-.club-training-vervang-match { flex: none; align-self: center; padding: 3px 9px; border-radius: 999px; background: var(--club-vlak); font-size: 11.5px; letter-spacing: 0.04em; color: var(--text-2); white-space: nowrap; }
+.club-training-vervang-match { flex: none; align-self: center; padding: 3px 9px; border-radius: 999px; background: var(--club-vlak); font-size: 12px; letter-spacing: 0.04em; color: var(--text-2); white-space: nowrap; }
 .club-training-vervang-match[data-zelfde] { background: var(--brand-soft); color: var(--brand-tekst, var(--brand)); }
 .club-training-vervang-let { color: var(--club-let-op); }
 

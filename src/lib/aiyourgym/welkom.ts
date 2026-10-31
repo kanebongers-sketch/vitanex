@@ -24,6 +24,8 @@ export type Welkom =
   | { soort: 'bezig' }
   | { soort: 'verlopen' }
   | { soort: 'gestopt' }
+  /** Betaald, maar niet automatisch klaargezet (bijvoorbeeld een adres dat al een account heeft): Kane neemt contact op. */
+  | { soort: 'nakijken' }
   | { soort: 'klaar'; sportschool: string; adres: string; inlogUrl: string; email: string; loginOpen: boolean }
 
 const LOPEND = new Set(['actief', 'betaling_mislukt', 'gepauzeerd'])
@@ -49,6 +51,7 @@ export async function haalWelkom(ruweSessie: unknown, nu: Date): Promise<Welkom>
   // Alleen bij Stripe: een testbetaling wordt afgerond op de testbetaalpagina zelf.
   if (!test && a.status === 'wacht_op_betaling' && (await probeerInTeRichten(a, sessieId))) a = (await vindOpSessie(admin, sessieId)) ?? a
   if (a.status === 'opgezegd') return { soort: 'gestopt' }
+  if (a.status === 'aanvraag') return { soort: 'nakijken' }
   if (!LOPEND.has(a.status) || !a.organisatieId) return { soort: 'bezig' }
 
   // Het adres werkt meteen: aiyourgym.com/<slug> (of het subdomein met de schakelaar aan).

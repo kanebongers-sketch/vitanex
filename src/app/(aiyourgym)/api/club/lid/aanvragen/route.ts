@@ -17,6 +17,7 @@ import { NextResponse, after, type NextRequest } from 'next/server'
 import { clubDatabase } from '@/lib/club/kern/database'
 import { ipVan, isZelfdeOorsprong } from '@/lib/club/kern/verzoek'
 import { isRateLimited } from '@/lib/utils/rate-limit'
+import { isGeremd } from '@/lib/club/kern/rem-db'
 import { clubFout, clubJson } from '@/lib/club/toegang'
 import { leesJsonOfTeGroot } from '@/lib/club/kern/body'
 import { CLUB_LEDEN_LOGIN } from '@/lib/club/ledenlogin/schakelaar'
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest) {
   if (!CLUB_LEDEN_LOGIN) return clubFout('Niet gevonden.', 404)
   if (!isZelfdeOorsprong(req.headers)) return clubFout('Dit verzoek komt niet van de app zelf.', 403)
   const ip = ipVan(req)
-  if (isRateLimited(`club-lid-aanvragen:${ip}`, IP_MAX, IP_VENSTER_MS) || isRateLimited('club-lid-aanvragen:alles', 600, IP_VENSTER_MS)) {
+  if (await isGeremd({ soort: 'club-lid-aanvragen', max: IP_MAX, vensterMs: IP_VENSTER_MS, bijStoring: 'geheugen' }, ip) || isRateLimited('club-lid-aanvragen:alles', 600, IP_VENSTER_MS)) {
     return clubFout('Te veel aanvragen. Probeer het over een kwartier opnieuw.', 429)
   }
   const gelezen = await leesJsonOfTeGroot(req, 1000)

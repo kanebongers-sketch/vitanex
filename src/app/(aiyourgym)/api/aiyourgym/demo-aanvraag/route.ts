@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server'
 import { ipVan, isZelfdeOorsprong } from '@/lib/club/kern/verzoek'
-import { isRateLimited } from '@/lib/utils/rate-limit'
+import { isGeremd } from '@/lib/club/kern/rem-db'
 import { leesJsonBegrensd } from '@/lib/club/kern/body'
 import { isRobot } from '@/lib/aiyourgym/aanmelding'
 import { DEMO_MAX_BODY_BYTES, leesDemoAanvraag } from '@/lib/aiyourgym/demo-aanvraag'
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
   if (!(await poortOpen())) return aygFout('Niet gevonden.', 404)
   if (!isZelfdeOorsprong(req.headers)) return aygFout('Dit verzoek komt niet van de website zelf.', 403)
   const ip = ipVan(req)
-  if (isRateLimited(`ayg-demo:${ip}`, 5, 10 * 60_000)) return aygFout(TE_VEEL, 429)
+  if (await isGeremd({ soort: 'ayg-demo', max: 5, vensterMs: 10 * 60_000, bijStoring: 'geheugen' }, ip)) return aygFout(TE_VEEL, 429)
 
   const body = await leesJsonBegrensd(req, DEMO_MAX_BODY_BYTES)
   if (body === 'te-groot') return aygFout('Het verzoek is te groot.', 413)

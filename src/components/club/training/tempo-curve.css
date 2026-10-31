@@ -10,7 +10,7 @@
 .club-tempo-tekens span { display: grid; justify-items: center; gap: 1px; }
 .club-tempo-tekens b { font-weight: 700; color: var(--text-1); }
 .club-tempo-tekens [data-nul] b { color: var(--text-4); }
-.club-tempo-tekens small { font-family: var(--ff-tekst, inherit); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
+.club-tempo-tekens small { font-family: var(--ff-tekst, inherit); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
 
 .club-tempo--klein { grid-template-columns: 54px auto; align-items: center; gap: 8px; }
 .club-tempo--klein svg { height: 18px; }

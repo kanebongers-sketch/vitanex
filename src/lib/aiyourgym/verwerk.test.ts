@@ -15,7 +15,7 @@ const rij = (extra: Record<string, unknown> = {}) => ({
 const sessie: AfgerondeSessie = { sessieId: 'cs_test_1', aanmeldingId: ID, status: 'complete', betaalStatus: 'no_payment_required', mode: 'subscription', klantId: 'cus_1', abonnementId: 'sub_1' }
 const ok = (data: unknown): Antwoord => ({ data, error: null })
 
-function deps(uitslag: { ok: true; organisatieId: string } | { ok: false } = { ok: true, organisatieId: ORG }) {
+function deps(uitslag: { ok: true; organisatieId: string } | { ok: false; reden?: 'email_bezet' } = { ok: true, organisatieId: ORG }) {
   const d = {
     maakSportschool: vi.fn<VerwerkDeps['maakSportschool']>(async () => uitslag),
     ruimOp: vi.fn<VerwerkDeps['ruimOp']>(async () => undefined),
@@ -75,6 +75,25 @@ describe('verwerkSessie', () => {
     expect(await verwerkSessie(admin, sessie, d)).toBe('fout')
     expect(vragen.some((v) => v.actie === 'update' && (v.waarde as { status?: string }).status === 'wacht_op_betaling')).toBe(true)
     expect(d.welkom).not.toHaveBeenCalled()
+  })
+  it('een adres dat al een account heeft: geen tweede sportschool, een aanvraag voor Kane, geen herhaling van Stripe', async () => {
+    const { admin, vragen } = db(rij())
+    const meld = vi.fn(async () => undefined)
+    const d = { ...deps({ ok: false, reden: 'email_bezet' }), meld }
+    expect(await verwerkSessie(admin, sessie, d)).toBe('nakijken')
+    const naar = vragen.find((v) => v.actie === 'update' && (v.waarde as { status?: string }).status === 'aanvraag')
+    expect(naar?.waarde).toMatchObject({ organisatie_id: null, eigenaar_wachtwoord_hash: null })
+    expect(naar?.filters).toContainEqual(['eq', 'status', 'inrichten'])
+    expect(vragen.some((v) => v.actie === 'update' && (v.waarde as { status?: string }).status === 'wacht_op_betaling')).toBe(false)
+    expect(vragen.some((v) => v.actie === 'update' && (v.waarde as { status?: string }).status === 'actief')).toBe(false)
+    expect(d.welkom).not.toHaveBeenCalled()
+    expect(meld).toHaveBeenCalledTimes(1)
+    expect(String((meld.mock.calls[0] as unknown[])[0])).not.toContain('s@b.nl')
+  })
+  it('het webhook-event van zo een aanmelding telt als verwerkt (idempotent, geen eindeloze herhaling)', async () => {
+    const { admin, vragen } = db(rij())
+    expect(await verwerkEvent(admin, { soort: 'sessie_afgerond', id: 'evt_9', sessie }, deps({ ok: false, reden: 'email_bezet' }))).toBe('ok')
+    expect(vragen.some((v) => v.tabel === 'ayg_stripe_events' && v.actie === 'delete')).toBe(false)
   })
   it('een vastgelopen inrichting ruimt eerst de halve sportschool op', async () => {
     const oud = new Date(NU.getTime() - 60 * 60_000).toISOString()

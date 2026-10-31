@@ -6,7 +6,6 @@
 // opnieuw met dezelfde sleutel, zodat Stripe het eerdere resultaat teruggeeft
 // en nooit twee keer afschrijft.
 
-import { platformFeeCent } from '../config'
 import type { StripeUitkomst } from '../stripe-api'
 import { beweegtGeld, leesOpdracht, type Opdracht, type OpdrachtRij } from './opdracht'
 import type { StripeSchrijver } from './stripe-client'
@@ -35,8 +34,6 @@ export interface OutboxDeps {
   opslag: OutboxOpslag
   stripe: StripeSchrijver
   nu: () => Date
-  /** De platformfee bij een bedrag (standaard uit config, nu 0). */
-  fee?: (bedragCent: number) => number
 }
 
 type Resultaat = StripeUitkomst<{ id: string; url?: string; status?: string | null }>
@@ -44,7 +41,6 @@ type Resultaat = StripeUitkomst<{ id: string; url?: string; status?: string | nu
 const ONGELDIG = (code: string): Resultaat => ({ ok: false, soort: 'ongeldig', status: 0, code })
 
 async function voerUit(o: Opdracht, account: string, d: OutboxDeps): Promise<Resultaat> {
-  const fee = d.fee ?? platformFeeCent
   const org = o.organisatieId
   const k = o.sleutel
   switch (o.soort) {
@@ -53,11 +49,11 @@ async function voerUit(o: Opdracht, account: string, d: OutboxDeps): Promise<Res
       return g ? d.stripe.maakKlant(account, k, { organisatieId: org, lidId: o.invoer.lidId, ...g }) : ONGELDIG('lid_onbekend')
     }
     case 'eerste_betaling':
-      return d.stripe.maakEersteBetaalSessie(account, k, { ...o.invoer, organisatieId: org, platformFeeCent: fee(o.invoer.bedragCent) })
+      return d.stripe.maakEersteBetaalSessie(account, k, { ...o.invoer, organisatieId: org })
     case 'machtiging':
       return d.stripe.maakMachtigingSessie(account, k, { ...o.invoer, organisatieId: org })
     case 'incasso':
-      return d.stripe.maakIncasso(account, k, { ...o.invoer, organisatieId: org, platformFeeCent: fee(o.invoer.bedragCent) })
+      return d.stripe.maakIncasso(account, k, { ...o.invoer, organisatieId: org })
     case 'terugbetaling':
       return d.stripe.maakTerugbetaling(account, k, { ...o.invoer, organisatieId: org })
     case 'klant_verwijderen':

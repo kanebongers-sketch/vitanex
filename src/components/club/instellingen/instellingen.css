@@ -96,7 +96,7 @@
 .club-instellingen-serie-kaart::before { content: ''; position: absolute; left: 0; top: 6px; bottom: 6px; width: 3px; border-radius: 0 3px 3px 0; background: var(--club-rooster-soort, var(--text-4)); }
 .club-instellingen-serie-kaart:hover { transform: translateY(-1px); border-color: var(--line-strong); }
 .club-instellingen-serie-kaart[data-uit] { opacity: 0.5; }
-.club-instellingen-serie-kaart .club-zacht { font-size: 11.5px; }
+.club-instellingen-serie-kaart .club-zacht { font-size: 12px; }
 .club-instellingen-serie-kaart .club-chip { justify-self: start; margin-top: 4px; }
 .club-instellingen-serie-tijd { font-size: 12px; color: var(--text-3); }
 .club-instellingen-serie-naam { font-family: var(--ff-kop); font-size: 15px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }

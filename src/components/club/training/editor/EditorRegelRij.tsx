@@ -76,6 +76,33 @@ export function EditorRegelRij({ regel: r, label, oefening: o, isEerste, isLaats
     a.onVerplaats(r.sleutel, e.key === 'ArrowUp' ? -1 : 1)
   }
 
+  /** Superset koppelen of loshalen. Op de pc een icoon bij de acties; op de telefoon met tekst onder Meer. */
+  function groepKnop(metTekst: boolean) {
+    const klasse = metTekst ? 'club-knop club-knop--klein' : 'club-knop club-knop--stil club-knop--klein club-training-r-groepknop'
+    return inBlok ? (
+      <button type="button" className={klasse} onClick={() => a.onOntkoppel(r.sleutel)} aria-label={t.uitSuperset(naam)} title={t.uitSupersetTitel}>
+        <Unlink2 aria-hidden size={15} />
+        {metTekst && t.uitSupersetTitel}
+      </button>
+    ) : (
+      <button type="button" className={klasse} onClick={() => a.onKoppel(r.sleutel)} disabled={isEerste} aria-label={t.koppel(naam)} title={t.koppelTitel}>
+        <Link2 aria-hidden size={15} />
+        {metTekst && t.koppelTitel}
+      </button>
+    )
+  }
+
+  /** Herhalingen of tijd kiezen. */
+  function maatWissel() {
+    return (
+      <span className="club-training-r-wissel" role="group" aria-label={t.herhOfTijd(naam)}>
+        {(['herhalingen', 'tijd'] as const).map((m) => (
+          <button key={m} type="button" aria-pressed={r.maat === m} onClick={() => a.onMaat(r.sleutel, m)}>{t.maat[m]}</button>
+        ))}
+      </span>
+    )
+  }
+
   function sleepStart(e: DragEvent<HTMLButtonElement>) {
     const rij = e.currentTarget.closest('li')
     if (rij) e.dataTransfer.setDragImage(rij, 24, 24)
@@ -133,15 +160,7 @@ export function EditorRegelRij({ regel: r, label, oefening: o, isEerste, isLaats
         </div>
         <div className="club-training-r-acties">
           <VervangOefening regel={r} oefening={o} onVervang={(id) => a.onVervang(r.sleutel, id)} />
-          {inBlok ? (
-            <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={() => a.onOntkoppel(r.sleutel)} aria-label={t.uitSuperset(naam)} title={t.uitSupersetTitel}>
-              <Unlink2 aria-hidden size={15} />
-            </button>
-          ) : (
-            <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={() => a.onKoppel(r.sleutel)} disabled={isEerste} aria-label={t.koppel(naam)} title={t.koppelTitel}>
-              <Link2 aria-hidden size={15} />
-            </button>
-          )}
+          {groepKnop(false)}
           <button type="button" className="club-knop club-knop--stil club-knop--klein" onClick={() => a.onVerplaats(r.sleutel, -1)} disabled={isEerste} aria-label={t.omhoog(naam)}>
             <ArrowUp aria-hidden size={15} />
           </button>
@@ -160,11 +179,8 @@ export function EditorRegelRij({ regel: r, label, oefening: o, isEerste, isLaats
           <input className="club-invoer" inputMode="numeric" value={r.sets} onChange={wijzig('sets')} aria-label={t.setsVan(naam)} />
         </label>
         <div className="club-training-r-veld club-training-r-veld--maat">
-          <span className="club-training-r-wissel" role="group" aria-label={t.herhOfTijd(naam)}>
-            {(['herhalingen', 'tijd'] as const).map((m) => (
-              <button key={m} type="button" aria-pressed={r.maat === m} onClick={() => a.onMaat(r.sleutel, m)}>{t.maat[m]}</button>
-            ))}
-          </span>
+          {maatWissel()}
+          <span className="club-training-r-maatlabel" aria-hidden>{t.maat[r.maat]}</span>
           {r.maat === 'herhalingen' ? (
             <input
               className="club-invoer" value={toonHerhalingen(r.herhalingen, taal)} onChange={wijzig('herhalingen')} placeholder={t.herhPlaats} aria-label={t.herhVan(naam)}
@@ -195,6 +211,17 @@ export function EditorRegelRij({ regel: r, label, oefening: o, isEerste, isLaats
 
       {meer && (
         <div className="club-training-r-extra">
+          {/* Alleen op de telefoon: daar staan herhalingen of tijd en de superset hier, zodat de rij kort blijft. */}
+          <div className="club-training-r-telmeer">
+            <div className="club-training-r-veld">
+              <span>{t.meetIn}</span>
+              {maatWissel()}
+            </div>
+            <div className="club-training-r-veld">
+              <span>{t.groep}</span>
+              {groepKnop(true)}
+            </div>
+          </div>
           <div className="club-training-r-veld club-training-r-veld--inspanning">
             <span className="club-training-r-wissel" role="group" aria-label={t.inspanningVan(naam)}>
               {INSPANNING.map((i) => (

@@ -14,6 +14,7 @@ import { sportschoolUrl } from '@/lib/club/kern/subdomein'
 import type { AanmeldingRij } from './opslag'
 import { maakSportschool, ruimSportschoolOp } from './sportschool'
 import type { VerwerkDeps } from './verwerk'
+import { meldFout } from '@/lib/club/betrouwbaarheid/melden'
 
 function escape(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] ?? c)
@@ -63,5 +64,8 @@ export function standaardDeps(): VerwerkDeps {
     ruimOp: (admin, id) => ruimSportschoolOp(admin, id, platformEigenaarId()),
     welkom: stuurWelkomMail,
     nu: () => new Date(),
+    meld: async (wat) => {
+      await meldFout({ fout: wat, route: '/api/aiyourgym/stripe/webhook', methode: 'POST', soort: 'handmatig' })
+    },
   }
 }
