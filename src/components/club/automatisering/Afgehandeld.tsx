@@ -18,9 +18,11 @@ const WANNEER_OPTIES: Intl.DateTimeFormatOptions = { weekday: 'short', day: 'num
 interface Props {
   items: readonly OpvolgItem[]
   ledenkaarten: Readonly<Record<string, string>>
+  /** Mag deze persoon een taak terugzetten? */
+  bewerken?: boolean
 }
 
-export function Afgehandeld({ items, ledenkaarten }: Props) {
+export function Afgehandeld({ items, ledenkaarten, bewerken = true }: Props) {
   const router = useRouter()
   const [fout, setFout] = useState<string | null>(null)
   const [bezig, setBezig] = useState<string | null>(null)
@@ -55,10 +57,11 @@ export function Afgehandeld({ items, ledenkaarten }: Props) {
                 {[i.afgehandeldDoor, i.afgehandeldOp ? wanneer.format(new Date(i.afgehandeldOp)) : null].filter(Boolean).join(', ')}
                 {i.notitie ? `. ${i.notitie}` : ''}
               </p>
+              {i.uitkomstLabel && <p className="club-opvolg-uitkomstlabel">{i.uitkomstLabel}</p>}
             </div>
-            <button type="button" className="club-knop club-knop--klein club-knop--stil" onClick={() => heropen(i.id)} disabled={bezig !== null} aria-label={t.terugzettenLabel(i.naam)}>
+            {bewerken && <button type="button" className="club-knop club-knop--klein club-knop--stil" onClick={() => heropen(i.id)} disabled={bezig !== null} aria-label={t.terugzettenLabel(i.naam)}>
               <RotateCcw size={14} aria-hidden /> {t.terugzetten}
-            </button>
+            </button>}
           </li>
         ))}
       </ul>

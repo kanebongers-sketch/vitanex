@@ -36,6 +36,14 @@ describe('kiesMaat', () => {
     expect(kiesMaat(MATEN, 700, 2)?.breedte).toBe(1080)
     expect(kiesMaat([], 300, 1)).toBeNull()
   })
+
+  it('houdt zich aan het plafond van telefoon of databesparing', () => {
+    expect(kiesMaat(MATEN, 390, 3, 720)?.breedte).toBe(720)
+    expect(kiesMaat(MATEN, 390, 3, 480)?.breedte).toBe(480)
+    expect(kiesMaat(MATEN, 300, 1, 720)?.breedte).toBe(480)
+    expect(kiesMaat(MATEN, 700, 2, null)?.breedte).toBe(1080)
+    expect(kiesMaat(MATEN, 700, 2, 100)?.breedte).toBe(480)
+  })
 })
 
 describe('renders uit de website', () => {

@@ -38,7 +38,7 @@ export async function haalLeadExportRuw(admin: SupabaseClient, userId: string, l
   }
   if (!lead) return { ok: false, fout: 'niet gevonden' }
   const [historie, afspraken, medewerkers] = await Promise.all([
-    admin.from('club_lead_historie').select('soort, tekst, auteur, op').eq('user_id', userId).eq('lead_id', leadId).order('op').limit(MAX_RIJEN),
+    admin.from('club_lead_historie').select('soort, tekst, uitkomst, auteur, op').eq('user_id', userId).eq('lead_id', leadId).order('op').limit(MAX_RIJEN),
     admin
       .from('club_afspraken')
       .select('start_op, eind_op, vestiging, medewerker_id, status, notitie, geannuleerd_op, club_afspraak_typen(naam)')

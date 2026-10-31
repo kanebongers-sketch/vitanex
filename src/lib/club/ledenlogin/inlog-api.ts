@@ -50,9 +50,9 @@ export async function bruikbareLink(admin: SupabaseClient, code: string | null |
 
 /** Voor een onbekend adres: evenveel rekenwerk als een echte controle (een keer gemaakt, bij het eerste gebruik). */
 let schijn: string | null = null
-export function schijnControle(wachtwoord: string): void {
-  schijn ??= hashWachtwoord('schijn-wachtwoord-voor-gelijke-tijd')
-  wachtwoordKlopt(wachtwoord, schijn)
+export async function schijnControle(wachtwoord: string): Promise<void> {
+  schijn ??= await hashWachtwoord('schijn-wachtwoord-voor-gelijke-tijd')
+  await wachtwoordKlopt(wachtwoord, schijn)
 }
 
 const BASIS = { httpOnly: true, sameSite: 'lax' as const, path: '/' }

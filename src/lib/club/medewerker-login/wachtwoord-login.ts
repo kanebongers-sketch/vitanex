@@ -18,9 +18,9 @@ const TIJD = new Intl.DateTimeFormat('nl-NL', { hour: '2-digit', minute: '2-digi
 
 /** Voor een onbekend adres: evenveel rekenwerk als een echte controle (een keer gemaakt, bij het eerste gebruik). */
 let schijn: string | null = null
-function schijnControle(wachtwoord: string): void {
-  schijn ??= hashWachtwoord('schijn-wachtwoord-voor-gelijke-tijd')
-  wachtwoordKlopt(wachtwoord, schijn)
+async function schijnControle(wachtwoord: string): Promise<void> {
+  schijn ??= await hashWachtwoord('schijn-wachtwoord-voor-gelijke-tijd')
+  await wachtwoordKlopt(wachtwoord, schijn)
 }
 
 /** De route heeft al gecontroleerd: schakelaar, oorsprong, rem per IP en de lengte van het wachtwoord. */
@@ -28,7 +28,7 @@ export async function logInAlsMedewerker(admin: SupabaseClient, email: unknown, 
   const gevonden = await vindMedewerkerOpEmail(admin, email)
   const { organisatie } = gevonden ? await haalEigenOrganisatie(admin, gevonden.toegang.userId) : { organisatie: null }
   if (!gevonden || !organisatie || !(await hostPastBij(organisatie))) {
-    schijnControle(wachtwoord)
+    await schijnControle(wachtwoord)
     return clubFout(INLOG_FOUT, 401)
   }
 

@@ -1,7 +1,7 @@
 // ─── Club, AVG: elke tabel met gegevens van een lid (PUUR) ──────────────────
 // Een plek die zegt hoe elke tabel met een lid_id meegaat in de rechten van
 // het lid: in de inzage (export) en bij verwijderen (club_lid_definitief_verwijderen,
-// laatste versie in migratie 466). tabellen.test.ts leest alle migraties en
+// laatste versie in migratie 482). tabellen.test.ts leest alle migraties en
 // faalt zodra een tabel met lid_id hier ontbreekt, niet in de export zit of
 // niet in de verwijderfunctie staat.
 //
@@ -10,7 +10,7 @@
 //   2. een sectie in export.ts en een bron in opslag.ts (of export: null met reden),
 //   3. een nieuwe versie van club_lid_definitief_verwijderen in een migratie.
 //
-// Laatste versie: migratie 466 (463 plus het voedingsdagboek; 463 = 462 met het lidgeld uit 460 en 461, plus de health-apps). De audit van het lidgeld
+// Laatste versie: migratie 482 (466 plus de opzegredenen; 466 = 463 plus het voedingsdagboek; 463 = 462 met het lidgeld uit 460 en 461, plus de health-apps). De audit van het lidgeld
 // (club_betalen_audit) heeft bewust geen lid_id en staat dus niet in deze lijst.
 //
 // Controle tegen de echte database (Supabase SQL):
@@ -88,4 +88,6 @@ export const LID_TABELLEN: Readonly<Record<string, LidTabel>> = {
   // server weg via de wachtrij club_profielfoto_opruimen. Bij een verzoek tot
   // verwijderen is de foto al meteen weg (trigger op club_lid_verwijderingen).
   club_profielfotos: { export: 'profielfoto', afhandeling: 'verwijderd', viaCascade: true },
+  // Reden van opzeggen of stoppen (migratie 482). Na de termijn van oud-leden los van het lid.
+  club_lid_opzeggingen: { export: 'opzeggingen', afhandeling: 'anoniem', reden: 'De reden blijft als anonieme telling voor de cijfers over behoud; toelichting en wie gaan weg.' },
 }

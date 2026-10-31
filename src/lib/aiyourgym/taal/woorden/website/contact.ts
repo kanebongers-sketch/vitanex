@@ -9,6 +9,6 @@ export const CONTACT_BALK = woordenboek({
 })
 
 export const PLAK_ACTIE = woordenboek({
-  nl: { planDemo: 'Plan demo' },
+  nl: { planDemo: 'Plan een demo' },
   en: { planDemo: 'Book a demo' },
 })

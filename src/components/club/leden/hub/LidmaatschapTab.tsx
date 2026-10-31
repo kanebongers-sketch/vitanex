@@ -16,6 +16,9 @@ import { formatEuroCenten } from '@/lib/aiyourgym/taal/formaat'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { LEDENKAART } from '@/lib/aiyourgym/taal/woorden/club/ledenkaart'
 import { LidmaatschapBeheer } from './LidmaatschapBeheer'
+import { haalLaatsteOpzegging, type LaatsteOpzegging } from '@/lib/club/behoud/opslag'
+import { formatDatum } from '@/lib/aiyourgym/taal/formaat'
+import { BEHOUD_DATA } from '@/lib/aiyourgym/taal/woorden/club/behoud-data'
 
 // Tabblad Lidmaatschap: vorm, start, pauze en stoppen (aan te passen), wat de
 // vorm toelaat, en met de lidgeldschakelaars aan het blok "Lidmaatschap en
@@ -85,10 +88,27 @@ async function BetalenBlok({ t, vorm, vestiging, nu, w, taal }: { t: ClubToegang
   )
 }
 
+/** Waarom het lid opzegde of stopte (migratie 482), alleen bij opgezegd of gestopt. */
+function OpzegReden({ o, taal }: { o: LaatsteOpzegging; taal: Taal }) {
+  const w = BEHOUD_DATA[taal].opzeg
+  return (
+    <div className="club-lidhub-blok">
+      <h3 className="club-leden-subkop">{w.laatste}</h3>
+      <p>{w.laatsteOp(w.redenen[o.reden], formatDatum(o.op, taal, 'kort'))}</p>
+      {o.toelichting && <p className="club-hint">{o.toelichting}</p>}
+    </div>
+  )
+}
+
 export async function LidmaatschapTab({ t, lid, vestiging, rechten, statusVast, nu }: LidmaatschapTabProps) {
   const taal = await getTaal()
   const w = tekst(LEDENKAART, taal)
-  const [vormen, pauze] = await Promise.all([haalVormen(t.admin, t.userId), haalPauze(t.admin, t.userId, lid.id)])
+  const weg = lid.status === 'opgezegd' || lid.status === 'gestopt'
+  const [vormen, pauze, opzegging] = await Promise.all([
+    haalVormen(t.admin, t.userId),
+    haalPauze(t.admin, t.userId, lid.id),
+    weg ? haalLaatsteOpzegging(t.admin, t.userId, lid.id) : Promise.resolve(null),
+  ])
   const vorm = vormVanLid(vormen ?? [], lid.abonnement)
   const magVormen = magOnderdeel(t.onderdelen, 'lidmaatschappen')
   return (
@@ -99,6 +119,7 @@ export async function LidmaatschapTab({ t, lid, vestiging, rechten, statusVast, 
           {magVormen && <Link href={clubPad('/beheer/lidmaatschappen', vestiging)}>{w.lidmaatschap.vormenBeheren}</Link>}
         </div>
         {vormen !== null && vormen.length === 0 ? <p className="club-hint">{w.lidmaatschap.geenVormen}</p> : null}
+        {opzegging && <OpzegReden o={opzegging} taal={taal} />}
         {rechten.bewerk.leden ? (
           <LidmaatschapBeheer
             lidId={lid.id}

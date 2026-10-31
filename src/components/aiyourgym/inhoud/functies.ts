@@ -28,7 +28,7 @@ export const HOOFDSTUKKEN: readonly Hoofdstuk[] = [
     kop: 'Je club draait, ook zonder jou.',
     intro: 'Je team weet wat er moet gebeuren. Jij bepaalt de regels.',
     functies: [
-      { titel: 'Live in een kwartier', tekst: 'Een korte startwizard, inclusief je team en je ledenbestand.' },
+      { titel: 'Startwizard', tekst: 'Stap voor stap live, inclusief je team en je ledenbestand. Jij kiest alles zelf.' },
       { titel: 'Balie en dienst', tekst: 'Check-in met QR of op naam, taken, poetslijsten en overdracht op een vaste plek.' },
       { titel: 'Vestigingen, rollen, huisstijl', tekst: 'Eigen regels per vestiging, rechten per rol, jouw logo en kleuren.' },
     ],

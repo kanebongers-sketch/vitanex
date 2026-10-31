@@ -36,7 +36,7 @@ export const PRIJZEN = woordenboek({
       gegevens: VRAAG_GEGEVENS,
       incasso: {
         vraag: 'Zitten incasso en abonnementen erin?',
-        antwoord: 'Nee. Die blijven in je ledenadministratie. Je leden lees je in met een CSV- of Excel-bestand.',
+        antwoord: 'Nee. Die blijven in je huidige systeem. Je leden lees je in met een CSV- of Excel-bestand.',
       },
     },
   },
@@ -76,7 +76,7 @@ export const PRIJZEN = woordenboek({
       },
       incasso: {
         vraag: 'Are direct debits and memberships included?',
-        antwoord: 'No. They stay in your membership administration. You import your members from a CSV or Excel file.',
+        antwoord: 'No. They stay in your current system. You import your members from a CSV or Excel file.',
       },
     },
   },

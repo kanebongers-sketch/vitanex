@@ -200,3 +200,16 @@
 .club-vandaag-meer > summary::after { content: ''; width: 7px; height: 7px; margin-left: 10px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: translateY(-2px) rotate(45deg); transition: transform 200ms var(--ease); }
 .club-vandaag-meer[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
 .club-vandaag-meer > summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
+
+/* Opbouw van de behoudsscore op de risicolijst (vaste rekenregel). */
+.club-vandaag-opbouw { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px 10px; margin-top: 8px; }
+.club-vandaag-opbouw-deel { display: grid; gap: 3px; min-width: 0; }
+.club-vandaag-opbouw-kop { display: flex; justify-content: space-between; gap: 4px; font-size: 11.5px; line-height: 1.2; color: var(--text-3); }
+.club-vandaag-opbouw-kop > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.club-vandaag-opbouw-balk { position: relative; height: 4px; border-radius: 4px; background: var(--club-vlak-hover); overflow: hidden; }
+.club-vandaag-opbouw-balk > span { position: absolute; inset: 0; border-radius: inherit; background: var(--text-3); transform-origin: left; }
+.club-vandaag-opbouw-deel[data-laag] .club-vandaag-opbouw-balk > span { background: var(--club-let-op); }
+.club-vandaag-opbouw-deel[data-laag] .club-vandaag-opbouw-kop { color: var(--text-2); }
+@media (max-width: 560px) {
+  .club-vandaag-opbouw { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}

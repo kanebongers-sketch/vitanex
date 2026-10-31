@@ -105,3 +105,7 @@
 .club-lidhub-tabs a:hover { background: var(--club-vlak-hover); }
 .club-lidhub-tabs a:active { transform: scale(0.98); }
 .club-lidhub-tabs a[aria-current='page'] { background: var(--club-opp-2, var(--bg-raised)); color: var(--text-1); box-shadow: var(--club-randlicht-sterk, none), var(--club-diepte-1, none); }
+
+/* Reden bij opzeggen of stoppen (migratie 482). */
+.club-lidhub-opzeg { display: grid; gap: 10px; margin: 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--club-radius-klein); min-width: 0; }
+.club-lidhub-opzeg > legend { padding: 0 6px; margin: 0; }

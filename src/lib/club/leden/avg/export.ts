@@ -64,6 +64,8 @@ export interface ExportRuw {
   voedingFavorieten: Rij[]
   // Profielfoto (migratie 473): wie hem zette en de toestemming; het beeld zelf staat in de ledenapp.
   profielfoto: Rij[]
+  // Reden van opzeggen of stoppen (migratie 482).
+  opzeggingen: Rij[]
 }
 
 export type SectieSleutel = Exclude<keyof ExportRuw, 'lid'>
@@ -187,7 +189,7 @@ export const SECTIES: readonly Sectie[] = [
   {
     sleutel: 'opvolgtaken',
     titel: 'Opvolging door de sportschool',
-    velden: { regel: 'Aanleiding', reden: 'Reden', status: 'Status', medewerker_id: 'Opgepakt door', notitie: 'Notitie', afgehandeld_door: 'Afgehandeld door', afgehandeld_op: 'Afgehandeld op', aangemaakt_op: 'Gemaakt op' },
+    velden: { regel: 'Aanleiding', reden: 'Reden', status: 'Status', medewerker_id: 'Opgepakt door', notitie: 'Notitie', uitkomst: 'Uitkomst', afgehandeld_door: 'Afgehandeld door', afgehandeld_op: 'Afgehandeld op', aangemaakt_op: 'Gemaakt op' },
   },
   {
     sleutel: 'meldingen',
@@ -203,7 +205,7 @@ export const SECTIES: readonly Sectie[] = [
     titel: 'Aanmelding als belangstellende',
     velden: { naam: 'Naam', email: 'E-mail', telefoon: 'Telefoon', vestiging: 'Vestiging', bron: 'Hoe binnengekomen', interesse: 'Interesse', status: 'Status', proefles_op: 'Proefles op', verloren_reden: 'Reden', toestemming_contact: 'Toestemming voor contact', aangemaakt_op: 'Aangemeld op' },
   },
-  { sleutel: 'leadHistorie', titel: 'Contactmomenten als belangstellende', velden: { soort: 'Soort', tekst: 'Tekst', auteur: 'Door', op: 'Moment' } },
+  { sleutel: 'leadHistorie', titel: 'Contactmomenten als belangstellende', velden: { soort: 'Soort', tekst: 'Tekst', uitkomst: 'Uitkomst', auteur: 'Door', op: 'Moment' } },
   { sleutel: 'verwijderverzoek', titel: 'Verzoek tot verwijderen', velden: { aangevraagd_op: 'Aangevraagd op', definitief_op: 'Wordt definitief verwijderd op' } },
   // Community in de ledenapp (migratie 440).
   { sleutel: 'communityGroepen', titel: 'Community: groepen', velden: { 'club_community_groepen.naam': 'Groep', status: 'Status', toegevoegd_door: 'Toegevoegd door', aangemaakt_op: 'Sinds' } },
@@ -287,6 +289,12 @@ export const SECTIES: readonly Sectie[] = [
     sleutel: 'profielfoto',
     titel: 'Profielfoto',
     velden: { bron: 'Gezet door', toegevoegd_door: 'Toegevoegd door (medewerker)', toestemming_op: 'Toestemming gegeven op', toestemming_tekst_versie: 'Versie van de toestemmingstekst', aangemaakt_op: 'Gezet op' },
+  },
+  // Reden van opzeggen of stoppen (migratie 482).
+  {
+    sleutel: 'opzeggingen',
+    titel: 'Reden van opzeggen of stoppen',
+    velden: { actie: 'Actie', reden: 'Reden', toelichting: 'Toelichting', einddatum: 'Einddatum', vastgelegd_door: 'Vastgelegd door', aangemaakt_op: 'Vastgelegd op' },
   },
 ]
 

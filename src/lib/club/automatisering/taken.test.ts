@@ -95,15 +95,21 @@ describe('leesTaakActie en actieNaarWijziging', () => {
   const NU = new Date('2026-10-17T10:00:00Z')
 
   it('gedaan zet status, wie en wanneer', () => {
-    const u = leesTaakActie({ actie: 'gedaan', notitie: ' Gebeld, komt dinsdag ' })
+    const u = leesTaakActie({ actie: 'gedaan', notitie: ' Gebeld, komt dinsdag ', uitkomst: 'bereikt_blijft' })
     expect(u.ok).toBe(true)
     if (!u.ok) return
-    expect(actieNaarWijziging(u.waarde, 'Kane', NU)).toEqual({ notitie: 'Gebeld, komt dinsdag', status: 'gedaan', afgehandeld_door: 'Kane', afgehandeld_op: NU.toISOString() })
+    expect(actieNaarWijziging(u.waarde, 'Kane', NU)).toEqual({ notitie: 'Gebeld, komt dinsdag', status: 'gedaan', uitkomst: 'bereikt_blijft', afgehandeld_door: 'Kane', afgehandeld_op: NU.toISOString() })
+  })
+
+  it('gedaan vraagt een uitkomst uit de vaste lijst', () => {
+    expect(leesTaakActie({ actie: 'gedaan' })).toEqual({ ok: false, fout: 'Kies wat het opvolgen opleverde.' })
+    expect(leesTaakActie({ actie: 'gedaan', uitkomst: 'misschien' }).ok).toBe(false)
+    expect(leesTaakActie({ actie: 'gedaan', uitkomst: 'wil_opzeggen' }).ok).toBe(true)
   })
 
   it('overslaan zonder notitie laat de notitie staan', () => {
     const u = leesTaakActie({ actie: 'overgeslagen' })
-    expect(u.ok && actieNaarWijziging(u.waarde, 'Kane', NU)).toEqual({ status: 'overgeslagen', afgehandeld_door: 'Kane', afgehandeld_op: NU.toISOString() })
+    expect(u.ok && actieNaarWijziging(u.waarde, 'Kane', NU)).toEqual({ status: 'overgeslagen', uitkomst: null, afgehandeld_door: 'Kane', afgehandeld_op: NU.toISOString() })
   })
 
   it('alleen een notitie, en een lege notitie wist hem', () => {
@@ -113,13 +119,13 @@ describe('leesTaakActie en actieNaarWijziging', () => {
 
   it('heropen maakt de taak weer open', () => {
     const u = leesTaakActie({ actie: 'heropen' })
-    expect(u.ok && actieNaarWijziging(u.waarde, 'Kane', NU)).toEqual({ status: 'open', afgehandeld_door: null, afgehandeld_op: null })
+    expect(u.ok && actieNaarWijziging(u.waarde, 'Kane', NU)).toEqual({ status: 'open', uitkomst: null, afgehandeld_door: null, afgehandeld_op: null })
   })
 
   it('weigert onbekende acties en te lange notities', () => {
     expect(leesTaakActie({ actie: 'wissen' })).toEqual({ ok: false, fout: 'Onbekende actie.' })
-    expect(leesTaakActie({ actie: 'gedaan', notitie: 'a'.repeat(NOTITIE_MAX + 1) }).ok).toBe(false)
-    expect(leesTaakActie({ actie: 'gedaan', notitie: 5 }).ok).toBe(false)
+    expect(leesTaakActie({ actie: 'gedaan', uitkomst: 'niet_bereikt', notitie: 'a'.repeat(NOTITIE_MAX + 1) }).ok).toBe(false)
+    expect(leesTaakActie({ actie: 'gedaan', uitkomst: 'niet_bereikt', notitie: 5 }).ok).toBe(false)
     expect(leesTaakActie(null).ok).toBe(false)
   })
 })

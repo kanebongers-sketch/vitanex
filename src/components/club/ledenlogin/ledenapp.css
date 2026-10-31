@@ -67,7 +67,7 @@
 
 .club-mijn-tabs {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
-  display: grid; grid-template-columns: repeat(var(--club-mijn-tabs, 7), minmax(0, 1fr));
+  display: grid; grid-template-columns: repeat(var(--club-mijn-tabs, 5), minmax(0, 1fr));
   /* Op tablet en pc blijft de app een telefoonkolom van 640px in het midden: de tabs staan
      recht onder die kolom in plaats van over het hele scherm uit te rekken. */
   padding: 6px max(6px, env(safe-area-inset-right, 0px), calc((100% - 640px) / 2)) max(8px, env(safe-area-inset-bottom, 0px)) max(6px, env(safe-area-inset-left, 0px), calc((100% - 640px) / 2));
@@ -90,8 +90,8 @@
   transition: opacity 200ms var(--ease), transform 280ms var(--ease);
 }
 .club-mijn-tab-icoon svg { position: relative; }
-.club-mijn-tab-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; font-weight: 600; letter-spacing: 0; }
-@media (min-width: 400px) { .club-mijn-tab-label { font-size: 11px; } }
+/* Labels van 12px die nooit afkappen: hoogstens vijf tabbladen, dus ook op 320px past elk woord. */
+.club-mijn-tab-label { white-space: nowrap; font-size: 12px; font-weight: 600; line-height: 1.2; letter-spacing: -0.005em; }
 .club-mijn-tabs a:active .club-mijn-tab-icoon { transform: scale(0.9); }
 .club-mijn-tabs a:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
 .club-mijn-tabs a[aria-current='page'] { color: var(--brand-tekst, var(--brand)); }
@@ -104,7 +104,7 @@
 @media (hover: hover) { .club-mijn-tabs a:not([aria-current='page']):hover { color: var(--text-1); } }
 
 /* Een oefening groot: over het hele scherm, boven de onderbalk. */
-.club-mijn .club-lidapp-blad-scherm { position: fixed; z-index: 50; }
+.club-mijn .club-lidapp-blad-scherm, .club-mijn .club-lidapp-qr-scherm { position: fixed; z-index: 50; }
 .club-mijn .club-lidapp-blad { padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px)); }
 /* Grotere tikvlakken in de app. */
 .club-mijn .club-lidapp-knop { min-height: 48px; }

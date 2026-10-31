@@ -30,7 +30,8 @@
 @keyframes club-lidapp-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
 .club-lidapp-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); padding: 8px 10px 22px; background: var(--club-kop-bg, rgba(16, 16, 20, 0.94)); backdrop-filter: blur(16px); border-top: 1px solid var(--line); }
-.club-lidapp-tabs a { display: grid; justify-items: center; gap: 3px; padding: 6px 2px; border-radius: 12px; color: var(--text-3); text-decoration: none; font-size: 11.5px; font-weight: 600; transition: color 160ms var(--ease); }
+.club-lidapp-tabs a { display: grid; justify-items: center; align-content: center; gap: 3px; min-height: 48px; padding: 6px 0; border-radius: 12px; color: var(--text-3); text-decoration: none; font-size: 12px; font-weight: 600; line-height: 1.2; white-space: nowrap; transition: color 160ms var(--ease); }
+.club-lidapp-tabs a[aria-current='page'] { font-weight: 700; }
 .club-lidapp-tabs a:hover { color: var(--text-1); }
 .club-lidapp-tabs a:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
 .club-lidapp-tabs a[aria-current='page'] { color: var(--brand-tekst, var(--brand)); }
@@ -165,6 +166,48 @@
 .club-lidapp-qr .club-lidapp-qr-melding { justify-self: stretch; display: flex; align-items: flex-start; gap: 10px; padding: 16px; border-radius: 16px; background: var(--club-vlak-hover); color: var(--text-2); font-size: 14px; line-height: 1.5; text-align: left; }
 .club-lidapp-qr-melding--fout svg { flex: none; margin-top: 2px; color: var(--club-let-op); }
 @keyframes club-lidapp-qr-af { to { transform: scaleX(0); } }
+
+/* Inchecken bovenaan Home: een compacte kaart; een tik geeft de code groot. */
+.club-lidapp-qr[data-stand='code'], .club-lidapp-qr[data-stand='laden'] { display: block; padding: 0; background: none; border: 0; }
+.club-lidapp-qr-kaart {
+  box-sizing: border-box; width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px;
+  min-height: 96px; padding: 12px 16px 12px 12px; border-radius: var(--lidapp-radius, 24px); border: 1px solid var(--line);
+  background: radial-gradient(120% 140% at 0% 50%, var(--brand-soft), transparent 62%), linear-gradient(180deg, var(--club-opp-2, var(--bg-card)), var(--club-opp-1, var(--bg-card)));
+  box-shadow: var(--club-randlicht, none), var(--club-diepte-1, none);
+  color: inherit; font: inherit; text-align: left; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: transform 140ms var(--ease), border-color 160ms var(--ease);
+}
+div.club-lidapp-qr-kaart { cursor: default; }
+button.club-lidapp-qr-kaart:active { transform: scale(0.985); }
+.club-lidapp-qr-kaart:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+@media (hover: hover) { button.club-lidapp-qr-kaart:hover { border-color: var(--line-strong); } }
+.club-lidapp-qr-mini { display: grid; place-items: center; width: 72px; height: 72px; padding: 6px; box-sizing: content-box; border-radius: 16px; background: #ffffff; box-shadow: 0 0 0 1px var(--line), 0 10px 24px -12px rgb(0 0 0 / 0.4); }
+.club-lidapp-qr-mini img { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
+.club-lidapp-qr-mini.club-lidapp-qr-vlak--laden { background: var(--club-vlak-hover); color: var(--text-3); box-shadow: inset 0 0 0 1px var(--line); }
+.club-lidapp-qr-kaarttekst { display: grid; justify-items: start; gap: 6px; min-width: 0; }
+.club-lidapp-qr-titel { display: inline-flex; align-items: center; gap: 8px; font-family: var(--ff-kop); font-size: 20px; font-weight: 700; line-height: 1; letter-spacing: 0.08em; text-transform: uppercase; }
+.club-lidapp-qr-titel svg { color: var(--brand-tekst, var(--brand)); }
+.club-lidapp-qr-groot { font-size: 13.5px; color: var(--text-2); }
+.club-lidapp-qr-pijl { color: var(--text-3); }
+
+/* De code op volledig scherm: rustig, donker op wit, zo groot als past. */
+.club-lidapp-qr-scherm { position: absolute; inset: 0; z-index: 12; display: grid; place-items: center; padding: 20px; background: color-mix(in srgb, var(--bg-app) 92%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); animation: club-lidapp-vervaag 200ms var(--ease); }
+@media (max-width: 640px) { .club-lidapp-qr-scherm { position: fixed; z-index: 50; } }
+.club-lidapp-qr-volledig { position: relative; box-sizing: border-box; width: min(100%, 420px); max-height: 100%; overflow-y: auto; display: grid; justify-items: center; gap: 14px; padding: 56px 20px 24px; border-radius: 28px; background: var(--bg-raised); border: 1px solid var(--line-strong); text-align: center; outline: none; animation: club-lidapp-blad-in 260ms var(--ease); }
+.club-lidapp-qr-volledig p { margin: 0; }
+.club-lidapp-qr-sluit { position: absolute; top: 10px; right: 10px; }
+.club-lidapp-qr-vlak[data-groot] { width: min(100%, 360px); padding: 16px; border-radius: 24px; }
+.club-lidapp-qr-volledig .club-lidapp-qr-naam { margin: 4px 0 0; font-family: var(--ff-kop); font-size: 24px; font-weight: 700; line-height: 1.05; text-transform: uppercase; letter-spacing: 0.02em; color: var(--text-1); overflow-wrap: anywhere; }
+.club-lidapp-qr-volledig .club-lidapp-qr-tijd { width: min(100%, 360px); }
+.club-lidapp-qr-volledig .club-lidapp-qr-uitleg { max-width: 32ch; font-size: 14px; line-height: 1.45; color: var(--text-2); }
+.club-lidapp-qr-volledig .club-lidapp-qr-tip { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px; background: var(--brand-soft); font-size: 13.5px; font-weight: 600; color: var(--text-1); }
+
+/* De schakelaar bovenaan Boeken en Schema. */
+.club-lidapp-secties { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px; margin-bottom: 12px; padding: 4px; border-radius: 999px; background: var(--club-vlak-hover, var(--bg-card)); border: 1px solid var(--line); }
+.club-lidapp-secties a { display: grid; place-items: center; min-height: 44px; padding: 0 12px; border-radius: 999px; color: var(--text-2); font-size: 14.5px; font-weight: 600; text-decoration: none; text-align: center; -webkit-tap-highlight-color: transparent; transition: color 160ms var(--ease), background-color 160ms var(--ease); }
+.club-lidapp-secties a[aria-current='page'] { background: var(--brand); color: var(--brand-inkt, var(--bg-app)); font-weight: 700; }
+.club-lidapp-secties a:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+@media (hover: hover) { .club-lidapp-secties a:not([aria-current='page']):hover { color: var(--text-1); } }
 
 /* ── Lessen ──────────────────────────────────────────────────────────────── */
 .club-lidapp-regels { border-radius: 16px; background: var(--bg-card); border: 1px solid var(--line); padding: 0 16px; }
@@ -301,7 +344,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .club-lidapp-tab > *, .club-lidapp-blad, .club-lidapp-blad-scherm, .club-lidapp-bericht, .club-lidapp-skelet,
-  .club-lidapp-qr-vlak--laden, .club-lidapp-qr-live span { animation: none; }
+  .club-lidapp-qr-vlak--laden, .club-lidapp-qr-live span, .club-lidapp-qr-scherm, .club-lidapp-qr-volledig { animation: none; }
+  .club-lidapp-qr-kaart, .club-lidapp-secties a, .club-lidapp-week-vandaag { transition: none; }
   .club-lidapp-knop, .club-lidapp-volgende, .club-lidapp-volgende-pijl, .club-lidapp-schemalink, .club-lidapp-schemalink-pijl,
   .club-lidapp-oefening, .club-lidapp-dagkeuze button, .club-lidapp-blad-sluit, .club-lidapp-regels summary::after { transition: none; }
 }
@@ -325,8 +369,17 @@
 .club-lidapp-week-tekst strong { font-family: var(--ff-kop); font-size: 24px; font-weight: 700; line-height: 1; text-transform: uppercase; }
 .club-lidapp-week-tekst > span:not(.club-lidapp-duo-label) { font-size: 13.5px; color: var(--text-2); }
 .club-lidapp-week .club-ronde { margin-top: 6px; }
-.club-lidapp-week .club-ring-midden strong { font-size: 40px; }
+.club-lidapp-week .club-ring-midden strong { font-size: 34px; }
 @media (max-width: 360px) { .club-lidapp-week { grid-template-columns: minmax(0, 1fr); justify-items: start; } }
+/* De training van vandaag onderin de week (was een los blok). */
+.club-lidapp-week-vandaag { grid-column: 1 / -1; justify-self: stretch; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 52px; padding: 8px 12px; border-radius: 16px; background: var(--brand-soft); color: inherit; text-decoration: none; -webkit-tap-highlight-color: transparent; transition: transform 140ms var(--ease); }
+.club-lidapp-week-vandaag > svg:first-child { color: var(--brand-tekst, var(--brand)); }
+.club-lidapp-week-vandaag > svg:last-child { color: var(--text-3); }
+.club-lidapp-week-vandaag > span { display: grid; gap: 1px; min-width: 0; }
+.club-lidapp-week-vandaag > span > span { font-size: 12.5px; color: var(--text-2); }
+.club-lidapp-week-vandaag strong { font-size: 15px; line-height: 1.3; overflow-wrap: anywhere; }
+.club-lidapp-week-vandaag:active { transform: scale(0.985); }
+.club-lidapp-week-vandaag:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 
 /* Schema: dagkeuze als verzonken spoor, dagen die deze week al gedaan zijn met
    een vinkje, oefeningen als kaartjes met een lichtrand. De rep-speler en de

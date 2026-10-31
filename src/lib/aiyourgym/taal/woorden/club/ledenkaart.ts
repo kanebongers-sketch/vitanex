@@ -110,6 +110,7 @@ export const LEDENKAART = woordenboek({
       pauzeVoorbij: (tot: string) => `De pauze liep tot ${tot}. Zet het lid weer op actief als het weer komt.`,
       pauzeZonderDatum: 'Gepauzeerd, zonder datums.',
       pauzeNietOpgeslagen: 'De status is opgeslagen, de pauzedatums nog niet: de database wordt binnenkort bijgewerkt.',
+      redenNietOpgeslagen: 'De status is opgeslagen, de reden nog niet: de database wordt binnenkort bijgewerkt.',
       wijzigen: 'Wijzigen',
       acties: 'Lidmaatschap aanpassen',
       actie: {
@@ -321,6 +322,7 @@ export const LEDENKAART = woordenboek({
       pauzeVoorbij: (tot: string) => `The pause ran until ${tot}. Set the member back to active when they return.`,
       pauzeZonderDatum: 'Paused, without dates.',
       pauzeNietOpgeslagen: 'The status is saved, the pause dates not yet: the database will be updated soon.',
+      redenNietOpgeslagen: 'The status is saved, the reason not yet: the database will be updated soon.',
       wijzigen: 'Change',
       acties: 'Adjust membership',
       actie: {

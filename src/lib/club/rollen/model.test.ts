@@ -50,10 +50,8 @@ describe('niveaus optellen', () => {
 
   it('standaardtabel van Kane', () => {
     const e = niveausVoor(ctx(['eigenaar']))
-    expect(e).toMatchObject({ cijfers: 'beheren', rapporten: 'beheren', team: 'beheren', financien: 'beheren', abonnement: 'beheren', instellingen: 'beheren', leden: 'zien', leads: 'zien' })
-    expect(e.vandaag).toBe('geen')
-    expect(e.schemas).toBe('geen')
-    expect(e.checkin).toBe('geen')
+    // Besluit Kane (17-10-2026): de eigenaar mag alles binnen de eigen sportschool.
+    expect(RECHT_SLEUTELS.every((s) => e[s] === 'beheren')).toBe(true)
     const tr = niveausVoor(ctx(['trainer']))
     expect(tr).toMatchObject({ vandaag: 'bewerken', leden: 'bewerken', schemas: 'bewerken', afspraken: 'bewerken' })
     expect(tr.cijfers).toBe('geen')
@@ -132,7 +130,7 @@ describe('rechten v1 naar v2', () => {
 
 describe('startpagina', () => {
   it('per rol de standaard van Kane, en die is bereikbaar', () => {
-    const verwacht: Record<Rol, string> = { eigenaar: '/club/cijfers', manager: '/club', trainer: '/club', instructeur: '/club/rooster', roosteraar: '/club/personeel', administratie: '/club/personeel?tab=uren' }
+    const verwacht: Record<Rol, string> = { eigenaar: '/club', manager: '/club', trainer: '/club', instructeur: '/club/rooster', roosteraar: '/club/personeel', administratie: '/club/personeel?tab=uren' }
     for (const rol of ROLLEN) {
       const n = niveausVoor(ctx([rol]))
       expect(startpagina([rol], R, n)).toBe(verwacht[rol])
@@ -148,10 +146,10 @@ describe('startpagina', () => {
   })
 
   it('valt de startpagina weg, dan het eerste zichtbare onderdeel', () => {
-    const zonderAdmin = verborgenVoor([], ALLE_PAKKETTEN.filter((p) => p !== 'administratie'))
-    const pad = startpagina(['eigenaar'], R, niveausVoor(ctx(['eigenaar'], zonderAdmin)))
-    expect(pad).not.toBe('/club/cijfers')
-    expect(pad).toBe('/club/leden')
+    const zonderTeam = verborgenVoor([], ALLE_PAKKETTEN.filter((p) => p !== 'team'))
+    const pad = startpagina(['administratie'], R, niveausVoor(ctx(['administratie'], zonderTeam)))
+    expect(pad).not.toBe('/club/personeel?tab=uren')
+    expect(pad).toBe('/club/rapporten')
   })
 
   it('elke startoptie heeft een pad', () => {

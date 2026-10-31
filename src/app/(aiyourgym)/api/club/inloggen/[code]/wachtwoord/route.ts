@@ -38,7 +38,7 @@ export async function POST(req: NextRequest, ctx: Context) {
   const fout = wachtwoordFout(wachtwoord, { email: b.email, naam: b.naam })
   if (fout) return clubFout(fout, 400)
 
-  const uit = await kiesBeheerderWachtwoord(admin, b, hashWachtwoord(String(wachtwoord)), new Date())
+  const uit = await kiesBeheerderWachtwoord(admin, b, await hashWachtwoord(String(wachtwoord)), new Date())
   if (uit.staat === 'al_gekozen') return clubFout('Met deze link is al een wachtwoord gekozen. Log in met je e-mailadres en wachtwoord.', 409)
   if (uit.staat === 'email_bezet') return clubFout('Met dit e-mailadres is al een account. Vraag de eigenaar om je met een ander adres uit te nodigen.', 409)
   if (uit.staat === 'db') return clubFout('Opslaan mislukt. Probeer het opnieuw.', 502)

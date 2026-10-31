@@ -33,8 +33,8 @@ export const WEL_NIET = woordenboek({
       { titel: 'Leads and figures', tekst: 'Trial classes and follow-up, and monthly figures as CSV.' },
     ],
     niet: [
-      { titel: 'Member direct debits, invoices and subscriptions', tekst: 'These stay in your own membership admin. AI Your Gym works alongside it.' },
-      { titel: 'A link with your membership admin', tekst: 'Not yet. You import your members with a CSV or Excel file.' },
+      { titel: 'Member direct debits, invoices and subscriptions', tekst: 'These stay in your current system. AI Your Gym works alongside it.' },
+      { titel: 'A link with your current system', tekst: 'Not yet. You import your members with a CSV or Excel file.' },
       { titel: 'An app in the app stores', tekst: 'The member app is a web app on the home screen.' },
     ],
   },
@@ -44,8 +44,8 @@ export const WEL_NIET = woordenboek({
 export const START_SECTIE = woordenboek({
   nl: {
     label: 'Zo simpel start je',
-    titel: (aantal: number) => ({ voor: `${aantal} stappen. `, accent: 'Een kwartier.' }),
-    tekst: (minuten: number) => `Een startwizard zet je club in ongeveer ${minuten} minuten live. Stoppen en later verdergaan kan altijd.`,
+    titel: (aantal: number) => ({ voor: `${aantal} stappen. `, accent: 'Jij kiest alles.' }),
+    tekst: 'Een startwizard brengt je club stap voor stap live. Stoppen en later verdergaan kan altijd.',
     hulpLabel: 'Persoonlijke hulp',
     hulpKop: 'Persoonlijke hulp bij het inrichten',
     hulpTekst: 'We richten je sportschool samen met je in: ledenbestand, rooster en je eerste schema’s.',
@@ -54,8 +54,8 @@ export const START_SECTIE = woordenboek({
   },
   en: {
     label: 'Getting started is simple',
-    titel: (aantal: number) => ({ voor: `${aantal} steps. `, accent: 'Fifteen minutes.' }),
-    tekst: (minuten: number) => `A set-up wizard puts your club live in about ${minuten} minutes. Stop any time and pick up where you left off.`,
+    titel: (aantal: number) => ({ voor: `${aantal} steps. `, accent: 'You choose everything.' }),
+    tekst: 'A set-up wizard takes your club live step by step. Stop any time and pick up where you left off.',
     hulpLabel: 'Personal help',
     hulpKop: 'Personal help with setting up',
     hulpTekst: 'We set up your gym together with you: member list, timetable and your first programmes.',
@@ -98,7 +98,7 @@ export const WAT_KOMT_MEE = woordenboek({
       { titel: 'Numbers and location', tekst: 'Member and customer number. You choose the location per file.' },
     ],
     nietMee: [
-      { titel: 'Direct debits and payment details', tekst: 'These stay in your membership admin, as do invoices.' },
+      { titel: 'Direct debits and payment details', tekst: 'These stay in your current system, as do invoices.' },
       { titel: 'Visit and class history', tekst: 'Your figures start on the day you go live.' },
       { titel: 'Programmes and passwords', tekst: 'You recreate programmes in the editor. Members choose their own password.' },
     ],

@@ -26,7 +26,7 @@ export const AVG_BRONNEN: Record<Exclude<keyof ExportRuw, 'lid' | 'leadHistorie'
   voeding: { tabel: 'club_voedingsplannen', select: '*' },
   notities: { tabel: 'club_notities', select: 'tekst, auteur, vastgepind, aangemaakt_op', volgorde: 'aangemaakt_op' },
   challenges: { tabel: 'club_challenge_deelnemers', select: 'ingeschreven_op, club_challenges(titel)', volgorde: 'ingeschreven_op' },
-  opvolgtaken: { tabel: 'club_opvolgtaken', select: 'regel, reden, status, medewerker_id, notitie, afgehandeld_door, afgehandeld_op, aangemaakt_op', volgorde: 'aangemaakt_op' },
+  opvolgtaken: { tabel: 'club_opvolgtaken', select: 'regel, reden, status, medewerker_id, notitie, uitkomst, afgehandeld_door, afgehandeld_op, aangemaakt_op', volgorde: 'aangemaakt_op' },
   meldingen: { tabel: 'club_meldingen', select: 'soort, kanaal, onderwerp, inhoud, status, gepland_op, verstuurd_op, gelezen_op', volgorde: 'gepland_op' },
   meldingVoorkeuren: { tabel: 'club_meldingen_voorkeuren', select: 'herinneringen_per_mail, mails, push, gewijzigd_op' },
   // Nooit het endpoint of de sleutels: alleen welk toestel en wanneer.
@@ -76,6 +76,8 @@ export const AVG_BRONNEN: Record<Exclude<keyof ExportRuw, 'lid' | 'leadHistorie'
   voedingFavorieten: { tabel: 'club_voeding_favorieten', select: 'naam, merk, portie_gram, aangemaakt_op', volgorde: 'aangemaakt_op' },
   // Profielfoto (migratie 473): nooit het pad in de opslag.
   profielfoto: { tabel: 'club_profielfotos', select: 'bron, toegevoegd_door, toestemming_op, toestemming_tekst_versie, aangemaakt_op', volgorde: 'aangemaakt_op' },
+  // Reden van opzeggen of stoppen (migratie 482).
+  opzeggingen: { tabel: 'club_lid_opzeggingen', select: 'actie, reden, toelichting, einddatum, vastgelegd_door, aangemaakt_op', volgorde: 'aangemaakt_op' },
 }
 
 const MAX_RIJEN = 10_000
@@ -99,7 +101,7 @@ async function leesAlles(admin: SupabaseClient, userId: string, lidId: string, b
 
 async function leesLeadHistorie(admin: SupabaseClient, userId: string, leadIds: string[]): Promise<Rij[] | null> {
   if (leadIds.length === 0) return []
-  const { data, error } = await admin.from('club_lead_historie').select('soort, tekst, auteur, op').eq('user_id', userId).in('lead_id', leadIds).order('op').limit(MAX_RIJEN)
+  const { data, error } = await admin.from('club_lead_historie').select('soort, tekst, uitkomst, auteur, op').eq('user_id', userId).in('lead_id', leadIds).order('op').limit(MAX_RIJEN)
   if (error) {
     console.error('[club/avg] lead-historie lezen mislukt', error.message)
     return null

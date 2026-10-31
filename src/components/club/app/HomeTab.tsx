@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import type { ReactNode } from 'react'
 import { ArrowUpRight, CalendarCheck, ChevronRight, Dumbbell, Flame, MapPin } from 'lucide-react'
 import type { LidVoorApp } from '@/lib/club/ledenlogin/lid-voor-app'
 import type { AppLes, LidAppData } from '@/lib/club/app/data'
@@ -9,7 +10,7 @@ import type { LedenappInstellingen } from '@/lib/club/kern/org-instellingen'
 import type { Bericht } from '@/lib/club/berichten/model'
 import { LedenappBerichten } from '@/components/club/berichten/LedenappBerichten'
 import { CheckinQr } from './CheckinQr'
-import { WeekRing } from './drie/WeekRing'
+import { DiepteRing } from '@/components/club/ontwerp/DiepteRing'
 import { DiepteKaart } from '@/components/club/ontwerp/DiepteKaart'
 import { rondeDezeWeek } from '@/lib/club/ontwerp/reeks'
 import type { AppSchema } from '@/lib/club/app/data'
@@ -22,11 +23,11 @@ import { PROFIELFOTO } from '@/lib/aiyourgym/taal/woorden/club/profielfoto'
 import { Avatar } from '@/components/club/ontwerp/Avatar'
 import type { Kaartje } from '@/lib/club/profielfoto/opslag'
 
-// Home in de ledenapp. Een duidelijke volgorde: begroeting, dan de grote focus
-// (de volgende geboekte les), dan inchecken met de QR-code (wisselt elke 30
-// seconden, zie CheckinQr), daarna de week van het schema als ring (3D waar het
-// kan, zie drie/WeekRing), bezoek en reeks, het schema van vandaag en als
-// laatste het nieuws van de sportschool. Alleen echte cijfers.
+// Home in de ledenapp. Een duidelijke volgorde: een korte begroeting, dan meteen
+// inchecken (een tik op de QR-code geeft hem op volledig scherm, zie CheckinQr),
+// daarna wat de pagina meegeeft (intake, uitleg, sluitingen), de volgende les,
+// de week van het schema als SVG-ring met de training van vandaag erin, bezoek
+// en reeks, en als laatste het nieuws van de sportschool. Alleen echte cijfers.
 
 interface Props {
   /** Alleen wat de app toont (in de voorvertoning mag ook een volledig Lid). */
@@ -42,6 +43,8 @@ interface Props {
   coach?: Kaartje | null
   /** Waar de foto's vandaan komen: club = voorvertoning in Club, lid = de ledenapp (voor = ?voor= van Kane). */
   fotoBron?: { waar: 'club' | 'lid'; voor: string | null }
+  /** Blokken direct onder het inchecken (intake, eerste keer, sluitingen, kopen). */
+  children?: ReactNode
 }
 
 function VolgendeLes({ les, vandaag, href, taal }: { les: AppLes | undefined; vandaag: string; href: string; taal: Taal }) {
@@ -86,13 +89,22 @@ function VolgendeLes({ les, vandaag, href, taal }: { les: AppLes | undefined; va
 
 type LedenappTeksten = (typeof ONTWERP)['nl']['ledenapp']
 
-function WeekBlok({ schema, logs, nu, w }: { schema: AppSchema; logs: readonly AppLog[]; nu: Date; w: LedenappTeksten }) {
+interface WeekBlokProps {
+  schema: AppSchema
+  logs: readonly AppLog[]
+  nu: Date
+  w: LedenappTeksten
+  /** De training van vandaag als link naar Schema, of null. */
+  vandaag: { href: string; boven: string; tekst: string } | null
+}
+
+function WeekBlok({ schema, logs, nu, w, vandaag }: WeekBlokProps) {
   const ronde = rondeDezeWeek(schema.dagen, logs, schema.id, nu)
   if (ronde.totaal === 0) return null
   const open = ronde.dagen.filter((d) => !d.gedaan).map((d) => dagLetter(d.dag)).join(', ')
   return (
     <section className="club-lidapp-week" aria-label={w.week}>
-      <WeekRing gedaan={ronde.gedaan} totaal={ronde.totaal} label={w.rondeAria(ronde.gedaan, ronde.totaal)} maat={132} />
+      <DiepteRing gedaan={ronde.gedaan} totaal={ronde.totaal} label={w.rondeAria(ronde.gedaan, ronde.totaal)} maat={112} />
       <div className="club-lidapp-week-tekst">
         <span className="club-lidapp-duo-label">{w.week}</span>
         <strong>{w.ronde(ronde.gedaan, ronde.totaal)}</strong>
@@ -106,11 +118,21 @@ function WeekBlok({ schema, logs, nu, w }: { schema: AppSchema; logs: readonly A
           ))}
         </ul>
       </div>
+      {vandaag && (
+        <Link href={vandaag.href} className="club-lidapp-week-vandaag">
+          <Dumbbell aria-hidden size={18} />
+          <span>
+            <span>{vandaag.boven}</span>
+            <strong>{vandaag.tekst}</strong>
+          </span>
+          <ChevronRight aria-hidden size={18} />
+        </Link>
+      )}
     </section>
   )
 }
 
-export async function HomeTab({ lid, data, nu, tabPad, instellingen, berichten, coach = null, fotoBron = { waar: 'club', voor: null } }: Props) {
+export async function HomeTab({ lid, data, nu, tabPad, instellingen, berichten, coach = null, fotoBron = { waar: 'club', voor: null }, children }: Props) {
   const lessenAan = !instellingen.tabsUit.includes('lessen')
   const schemaAan = !instellingen.tabsUit.includes('schema')
   const vandaag = dagSleutel(nu)
@@ -140,15 +162,25 @@ export async function HomeTab({ lid, data, nu, tabPad, instellingen, berichten, 
         )}
       </header>
 
+      {instellingen.qr && <CheckinQr lidId={lid.id} />}
+
+      {children}
+
       {lessenAan && (
         <DiepteKaart className="club-lidapp-licht">
           <VolgendeLes les={volgende} vandaag={vandaag} href={tabPad('lessen')} taal={taal} />
         </DiepteKaart>
       )}
 
-      {instellingen.qr && <CheckinQr lidId={lid.id} />}
-
-      {schemaAan && data.schema && data.schema.dagen.length > 0 && <WeekBlok schema={data.schema} logs={data.logs} nu={nu} w={w} />}
+      {schemaAan && data.schema && data.schema.dagen.length > 0 && (
+        <WeekBlok
+          schema={data.schema}
+          logs={data.logs}
+          nu={nu}
+          w={w}
+          vandaag={schemaDag !== null ? { href: tabPad('schema'), boven: t.vandaagProgramma, tekst: t.schemaDag(data.schema.naam, dagLetter(schemaDag)) } : null}
+        />
+      )}
 
       <div className="club-lidapp-duo">
         <div>
@@ -164,19 +196,6 @@ export async function HomeTab({ lid, data, nu, tabPad, instellingen, berichten, 
           <span>{w.weken(data.wekenOpRij)}</span>
         </div>
       </div>
-
-      {schemaAan && data.schema && schemaDag !== null && (
-        <Link href={tabPad('schema')} className="club-lidapp-schemalink">
-          <span className="club-lidapp-schemalink-icoon" aria-hidden>
-            <Dumbbell size={20} />
-          </span>
-          <span className="club-lidapp-schemalink-tekst">
-            <span>{t.vandaagProgramma}</span>
-            <strong>{t.schemaDag(data.schema.naam, dagLetter(schemaDag))}</strong>
-          </span>
-          <ChevronRight aria-hidden size={20} className="club-lidapp-schemalink-pijl" />
-        </Link>
-      )}
 
       {berichten.length > 0 && <LedenappBerichten berichten={berichten} nu={nu} fotoBron={fotoBron} />}
     </div>

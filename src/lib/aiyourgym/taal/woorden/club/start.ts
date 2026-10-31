@@ -252,7 +252,7 @@ export const START = woordenboek({
       opslaanVerder: 'Opslaan en verder',
     },
     intro: {
-      huisstijl: 'In ongeveer een kwartier staat je sportschool live, en je kiest alles zelf. Je voortgang wordt steeds bewaard. Upload je logo, dan halen we de kleur er zelf uit. Kies ook je eigen adres. In het voorbeeld zie je meteen hoe de ledenapp er voor je leden uitziet.',
+      huisstijl: 'Je kiest alles zelf, stap voor stap. Je voortgang wordt steeds bewaard. Upload je logo, dan halen we de kleur er zelf uit. Kies ook je eigen adres. In het voorbeeld zie je meteen hoe de ledenapp er voor je leden uitziet.',
       vestigingen: 'Waar je sportschool zit (nodig om live te gaan), wanneer hij open is en hoe leden een les boeken.',
       onderdelen: 'Wat je niet gebruikt, zet je uit. Het verdwijnt dan uit het menu, voor jou en je team.',
       lessen: 'De lessen die je geeft en je vaste week, met zaal en instructeur. Na opslaan staan ze in het rooster.',
@@ -614,7 +614,7 @@ export const START = woordenboek({
       opslaanVerder: 'Save and continue',
     },
     intro: {
-      huisstijl: 'In about fifteen minutes your gym is live, and you choose everything yourself. Your progress is saved as you go. Upload your logo and we pick the colour from it. Choose your own address too. The preview shows straight away how the member app looks to your members.',
+      huisstijl: 'You choose everything yourself, step by step. Your progress is saved as you go. Upload your logo and we pick the colour from it. Choose your own address too. The preview shows straight away how the member app looks to your members.',
       vestigingen: 'Where your gym is (needed to go live), when it is open and how members book a class.',
       onderdelen: 'Switch off whatever you do not use. It then disappears from the menu, for you and your team.',
       lessen: 'The classes you run and your regular week, with studio and instructor. Once saved, they are on the timetable.',

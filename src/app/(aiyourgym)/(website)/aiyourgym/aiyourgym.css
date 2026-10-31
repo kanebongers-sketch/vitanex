@@ -322,8 +322,8 @@
    valt er iets weg tot alles op een regel past.
    - tot 1023 px: menuknop met menupaneel (telefoon en tablet staand)
    - 1024 tot 1079: menu en "Aanmelden"; de demo staat in de dunne regel erboven
-   - 1080 tot 1179: plus "Plan demo" (kort)
-   - 1180 tot 1279: plus "Plan een gratis demo" (voluit)
+   - 1080 tot 1179: plus "Plan een demo"
+   - 1180 tot 1279: idem, met meer ruimte
    - 1280 tot 1379: plus "Live demo", menu nog compact
    - vanaf 1380: alles op ware grootte */
 .ayg-kop-acties { flex-shrink: 0; }

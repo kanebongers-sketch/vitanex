@@ -6,6 +6,7 @@
 
 import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { isVestigingSlug } from '@/lib/club/kern/vestigingen'
+import { isLeadUitkomst, type LeadUitkomst } from '@/lib/club/behoud/uitkomst'
 
 export const LEAD_STATUSSEN = ['nieuw', 'contact', 'proefles', 'proefles_geweest', 'lid', 'verloren'] as const
 export type LeadStatus = (typeof LEAD_STATUSSEN)[number]
@@ -90,6 +91,8 @@ export interface HistorieRegel {
   id: string
   soort: HistorieSoort
   tekst: string | null
+  /** Wat het contactmoment opleverde (migratie 482), of null. */
+  uitkomst: LeadUitkomst | null
   auteur: string | null
   op: string
 }
@@ -97,7 +100,7 @@ export interface HistorieRegel {
 export const LEAD_KOLOMMEN =
   'id, vestiging, naam, email, telefoon, bron, interesse, status, proefles_op, proefles_les_id, opvolgen_op, verloren_reden, medewerker_id, lid_id, toestemming_contact, demo, aangemaakt_op, bijgewerkt_op, geanonimiseerd_op'
 
-export const HISTORIE_KOLOMMEN = 'id, soort, tekst, auteur, op'
+export const HISTORIE_KOLOMMEN = 'id, soort, tekst, uitkomst, auteur, op'
 
 function uit<T extends string>(lijst: readonly T[], v: unknown): v is T {
   return typeof v === 'string' && (lijst as readonly string[]).includes(v)
@@ -166,7 +169,7 @@ export function historieUitRij(rij: unknown): HistorieRegel | null {
   const id = tekst(r.id)
   const op = tekst(r.op)
   if (!id || !op || !isHistorieSoort(r.soort)) return null
-  return { id, soort: r.soort, tekst: tekst(r.tekst), auteur: tekst(r.auteur), op }
+  return { id, soort: r.soort, tekst: tekst(r.tekst), uitkomst: isLeadUitkomst(r.uitkomst) ? r.uitkomst : null, auteur: tekst(r.auteur), op }
 }
 
 /** Initialen voor de avatar op een kaart: "Sanne van der Berg" wordt "SB". */

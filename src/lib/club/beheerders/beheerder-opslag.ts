@@ -65,7 +65,7 @@ export async function startSessie(admin: SupabaseClient, b: Beheerder, nu: Date)
   return sessie
 }
 
-async function controleerEnStart(admin: SupabaseClient, b: Beheerder, klopt: () => boolean, nu: Date): Promise<InlogUitkomst> {
+async function controleerEnStart(admin: SupabaseClient, b: Beheerder, klopt: () => Promise<boolean>, nu: Date): Promise<InlogUitkomst> {
   if (b.blokkades >= MAX_BLOKKADES) return { staat: 'gesloten' }
   if (b.geblokkeerdTot && new Date(b.geblokkeerdTot).getTime() > nu.getTime()) return { staat: 'geblokkeerd', totOp: b.geblokkeerdTot }
 
@@ -81,7 +81,7 @@ async function controleerEnStart(admin: SupabaseClient, b: Beheerder, klopt: () 
   if (resFout) return { staat: 'db' }
   if (!Array.isArray(gereserveerd) || gereserveerd.length !== 1) return { staat: 'fout', over: Math.max(0, MAX_POGINGEN - poging) }
 
-  if (!klopt()) {
+  if (!(await klopt())) {
     if (poging < MAX_POGINGEN) return { staat: 'fout', over: MAX_POGINGEN - poging }
     return blokkeer(admin, b, nu)
   }

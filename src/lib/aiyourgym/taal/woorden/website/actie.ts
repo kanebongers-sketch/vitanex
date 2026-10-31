@@ -10,14 +10,14 @@ export const ACTIE = woordenboek({
   nl: {
     zonderRisico: 'Waar je op kunt rekenen',
     start: 'Start je club',
-    planDemo: 'Plan een gratis demo',
+    planDemo: 'Plan een demo',
     ofLiveDemo: 'Of bekijk de live demo',
     geruststelling: GERUSTSTELLING,
   },
   en: {
     zonderRisico: 'What you can count on',
     start: 'Start your club',
-    planDemo: 'Book a free demo',
+    planDemo: 'Book a demo',
     ofLiveDemo: 'Or explore the live demo',
     // De losse pakketten staan in pakketten.ts; hier geen pakketnamen.
     geruststelling: [
@@ -25,7 +25,7 @@ export const ACTIE = woordenboek({
       'Your data stays yours',
       'Data stored in the EU',
       'Personal help with setting up',
-      'Live in about a quarter of an hour',
+      'Import your member list from Excel or CSV',
     ],
   },
 })

@@ -5,13 +5,22 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { NextRequest, NextResponse } from 'next/server'
 
-const stand = vi.hoisted(() => ({ updates: [] as unknown[], verzoek: null as unknown, t: null as unknown }))
+const stand = vi.hoisted(() => ({ updates: [] as unknown[], verzoek: null as unknown, t: null as unknown, opzeggingen: [] as unknown[], weg: [] as string[] }))
 
 vi.mock('@/lib/club/toegang', () => ({
   vereisClubToegang: async () => stand.t,
   clubFout: (fout: string, status: number) => NextResponse.json({ fout }, { status }),
   clubJson: (data: unknown) => NextResponse.json(data),
   logActie: vi.fn(),
+}))
+vi.mock('@/lib/club/behoud/opslag', () => ({
+  bewaarOpzegging: async (_a: unknown, _u: string, o: unknown) => {
+    stand.opzeggingen.push(o)
+    return { soort: 'ok', id: 'opz-1' }
+  },
+  verwijderOpzegging: async (_a: unknown, _u: string, id: string) => {
+    stand.weg.push(id)
+  },
 }))
 vi.mock('@/lib/club/kern/vestiging-toegang', () => ({ eisVestigingVanRecord: async () => null }))
 vi.mock('@/lib/club/kern/medewerker', () => ({ haalMedewerkers: async () => [] }))
@@ -46,6 +55,8 @@ const patch = (body: unknown) =>
 beforeEach(() => {
   stand.updates = []
   stand.verzoek = null
+  stand.opzeggingen = []
+  stand.weg = []
   stand.t = { admin: admin(), userId: 'org', vestigingen: [{ sleutel: 'centrum', naam: 'Centrum', standaard: true }], naam: 'Lisa' }
 })
 
@@ -86,6 +97,29 @@ describe('lidmaatschap wijzigen op de ledenkaart', () => {
     const r = await patch({ status: 'gepauzeerd', pauzeVan: '2026-11-01', pauzeTot: '2026-11-30' })
     expect(r.status).toBe(200)
     expect(stand.updates).toEqual([expect.objectContaining({ status: 'gepauzeerd' }), { pauze_van: '2026-11-01', pauze_tot: '2026-11-30' }])
-    expect(await r.json()).toEqual({ ok: true, pauzeNietOpgeslagen: false })
+    expect(await r.json()).toEqual({ ok: true, pauzeNietOpgeslagen: false, redenNietOpgeslagen: false })
+  })
+})
+
+describe('opzeggen of stoppen vraagt een reden (migratie 482)', () => {
+  it('weigert stoppen zonder reden en schrijft niets', async () => {
+    // Arrange en Act
+    const r = await patch({ status: 'gestopt', einddatum: '2026-10-31' })
+    // Assert
+    expect(r.status).toBe(400)
+    expect(stand.updates).toEqual([])
+    expect(stand.opzeggingen).toEqual([])
+  })
+
+  it('bewaart de reden en daarna de status', async () => {
+    const r = await patch({ status: 'gestopt', einddatum: '2026-10-31', opzegReden: { reden: 'verhuizing', toelichting: 'Naar Utrecht' } })
+    expect(r.status).toBe(200)
+    expect(stand.opzeggingen).toEqual([expect.objectContaining({ reden: 'verhuizing', toelichting: 'Naar Utrecht', actie: 'stoppen', einddatum: '2026-10-31', lidId: LID, door: 'Lisa' })])
+    expect(stand.updates).toEqual([expect.objectContaining({ status: 'gestopt' })])
+  })
+
+  it('bewaart bij gezondheid alleen de categorie', async () => {
+    await patch({ status: 'gestopt', opzegReden: { reden: 'gezondheid', toelichting: 'Knie' } })
+    expect(stand.opzeggingen).toEqual([expect.objectContaining({ reden: 'gezondheid', toelichting: null })])
   })
 })

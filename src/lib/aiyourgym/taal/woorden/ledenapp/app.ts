@@ -10,12 +10,15 @@ export const LEDENAPP = woordenboek({
     tabs: {
       label: 'Ledenapp',
       home: 'Home',
+      boeken: 'Boeken',
       lessen: 'Lessen',
       afspraken: 'Afspraken',
       schema: 'Schema',
       voeding: 'Voeding',
       voortgang: 'Voortgang',
       profiel: 'Profiel',
+      sectieBoeken: 'Lessen of afspraken',
+      sectieSchema: 'Schema of voortgang',
     },
     algemeen: {
       bezig: 'Bezig...',
@@ -150,6 +153,9 @@ export const LEDENAPP = woordenboek({
       alt: (naam: string) => `Check-in code van ${naam}`,
       uitleg: (sec: number) => `Houd je telefoon voor de scanner bij de ingang. De code wisselt elke ${sec} seconden.`,
       tip: 'Zet je scherm op de hoogste helderheid, dan scant hij het snelst.',
+      groot: 'Tik voor volledig scherm',
+      openAria: 'Check-in code op volledig scherm tonen',
+      sluiten: 'Sluiten',
     },
     profiel: {
       lidnummer: 'Lidnummer',
@@ -202,12 +208,15 @@ export const LEDENAPP = woordenboek({
     tabs: {
       label: 'Member app',
       home: 'Home',
+      boeken: 'Book',
       lessen: 'Classes',
       afspraken: 'Appointments',
       schema: 'Programme',
       voeding: 'Nutrition',
       voortgang: 'Progress',
       profiel: 'Profile',
+      sectieBoeken: 'Classes or appointments',
+      sectieSchema: 'Programme or progress',
     },
     algemeen: {
       bezig: 'Working...',
@@ -342,6 +351,9 @@ export const LEDENAPP = woordenboek({
       alt: (naam: string) => `Check-in code for ${naam}`,
       uitleg: (sec: number) => `Hold your phone in front of the scanner at the entrance. The code changes every ${sec} seconds.`,
       tip: 'Turn your screen to full brightness so it scans fastest.',
+      groot: 'Tap for full screen',
+      openAria: 'Show check-in code full screen',
+      sluiten: 'Close',
     },
     profiel: {
       lidnummer: 'Member number',

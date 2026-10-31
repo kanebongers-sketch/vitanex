@@ -4,7 +4,7 @@ import { DEMO_SOORTEN } from '@/lib/aiyourgym/demo-aanvraag'
 import { DOELGROEPEN } from './doelgroepen'
 import { HOOFDSTUKKEN } from './functies'
 import { SCHEMA_STAPPEN } from './trainingsschemas'
-import { START_MINUTEN, START_STAPPEN, VRAAG_CONTRACT, VRAAG_GEGEVENS } from './vertrouwen'
+import { START_STAPPEN, VRAAG_CONTRACT, VRAAG_GEGEVENS } from './vertrouwen'
 import { KOMT_MEE, KOMT_NIET_MEE, NIET, OVERSTAP_TIPS, WEL } from './eerlijk'
 import { GROEPEN, KERN, SUBVERWERKERS } from './beveiliging'
 
@@ -74,8 +74,7 @@ describe('pagina trainingsschemas', () => {
 })
 
 describe('startwizard', () => {
-  it('past echt in een kwartier', () => {
-    expect(START_MINUTEN).toBeLessThanOrEqual(15)
+  it('heeft stappen', () => {
     expect(START_STAPPEN.length).toBeGreaterThan(0)
   })
 })

@@ -27,7 +27,7 @@ export function welkomTekst(voornaam: string, sportschool: string, inlogAdres: s
     `${sportschool} staat klaar in AI Your Gym. Je abonnement is gestart.`,
     '',
     loginOpen
-      ? `Log in op ${inlogAdres} met dit e-mailadres en het wachtwoord dat je bij het aanmelden koos. De startwizard helpt je daarna in ongeveer een kwartier op weg.`
+      ? `Log in op ${inlogAdres} met dit e-mailadres en het wachtwoord dat je bij het aanmelden koos. De startwizard helpt je daarna stap voor stap op weg.`
       : `Inloggen opent na de lancering. Dan log je in op ${inlogAdres} met dit e-mailadres en het wachtwoord dat je bij het aanmelden koos.`,
     '',
     'Team AI Your Gym',

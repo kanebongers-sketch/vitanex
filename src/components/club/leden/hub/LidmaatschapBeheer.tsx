@@ -9,6 +9,9 @@ import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
 import { formatDatum } from '@/lib/aiyourgym/taal/formaat'
 import { LEDENKAART } from '@/lib/aiyourgym/taal/woorden/club/ledenkaart'
 import { stuur } from '../stuur'
+import { vraagtOpzegReden, zonderToelichting, type OpzegReden } from '@/lib/club/behoud/opzegreden'
+import { BEHOUD_DATA } from '@/lib/aiyourgym/taal/woorden/club/behoud-data'
+import { OpzegRedenVeld } from './OpzegRedenVeld'
 
 // Het lidmaatschap van een lid, op de kaart aan te passen: de vorm, de
 // startdatum en de status met datums (pauzeren, opzeggen, stoppen). Wat een
@@ -44,6 +47,7 @@ function Datumveld({ label, waarde, onZet, min }: { label: string; waarde: strin
 
 export function LidmaatschapBeheer({ lidId, stand, vormen, vandaag, statusVast }: LidmaatschapBeheerProps) {
   const w = useTekst(LEDENKAART).lidmaatschap
+  const wo = useTekst(BEHOUD_DATA).opzeg
   const taal = useTaal()
   const router = useRouter()
   const [, startTransition] = useTransition()
@@ -53,6 +57,8 @@ export function LidmaatschapBeheer({ lidId, stand, vormen, vandaag, statusVast }
   const [van, setVan] = useState(vandaag)
   const [tot, setTot] = useState('')
   const [lidSinds, setLidSinds] = useState(stand.lidSinds ?? '')
+  const [reden, setReden] = useState<OpzegReden | ''>('')
+  const [toelichting, setToelichting] = useState('')
   const datum = (d: string) => formatDatum(d, taal, 'kort')
 
   async function bewaar(body: object): Promise<boolean> {
@@ -64,8 +70,10 @@ export function LidmaatschapBeheer({ lidId, stand, vormen, vandaag, statusVast }
       setMelding({ soort: 'fout', tekst: uit.fout })
       return false
     }
-    const zonderPauze = typeof uit.data === 'object' && uit.data !== null && 'pauzeNietOpgeslagen' in uit.data && uit.data.pauzeNietOpgeslagen === true
-    setMelding({ soort: zonderPauze ? 'fout' : 'ok', tekst: zonderPauze ? w.pauzeNietOpgeslagen : w.opgeslagen })
+    const data = typeof uit.data === 'object' && uit.data !== null ? (uit.data as Record<string, unknown>) : {}
+    const zonderPauze = data.pauzeNietOpgeslagen === true
+    const zonderReden = data.redenNietOpgeslagen === true
+    setMelding(zonderPauze || zonderReden ? { soort: 'fout', tekst: zonderPauze ? w.pauzeNietOpgeslagen : w.redenNietOpgeslagen } : { soort: 'ok', tekst: w.opgeslagen })
     startTransition(() => router.refresh())
     return true
   }
@@ -75,6 +83,8 @@ export function LidmaatschapBeheer({ lidId, stand, vormen, vandaag, statusVast }
     setMelding(null)
     setVan(a === 'activeren' ? stand.lidSinds ?? vandaag : vandaag)
     setTot(a === 'stoppen' ? vandaag : '')
+    setReden('')
+    setToelichting('')
   }
 
   async function voerUit(e: FormEvent) {
@@ -82,9 +92,12 @@ export function LidmaatschapBeheer({ lidId, stand, vormen, vandaag, statusVast }
     if (!actie) return
     const uitslag = wijzigingVoorActie(actie, { van: van || null, tot: tot || null }, vandaag, stand.lidSinds)
     if (!uitslag.ok) return setMelding({ soort: 'fout', tekst: w.fout[uitslag.fout] })
+    const metReden = uitslag.wijziging.status !== undefined && vraagtOpzegReden(stand.status, uitslag.wijziging.status)
+    if (metReden && reden === '') return setMelding({ soort: 'fout', tekst: wo.verplicht })
+    const opzegReden = metReden && reden !== '' ? { opzegReden: { reden, toelichting: zonderToelichting(reden) ? null : toelichting.trim() || null } } : {}
     // Zonder de pauzekolommen (migratie 464) gaan de pauzedatums niet mee; de rest wel.
     const { pauzeVan, pauzeTot, ...rest } = uitslag.wijziging
-    const body = stand.pauze.bewaarbaar ? uitslag.wijziging : rest
+    const body = { ...(stand.pauze.bewaarbaar ? uitslag.wijziging : rest), ...opzegReden }
     if (!(await bewaar(body))) return
     setActie(null)
     if (!stand.pauze.bewaarbaar && actie === 'pauzeren' && (pauzeVan || pauzeTot)) setMelding({ soort: 'fout', tekst: w.pauzeNietOpgeslagen })
@@ -92,6 +105,7 @@ export function LidmaatschapBeheer({ lidId, stand, vormen, vandaag, statusVast }
 
   const pauze = pauzeStand(stand.status, stand.pauze, vandaag)
   const velden = actie ? ACTIE_DATUMS[actie] : []
+  const vraagtReden = (actie === 'opzeggen' && vraagtOpzegReden(stand.status, 'opgezegd')) || (actie === 'stoppen' && vraagtOpzegReden(stand.status, 'gestopt'))
   return (
     <div className="club-lidhub-lidmaatschap">
       <dl className="club-lidhub-feiten">
@@ -150,6 +164,7 @@ export function LidmaatschapBeheer({ lidId, stand, vormen, vandaag, statusVast }
                 {velden.includes('tot') && <Datumveld label={w.datumTot[actie]} waarde={tot} onZet={setTot} min={actie === 'opzeggen' ? vandaag : undefined} />}
               </div>
             )}
+            {vraagtReden && <OpzegRedenVeld reden={reden} toelichting={toelichting} onReden={setReden} onToelichting={setToelichting} />}
             <div className="club-acties">
               <button type="submit" className="club-knop club-knop--primair club-knop--klein" disabled={bezig} aria-busy={bezig || undefined}>
                 {bezig ? w.bezig : w.bevestig}

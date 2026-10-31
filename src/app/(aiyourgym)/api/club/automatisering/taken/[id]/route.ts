@@ -1,4 +1,5 @@
-// PATCH /api/club/automatisering/taken/[id]  { actie: 'gedaan' | 'overgeslagen' | 'heropen' | 'notitie', notitie? }
+// PATCH /api/club/automatisering/taken/[id]  { actie: 'gedaan' | 'overgeslagen' | 'heropen' | 'notitie', notitie?, uitkomst? }
+// Gedaan vraagt een uitkomst uit de vaste lijst (src/lib/club/behoud/uitkomst.ts, migratie 482).
 // Een opvolgtaak afhandelen of een notitie erbij zetten. Wie en wanneer legt de server vast.
 
 import { NextResponse, type NextRequest } from 'next/server'

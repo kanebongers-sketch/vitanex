@@ -12,11 +12,11 @@ function labels<T extends string>(lijst: readonly { sleutel: T; label: string }[
 
 export const DEMO_AANVRAAG = woordenboek({
   nl: {
-    metaTitel: 'Plan een gratis demo',
+    metaTitel: 'Plan een demo',
     metaOmschrijving:
       'Vraag een gratis, vrijblijvende demo van AI Your Gym aan. We nemen binnen een werkdag contact op en laten zien hoe het werkt voor jouw sportschool.',
     label: 'Gratis en vrijblijvend',
-    titel: 'Plan een gratis demo.',
+    titel: 'Plan een demo.',
     lead: 'We laten AI Your Gym persoonlijk zien, ingericht op jouw soort sportschool.',
     zoGaatHet: 'Zo gaat het',
     stappen: [
@@ -43,7 +43,7 @@ export const DEMO_AANVRAAG = woordenboek({
     opmerkingHint: 'Waar ben je naar op zoek, of wat wil je zeker zien?',
     akkoord: { voor: 'Ik heb de ', privacy: 'privacyverklaring', na: ' gelezen. Mijn gegevens worden alleen gebruikt om contact op te nemen over de demo.' },
     versturen: 'Versturen…',
-    aanvragen: 'Plan mijn gratis demo',
+    aanvragen: 'Plan mijn demo',
     vrijblijvend: 'Je zit nergens aan vast. We sturen geen nieuwsbrief.',
     mislukt: 'Versturen lukte niet. Probeer het later opnieuw.',
     geenVerbinding: 'Geen verbinding. Controleer het internet en probeer het opnieuw.',
@@ -57,11 +57,11 @@ export const DEMO_AANVRAAG = woordenboek({
     terug: 'Terug naar de website',
   },
   en: {
-    metaTitel: 'Book a free demo',
+    metaTitel: 'Book a demo',
     metaOmschrijving:
       'Request a free demo of AI Your Gym with no obligation. We get in touch within one working day and show you how it works for your gym.',
     label: 'Free, no obligation',
-    titel: 'Book a free demo.',
+    titel: 'Book a demo.',
     lead: 'We show you AI Your Gym in person, set up for your kind of gym.',
     zoGaatHet: 'How it works',
     stappen: [
@@ -87,7 +87,7 @@ export const DEMO_AANVRAAG = woordenboek({
     opmerkingHint: 'What are you looking for, or what do you definitely want to see?',
     akkoord: { voor: 'I have read the ', privacy: 'privacy statement', na: '. My details are only used to contact me about the demo.' },
     versturen: 'Sending…',
-    aanvragen: 'Book my free demo',
+    aanvragen: 'Book my demo',
     vrijblijvend: 'You are not committed to anything. We do not send a newsletter.',
     mislukt: 'Sending did not work. Please try again later.',
     geenVerbinding: 'No connection. Check your internet and try again.',

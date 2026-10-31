@@ -3,7 +3,9 @@
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 
-// De weekring van de ledenapp in 3D: een verzonken spoor en een boog in de
+// De weekring in 3D, alleen nog voor het productscherm op de website
+// (aiyourgym/mockups/product/WeekRing); de ledenapp zelf toont de SVG-ring
+// (DiepteRing) en laadt geen three.js. Opbouw: een verzonken spoor en een boog in de
 // accentkleur van de sportschool, als glanzend materiaal dat licht vangt. De
 // ring kantelt licht mee met de aanwijzer of de telefoon en staat verder stil:
 // er wordt alleen een beeld getekend als er iets verandert (geen vaste lus).

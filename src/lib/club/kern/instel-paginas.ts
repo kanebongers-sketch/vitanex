@@ -98,9 +98,11 @@ export const INSTEL_PAGINAS: readonly InstelPagina[] = [
   { id: 'vestigingen', titel: P.vestigingen.titel, uitleg: P.vestigingen.uitleg, groep: 'vestigingen', pad: '/instellingen/vestigingen', sleutel: 'instellingen', nietVoorMedewerker: true, trefwoorden: 'locatie club adres telefoon' },
   { id: 'regels', titel: P.regels.titel, uitleg: P.regels.uitleg, groep: 'vestigingen', pad: '/instellingen/regels', sleutel: 'instellingen', perVestiging: true, trefwoorden: 'annuleren no-show open dicht' },
   { id: 'sluiting', titel: P.sluiting.titel, uitleg: P.sluiting.uitleg, groep: 'vestigingen', pad: '/beheer/sluiting', sleutel: 'sluiting', onder: 'regels', trefwoorden: 'feestdag kerst dicht' },
-  // Team en rechten
+  // Team en rechten. Een plek voor het team (31-10-2026): Team (rollen v2) is de regel;
+  // Medewerkers (nieuwe medewerker, inloggen, uitnodiging opnieuw) blijft als kleine link
+  // eronder, want Team verwijst daarheen voor "nieuw". Zonder v2 is Medewerkers een eigen regel.
   { id: 'team', titel: P.team.titel, uitleg: P.team.uitleg, groep: 'team', pad: '/beheer/team', sleutel: 'beheer', v2Sleutel: 'team', rollenV2: 'alleen', trefwoorden: 'rollen eigenaar clubmanager trainer instructeur roosteraar administratie personeel uitnodigen' },
-  { id: 'medewerkers', titel: P.medewerkers.titel, uitleg: P.medewerkers.uitleg, groep: 'team', pad: '/instellingen/medewerkers', sleutel: 'instellingen', perVestiging: true, trefwoorden: 'personeel trainer instructeur team inloggen uitnodigen wachtwoord' },
+  { id: 'medewerkers', titel: P.medewerkers.titel, uitleg: P.medewerkers.uitleg, groep: 'team', pad: '/instellingen/medewerkers', sleutel: 'instellingen', perVestiging: true, onder: 'team', trefwoorden: 'personeel trainer instructeur team inloggen uitnodigen wachtwoord' },
   { id: 'beheerders', titel: P.beheerders.titel, uitleg: P.beheerders.uitleg, groep: 'team', pad: '/huisstijl#beheerders-kop', sleutel: 'huisstijl', alleenEigenaar: true, rollenV2: 'niet', trefwoorden: 'eigenaar clubmanager inloggen uitnodigen wachtwoord' },
   { id: 'rechten', titel: P.rechten.titel, uitleg: P.rechten.uitleg, groep: 'team', pad: '/beheer/rechten', sleutel: 'beheer', alleenEigenaar: true, v2Sleutel: 'rollen', trefwoorden: 'toegang rollen autorisatie niveaus startpagina' },
   // Groepslessen (zalen horen bij het rooster: staat dat uit, dan zijn ze er ook niet)

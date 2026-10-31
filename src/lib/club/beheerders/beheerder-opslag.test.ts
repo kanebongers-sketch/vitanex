@@ -60,9 +60,11 @@ describe('uitnodiging: een keer een wachtwoord kiezen', () => {
   })
 })
 
+const WW_HASH = await hashWachtwoord('Blauwe-kat-rent-7')
+
 describe('inloggen met e-mail en wachtwoord', () => {
   const WW = 'Blauwe-kat-rent-7'
-  const metWw = (extra: Partial<Beheerder> = {}) => beheerder({ email: 'mark@gym.nl', pinStatus: 'geen', pinHash: null, wachtwoordHash: hashWachtwoord(WW), ...extra })
+  const metWw = (extra: Partial<Beheerder> = {}) => beheerder({ email: 'mark@gym.nl', pinStatus: 'geen', pinHash: null, wachtwoordHash: WW_HASH, ...extra })
   it('goed wachtwoord: een sessie; fout: telt af met dezelfde rem als de pincode', async () => {
     const { admin } = nepSupabase((v) => (v.actie === 'select' ? ok([]) : eenRij))
     expect((await logInMetWachtwoord(admin, metWw(), WW, NU)).staat).toBe('ok')

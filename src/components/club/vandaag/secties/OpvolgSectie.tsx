@@ -23,13 +23,15 @@ interface Props {
   vestigingNaam: string
   /** Mag deze persoon Opvolgen (leden)? Zonder: alleen de rechterkolom. */
   magLeden: boolean
+  /** Mag deze persoon taken afhandelen (bewerken)? Zonder: alleen lezen. */
+  magBewerken?: boolean
   /** Mag deze persoon de opvolgregels instellen? */
   magRegels: boolean
   /** Leads opvolgen en Jarig, al gefilterd op de rechten. */
   children?: ReactNode
 }
 
-async function LedenOpvolgen({ admin, userId, vestiging, vestigingNaam }: Pick<Props, 'admin' | 'userId' | 'vestiging' | 'vestigingNaam'>) {
+async function LedenOpvolgen({ admin, userId, vestiging, vestigingNaam, magBewerken = true }: Pick<Props, 'admin' | 'userId' | 'vestiging' | 'vestigingNaam' | 'magBewerken'>) {
   const w = (await clubTekst(VANDAAG_SECTIES)).opvolgen
   await zorgVoorRondeVanVandaag(admin, userId, vestiging, new Date())
   const [open, regels, medewerkers] = await Promise.all([haalOpenTaken(admin, userId, vestiging), haalRegels(admin, userId), haalAlleMedewerkers(admin, userId)])
@@ -41,12 +43,12 @@ async function LedenOpvolgen({ admin, userId, vestiging, vestigingNaam }: Pick<P
   return (
     <>
       {allesUit && <p className="club-melding" role="status">{w.allesUit}</p>}
-      <Opvolglijst groepen={groepen} ledenkaarten={ledenkaarten} kop="h3" />
+      <Opvolglijst groepen={groepen} ledenkaarten={ledenkaarten} kop="h3" bewerken={magBewerken} />
     </>
   )
 }
 
-export async function OpvolgSectie({ admin, userId, vestiging, vestigingNaam, magLeden, magRegels, children }: Props) {
+export async function OpvolgSectie({ admin, userId, vestiging, vestigingNaam, magLeden, magBewerken = true, magRegels, children }: Props) {
   const w = (await clubTekst(VANDAAG_SECTIES)).opvolgen
   const links: SectieLink[] = [
     ...(magLeden ? [{ href: clubPad('/opvolgen', vestiging), label: w.lijst }] : []),
@@ -59,7 +61,7 @@ export async function OpvolgSectie({ admin, userId, vestiging, vestigingNaam, ma
         {magLeden && (
           <div className="club-vandaag-opvolg-leden">
             <Suspense fallback={<div className="club-skelet" style={{ minHeight: 160 }} aria-hidden />}>
-              <LedenOpvolgen admin={admin} userId={userId} vestiging={vestiging} vestigingNaam={vestigingNaam} />
+              <LedenOpvolgen admin={admin} userId={userId} vestiging={vestiging} vestigingNaam={vestigingNaam} magBewerken={magBewerken} />
             </Suspense>
           </div>
         )}

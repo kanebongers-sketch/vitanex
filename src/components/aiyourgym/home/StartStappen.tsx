@@ -1,5 +1,5 @@
 import { LifeBuoy } from 'lucide-react'
-import { START_MINUTEN, START_STAPPEN } from '@/components/aiyourgym/inhoud/vertrouwen'
+import { START_STAPPEN } from '@/components/aiyourgym/inhoud/vertrouwen'
 import { Figuur } from '@/components/aiyourgym/mockups/kaders'
 import { WizardScherm } from '@/components/aiyourgym/mockups/WizardScherm'
 import { SectieKop } from '@/components/aiyourgym/site/bouwstenen'
@@ -27,7 +27,7 @@ export async function StartStappen() {
                 <mark className="ayg-markeer">{titel.accent}</mark>
               </>
             }
-            tekst={t.tekst(START_MINUTEN)}
+            tekst={t.tekst}
           />
           <aside className="ayg-start-hulp" aria-label={t.hulpLabel}>
             <LifeBuoy size={22} aria-hidden />

@@ -4,6 +4,7 @@ import { CalendarCheck, Mail, NotebookPen, Phone, Shuffle } from 'lucide-react'
 import type { HistorieRegel, HistorieSoort } from '@/lib/club/leads/model'
 import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
 import { LEADS } from '@/lib/aiyourgym/taal/woorden/club/leads'
+import { BEHOUD_DATA } from '@/lib/aiyourgym/taal/woorden/club/behoud-data'
 import { toonMoment } from '@/lib/club/leads/regels'
 
 const ICOON: Record<HistorieSoort, typeof Phone> = {
@@ -18,6 +19,7 @@ const ICOON: Record<HistorieSoort, typeof Phone> = {
 export function PaneelHistorie({ historie }: { historie: HistorieRegel[] }) {
   const taal = useTaal()
   const tekst = useTekst(LEADS)
+  const uitkomst = useTekst(BEHOUD_DATA).uitkomst.lead
   return (
     <section className="club-leads-blok" aria-labelledby="paneel-historie">
       <h3 id="paneel-historie">{tekst.historiePaneel.titel}</h3>
@@ -38,6 +40,7 @@ export function PaneelHistorie({ historie }: { historie: HistorieRegel[] }) {
                     <time dateTime={h.op}>{toonMoment(h.op, taal)}</time>
                     {h.auteur && <span className="club-zacht">{h.auteur}</span>}
                   </p>
+                  {h.uitkomst && <p className="club-leads-tijdlijntekst"><span className="club-chip club-chip--geen">{uitkomst[h.uitkomst]}</span></p>}
                   {h.tekst && <p className="club-leads-tijdlijntekst">{h.tekst}</p>}
                 </div>
               </li>

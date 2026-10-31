@@ -124,3 +124,8 @@
   .club-opvolg-taak, .club-opvolg-taak::before, .club-opvolg-index a, .club-opvolg-tekst summary::after,
   .club-auto-regel, .club-auto-schakelaar-bol, .club-auto-schakelaar-bol::after { transition: none; }
 }
+
+/* Uitkomst na Klaar (migratie 482). */
+.club-opvolg-uitkomst { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: var(--club-radius-klein); background: var(--club-vlak); }
+.club-opvolg-uitkomst .club-label { margin: 0; }
+.club-opvolg-uitkomstlabel { margin: 2px 0 0; font-size: 13px; color: var(--text-2); }

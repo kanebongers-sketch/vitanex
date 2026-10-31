@@ -38,7 +38,7 @@ async function bruikbareKandidaten(admin: SupabaseClient, email: unknown, sports
 export async function logInMetEmail(admin: SupabaseClient, email: unknown, wachtwoord: string, sportschool: string | null, nu: Date): Promise<LidInlogUitkomst> {
   const accounts = await bruikbareKandidaten(admin, email, sportschool)
   if (accounts.length === 0) {
-    schijnControle(wachtwoord)
+    await schijnControle(wachtwoord)
     return { staat: 'fout' }
   }
   const goed: BruikbaarAccount[] = []

@@ -4,8 +4,8 @@ import { ringDeel } from '@/lib/club/ontwerp/reeks'
 // Een voortgangsring met diepte, in gewone SVG: een verzonken spoor (schaduw
 // aan de binnenkant), de boog in de accentkleur van de sportschool met een
 // lichtrand erop, en het getal in het midden. Werkt zonder JavaScript en zonder
-// WebGL; de 3D-versie in de ledenapp (Ring3d) legt zich er later overheen en
-// valt hierop terug bij reduced motion of zonder WebGL.
+// WebGL. De ledenapp gebruikt alleen deze ring (geen three.js meer voor
+// decoratie); bij reduced motion staat het intekenen stil (ontwerp.css).
 
 interface DiepteRingProps {
   gedaan: number

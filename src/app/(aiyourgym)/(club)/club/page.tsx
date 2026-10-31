@@ -39,7 +39,7 @@ import { VANDAAG } from '@/lib/aiyourgym/taal/woorden/club/vandaag-scherm'
 import { startDoorverwijzing } from '@/lib/club/rollen/model'
 import { WelkomVoorRol } from '@/components/club/welkom/WelkomVoorRol'
 import { ikAlsAfvinker } from '@/lib/club/taken/ik'
-import { isLeiding } from '@/lib/club/rollen/wie'
+import { isLeiding, kanBewerken } from '@/lib/club/rollen/wie'
 import { NieuweLedenSectie } from '@/components/club/nieuwe-leden/NieuweLedenSectie'
 
 // Vandaag: het eerste scherm van de clubsoftware en het ene dagscherm voor de
@@ -178,7 +178,7 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
       {zie('taken') && <TakenSectie admin={t.admin} userId={t.userId} vestiging={vestiging} vandaag={nlDelen(nu).datum} ik={ikAlsAfvinker(t)} />}
 
       {(zie('opvolgen') || leadsOfJarig) && (
-        <OpvolgSectie admin={t.admin} userId={t.userId} vestiging={vestiging} vestigingNaam={vestigingNaam} magLeden={zie('opvolgen')} magRegels={mag('beheer')}>
+        <OpvolgSectie admin={t.admin} userId={t.userId} vestiging={vestiging} vestigingNaam={vestigingNaam} magLeden={zie('opvolgen')} magBewerken={kanBewerken(t, 'opvolgen')} magRegels={mag('beheer')}>
           {leadsOfJarig ? (
             <>
               {zie('leads') && <LeadsOpvolgen leads={data.opvolgen} totaal={data.opvolgenTotaal} vandaag={data.vandaag} vestiging={vestiging} />}

@@ -19,7 +19,7 @@ const CODE = 'abcdefghijklmnopqrstuvwx'
 const TOKEN = 'T'.repeat(43)
 const NU = new Date('2026-10-23T12:00:00Z')
 const WW = 'paars-fietsen-langs-de-dijk'
-const HASH = hashWachtwoord(WW)
+const HASH = await hashWachtwoord(WW)
 const EMAIL = 'lotte@gym.nl'
 
 const toegangRij = (extra: Record<string, unknown> = {}) => ({

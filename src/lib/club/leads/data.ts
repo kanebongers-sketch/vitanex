@@ -4,6 +4,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
+import type { LeadUitkomst } from '@/lib/club/behoud/uitkomst'
 import { HISTORIE_KOLOMMEN, LEAD_KOLOMMEN, historieUitRij, leadUitRij, type HistorieRegel, type HistorieSoort, type Lead } from './model'
 import { CONVERSIE_DAGEN } from './cijfers'
 import { telefoonZoekpatroon, vindDubbelen, normaliseerEmail, type Contactgegevens, type DubbelKandidaat, type DubbelTreffer } from './dubbel'
@@ -56,7 +57,7 @@ export async function schrijfHistorie(
   admin: SupabaseClient,
   userId: string,
   leadId: string,
-  regel: { soort: HistorieSoort; tekst: string | null; auteur: string },
+  regel: { soort: HistorieSoort; tekst: string | null; auteur: string; uitkomst?: LeadUitkomst | null },
 ): Promise<boolean> {
   const { error } = await admin.from('club_lead_historie').insert({
     user_id: userId,
@@ -64,6 +65,7 @@ export async function schrijfHistorie(
     soort: regel.soort,
     tekst: regel.tekst ? regel.tekst.slice(0, 1000) : null,
     auteur: regel.auteur.slice(0, 80),
+    ...(regel.uitkomst ? { uitkomst: regel.uitkomst } : {}),
   })
   if (error) log('historie schrijven', error.message)
   return !error

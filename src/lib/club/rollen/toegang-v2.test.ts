@@ -105,12 +105,19 @@ beforeEach(() => {
 })
 
 describe('clubToegang met rollen v2', () => {
-  it('eigenaar: de standaard van Kane, geen werkvloer', async () => {
+  it('eigenaar: mag alles binnen de eigen sportschool, start op Vandaag', async () => {
     alsBeheerder(DEMO, B_EIGENAAR, 'eigenaar')
     const t = await clubToegang()
     expect(t?.profiel?.rollen).toEqual(['eigenaar'])
+    expect(t?.profiel?.start).toBe('/club')
+    expect(t?.onderdelen).toEqual(expect.arrayContaining(['vandaag', 'cijfers', 'rapporten', 'leden', 'rooster', 'schemas', 'huisstijl', 'team']))
+  })
+
+  it('opgeslagen rolrechten van de sportschool gaan voor de standaard', async () => {
+    data.instellingen = { rolrechten: { rollen: { eigenaar: { cijfers: 'beheren', leden: 'zien' } }, start: { eigenaar: 'cijfers' } } }
+    alsBeheerder(DEMO, B_EIGENAAR, 'eigenaar')
+    const t = await clubToegang()
     expect(t?.profiel?.start).toBe('/club/cijfers')
-    expect(t?.onderdelen).toEqual(expect.arrayContaining(['cijfers', 'rapporten', 'leden', 'huisstijl', 'team']))
     expect(t?.onderdelen).not.toContain('vandaag')
     expect(t?.onderdelen).not.toContain('schemas')
   })
@@ -148,7 +155,8 @@ describe('clubToegang met rollen v2', () => {
 })
 
 describe('de API-poort met rollen v2', () => {
-  it('zien is lezen: de eigenaar leest leden maar wijzigt ze niet', async () => {
+  it('zien is lezen: met alleen zien leest de eigenaar leden maar wijzigt ze niet', async () => {
+    data.instellingen = { rolrechten: { rollen: { eigenaar: { cijfers: 'beheren', leden: 'zien' } } } }
     alsBeheerder(DEMO, B_EIGENAAR, 'eigenaar')
     expect(await vereisClubToegang(req('/api/club/leden'))).not.toBeInstanceOf(NextResponse)
     expect(((await vereisClubToegang(req('/api/club/leden', 'POST', {}))) as NextResponse).status).toBe(404)

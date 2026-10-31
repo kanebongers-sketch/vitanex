@@ -56,7 +56,7 @@ export async function activeerLid(admin: SupabaseClient, t: LidToegangRij, email
   const { data, error } = await admin
     .from(TABEL)
     .update({
-      email, wachtwoord_hash: hashWachtwoord(wachtwoord), wachtwoord_gekozen_op: tijd, code_gebruikt_op: tijd,
+      email, wachtwoord_hash: await hashWachtwoord(wachtwoord), wachtwoord_gekozen_op: tijd, code_gebruikt_op: tijd,
       pin_hash: null, ...TELLERS_SCHOON, laatst_ingelogd_op: tijd, gewijzigd_op: tijd,
     })
     .eq('id', t.id)
@@ -89,7 +89,7 @@ export async function kiesWachtwoordInApp(admin: SupabaseClient, t: LidToegangRi
   const tijd = nu.toISOString()
   const { data, error } = await admin
     .from(TABEL)
-    .update({ email, wachtwoord_hash: hashWachtwoord(wachtwoord), wachtwoord_gekozen_op: tijd, pin_hash: null, gewijzigd_op: tijd })
+    .update({ email, wachtwoord_hash: await hashWachtwoord(wachtwoord), wachtwoord_gekozen_op: tijd, pin_hash: null, gewijzigd_op: tijd })
     .eq('id', t.id)
     .eq('user_id', t.userId)
     .eq('lid_id', t.lidId)
@@ -155,7 +155,7 @@ export async function controleerWachtwoord(admin: SupabaseClient, t: LidToegangR
   }
   if (!Array.isArray(gereserveerd) || gereserveerd.length !== 1) return { staat: 'fout', over: Math.max(0, MAX_POGINGEN - poging) }
 
-  if (!wachtwoordKlopt(wachtwoord, t.wachtwoordHash)) {
+  if (!(await wachtwoordKlopt(wachtwoord, t.wachtwoordHash))) {
     if (poging < MAX_POGINGEN) return { staat: 'fout', over: MAX_POGINGEN - poging }
     return blokkeer(admin, t, nu)
   }

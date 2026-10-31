@@ -75,7 +75,7 @@ export async function kiesWachtwoord(admin: SupabaseClient, { toegang: t }: Mede
   if (await vindBeheerderOpEmail(admin, t.email)) return { staat: 'email_bezet' }
   const { data, error } = await admin
     .from('club_medewerker_toegang')
-    .update({ wachtwoord_hash: hashWachtwoord(wachtwoord), ...UITNODIGING_LEEG, ...PIN_LEEG, ...TELLERS_SCHOON, laatst_ingelogd_op: nu.toISOString(), gewijzigd_op: nu.toISOString() })
+    .update({ wachtwoord_hash: await hashWachtwoord(wachtwoord), ...UITNODIGING_LEEG, ...PIN_LEEG, ...TELLERS_SCHOON, laatst_ingelogd_op: nu.toISOString(), gewijzigd_op: nu.toISOString() })
     .eq('id', t.id)
     .eq('uitnodiging_hash', tokenHash(token))
     .eq('actief', true)
@@ -132,7 +132,7 @@ export async function logInMedewerkerMetWachtwoord(admin: SupabaseClient, { toeg
   if (resFout) return { staat: 'db' }
   if (!Array.isArray(gereserveerd) || gereserveerd.length !== 1) return { staat: 'fout', over: Math.max(0, MAX_POGINGEN - poging) }
 
-  if (!wachtwoordKlopt(wachtwoord, t.wachtwoordHash)) {
+  if (!(await wachtwoordKlopt(wachtwoord, t.wachtwoordHash))) {
     if (poging < MAX_POGINGEN) return { staat: 'fout', over: MAX_POGINGEN - poging }
     return blokkeer(admin, t, nu)
   }

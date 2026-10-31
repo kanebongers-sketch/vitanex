@@ -14,7 +14,7 @@ export const WELKOM = woordenboek({
     sluiten: 'Uitleg sluiten',
     // De ledenapp: een nieuw lid op Home.
     leden: [
-      { kop: 'Boek een les', tekst: 'Bij Lessen tik je op een les om je plek vast te zetten.', knop: 'Naar Lessen' },
+      { kop: 'Boek een les', tekst: 'Bij Boeken tik je op een les om je plek vast te zetten.', knop: 'Naar Boeken' },
       { kop: 'Volg je schema', tekst: 'Bij Schema staan je oefeningen. Vink per set af wat je deed.', knop: 'Naar Schema' },
       { kop: 'Maak het je eigen', tekst: 'Zet een foto en je gegevens bij Profiel.', knop: 'Naar Profiel' },
     ],
@@ -58,7 +58,7 @@ export const WELKOM = woordenboek({
     klaar: 'Got it',
     sluiten: 'Close the guide',
     leden: [
-      { kop: 'Book a class', tekst: 'Under Classes, tap a class to secure your spot.', knop: 'Go to Classes' },
+      { kop: 'Book a class', tekst: 'Under Book, tap a class to secure your spot.', knop: 'Go to Book' },
       { kop: 'Follow your programme', tekst: 'Your exercises are under Programme. Tick off each set you did.', knop: 'Go to Programme' },
       { kop: 'Make it yours', tekst: 'Add a photo and your details under Profile.', knop: 'Go to Profile' },
     ],

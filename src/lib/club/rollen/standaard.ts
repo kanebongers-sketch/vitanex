@@ -1,6 +1,8 @@
 // ─── Club, rollen v2: de standaardrechten en startpagina's (PUUR) ───────────
 // Besluit Kane (29-10-2026). De eigenaar past dit per sportschool aan bij
-// Rechten per rol; wat ALLEEN_EIGENAAR is, ligt vast.
+// Rechten per rol; wat ALLEEN_EIGENAAR is, ligt vast. Opgeslagen rolrechten van
+// een sportschool gaan altijd voor (leesRolrechten in model.ts): een wijziging
+// hier raakt alleen sportscholen zonder eigen kaart voor die rol.
 
 import { ONDERDEEL_SLEUTELS } from '@/lib/club/kern/org-instellingen'
 import { ALLEEN_EIGENAAR, EXTRA_SLEUTELS, ROLLEN, type Niveau, type NiveauKaart, type Rol, type Rolrechten } from './typen'
@@ -15,15 +17,17 @@ function kaart(per: Partial<Record<Niveau, readonly string[]>>): NiveauKaart {
 
 const VERGRENDELD = [...ALLEEN_EIGENAAR]
 
+/** Elk onderdeel en elke extra sleutel. */
+const ALLES = [...ONDERDEEL_SLEUTELS, ...EXTRA_SLEUTELS]
+
 /** Alles wat niet alleen voor de eigenaar is: de clubmanager mag bijna alles. */
-const BIJNA_ALLES = [...ONDERDEEL_SLEUTELS, ...EXTRA_SLEUTELS].filter((s) => !ALLEEN_EIGENAAR.has(s))
+const BIJNA_ALLES = ALLES.filter((s) => !ALLEEN_EIGENAAR.has(s))
 
 export const STANDAARD_RECHTEN: Readonly<Record<Rol, NiveauKaart>> = {
-  // Cijfers, rapporten, team, financien, abonnement en instellingen; leden en leads alleen zien. Geen werkvloer, geen coaching.
-  eigenaar: kaart({
-    beheren: ['cijfers', 'rapporten', 'team', 'instellingen', 'beheer', ...VERGRENDELD],
-    zien: ['leden', 'leads', 'app', 'hulp'],
-  }),
+  // Besluit Kane (17-10-2026): de eigenaar mag alles binnen de eigen sportschool,
+  // dus overal beheren: werkvloer, leden, rooster, coaching, cijfers en wat
+  // ALLEEN_EIGENAAR is. In een kleine studio staat de eigenaar ook op de vloer.
+  eigenaar: kaart({ beheren: [...ALLES, ...VERGRENDELD] }),
   manager: kaart({ beheren: BIJNA_ALLES }),
   // Werkvloer, leden, coaching en afspraken.
   trainer: kaart({
@@ -40,7 +44,7 @@ export const STANDAARD_RECHTEN: Readonly<Record<Rol, NiveauKaart>> = {
 
 /** De startpagina per rol (besluit Kane 29-10-2026). */
 export const STANDAARD_START: Readonly<Record<Rol, string>> = {
-  eigenaar: 'cijfers',
+  eigenaar: 'vandaag',
   manager: 'vandaag',
   trainer: 'vandaag',
   instructeur: 'rooster',

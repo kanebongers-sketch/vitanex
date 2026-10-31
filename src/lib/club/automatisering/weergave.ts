@@ -5,6 +5,7 @@
 import { initialen } from '@/lib/club/kern/lid'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { OPVOLGEN } from '@/lib/aiyourgym/taal/woorden/club/opvolgen'
+import { BEHOUD_DATA } from '@/lib/aiyourgym/taal/woorden/club/behoud-data'
 import { REGEL_DEFINITIES, type Regel, type RegelSleutel, type Wie } from './regels'
 import { vulSjabloon } from './sjabloon'
 import { sjabloonWaarden, type RegelGroep, type Taak, type TaakStatus } from './taken'
@@ -27,6 +28,8 @@ export interface OpvolgItem {
   sinds: string
   status: TaakStatus
   statusLabel: string
+  /** De uitkomst in de gekozen taal (bij Gedaan), of null. */
+  uitkomstLabel: string | null
   afgehandeldDoor: string | null
   afgehandeldOp: string | null
 }
@@ -73,6 +76,7 @@ export function naarItem(taak: Taak, ctx: Context, taal: Taal = 'nl'): OpvolgIte
     sinds: taak.aangemaaktOp.slice(0, 10),
     status: taak.status,
     statusLabel: t.status[taak.status],
+    uitkomstLabel: taak.uitkomst ? BEHOUD_DATA[taal].uitkomst.lid[taak.uitkomst] : null,
     afgehandeldDoor: taak.afgehandeldDoor,
     afgehandeldOp: taak.afgehandeldOp,
   }

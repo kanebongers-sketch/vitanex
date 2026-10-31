@@ -22,7 +22,7 @@ export const BEVEILIGING = woordenboek({
     dpaKop: 'Verwerkersovereenkomst',
     dpaTekst:
       'Jij bent verantwoordelijk voor de gegevens van je leden, wij verwerken ze in jouw opdracht. De verwerkersovereenkomst is op aanvraag beschikbaar: bij een demo-aanvraag, of via Hulp in je eigen omgeving.',
-    dpaLink: 'Vraag een demo aan',
+    dpaLink: 'Plan een demo',
     dienstenKop: 'Diensten die we gebruiken',
     diensten: SUBVERWERKERS,
     meer: { voor: 'Meer over de gegevens op deze website zelf staat in de ', link: 'privacyverklaring', na: '.' },
@@ -88,7 +88,7 @@ export const BEVEILIGING = woordenboek({
     dpaKop: 'Data processing agreement',
     dpaTekst:
       'You are responsible for your members’ data; we process it on your behalf. The data processing agreement is available on request: when you request a demo, or through Help in your own environment.',
-    dpaLink: 'Request a demo',
+    dpaLink: 'Book a demo',
     dienstenKop: 'Services we use',
     diensten: [
       { titel: 'Supabase', tekst: 'Database and storage of logos, in Frankfurt.' },

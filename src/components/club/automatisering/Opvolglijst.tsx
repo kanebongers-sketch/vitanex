@@ -16,9 +16,11 @@ interface Props {
   ledenkaarten: Readonly<Record<string, string>>
   /** Kopniveau van de groepen: h3 als de lijst in een sectie van Vandaag staat. */
   kop?: 'h2' | 'h3'
+  /** Mag deze persoon taken afhandelen? Zonder: alleen lezen. */
+  bewerken?: boolean
 }
 
-export function Opvolglijst({ groepen, ledenkaarten, kop: Kop = 'h2' }: Props) {
+export function Opvolglijst({ groepen, ledenkaarten, kop: Kop = 'h2', bewerken = true }: Props) {
   const router = useRouter()
   const t = useTekst(OPVOLGEN).lijst
   const [weg, setWeg] = useState<ReadonlySet<string>>(new Set())
@@ -51,7 +53,7 @@ export function Opvolglijst({ groepen, ledenkaarten, kop: Kop = 'h2' }: Props) {
               </header>
               <ul className="club-opvolg-taken">
                 {g.items.map((item) => (
-                  <OpvolgTaak key={item.id} item={item} ledenkaart={ledenkaarten[item.lidId] ?? '/club/leden'} onKlaar={klaar} />
+                  <OpvolgTaak key={item.id} item={item} ledenkaart={ledenkaarten[item.lidId] ?? '/club/leden'} onKlaar={klaar} bewerken={bewerken} />
                 ))}
               </ul>
             </section>

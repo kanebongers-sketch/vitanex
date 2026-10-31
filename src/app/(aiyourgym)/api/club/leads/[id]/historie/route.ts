@@ -1,6 +1,7 @@
 // POST /api/club/leads/[id]/historie: gebeld, gemaild of een notitie, en
 // eventueel meteen de volgende opvolgdatum (null = opvolging afgerond).
 // Eerste contact met een nieuwe lead zet hem vanzelf op "Contact".
+// Bellen vraagt een uitkomst uit een vaste lijst (migratie 482), mailen mag.
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, clubJson, logActie, vereisClubToegang } from '@/lib/club/toegang'
@@ -16,9 +17,9 @@ export async function POST(req: NextRequest, ctx: LeadContext) {
 
   const invoer = leesHistorie(await leesJson(req))
   if (!invoer.ok) return clubFout(invoer.fout, 400)
-  const { soort, tekst, opvolgenOp } = invoer.waarde
+  const { soort, tekst, uitkomst, opvolgenOp } = invoer.waarde
 
-  const opgeslagen = await schrijfHistorie(t.admin, t.userId, lead.id, { soort, tekst, auteur: t.naam })
+  const opgeslagen = await schrijfHistorie(t.admin, t.userId, lead.id, { soort, tekst, uitkomst, auteur: t.naam })
   if (!opgeslagen) return clubFout('Dit kon niet worden opgeslagen. Probeer het opnieuw.', 500)
 
   const naarContact = lead.status === 'nieuw' && soort !== 'notitie'

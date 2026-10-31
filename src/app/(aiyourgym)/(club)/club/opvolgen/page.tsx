@@ -5,6 +5,7 @@ import { eisOnderdeel } from '@/lib/club/toegang'
 import { type ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
 import { magOnderdeel } from '@/lib/club/beheerders/rechten'
+import { kanBewerken } from '@/lib/club/rollen/wie'
 import { lidKaartPad } from '@/lib/club/leden/hub/tabs'
 import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import { haalAlleMedewerkers, haalOpenTaken, haalRecentAfgehandeld, haalRegels, maakTakenVoorVandaag } from '@/lib/club/automatisering/opslag'
@@ -46,6 +47,7 @@ export default async function OpvolgenPagina({ searchParams }: { searchParams: Z
   const totaal = groepen.reduce((s, g) => s + g.items.length, 0)
   const allesUit = regels !== null && regels.every((r) => !r.aan)
   const magInstellen = magOnderdeel(t.onderdelen, 'beheer')
+  const bewerken = kanBewerken(t, 'opvolgen')
 
   return (
     <>
@@ -89,14 +91,14 @@ export default async function OpvolgenPagina({ searchParams }: { searchParams: Z
         </nav>
       )}
 
-      {open !== null && <Opvolglijst groepen={groepen} ledenkaarten={ledenkaarten} />}
+      {open !== null && <Opvolglijst groepen={groepen} ledenkaarten={ledenkaarten} bewerken={bewerken} />}
 
       <section className="club-opvolg-recent" aria-labelledby="opvolg-recent">
         <header className="club-sectiekop">
           <h2 id="opvolg-recent">{tp.recent}</h2>
           <span>{tp.zevenDagen}</span>
         </header>
-        {recent === null ? <p className="club-melding club-melding--fout">{tp.recentFout}</p> : <Afgehandeld items={afgehandeld} ledenkaarten={ledenkaarten} />}
+        {recent === null ? <p className="club-melding club-melding--fout">{tp.recentFout}</p> : <Afgehandeld items={afgehandeld} ledenkaarten={ledenkaarten} bewerken={bewerken} />}
       </section>
     </>
   )

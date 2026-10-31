@@ -1,7 +1,7 @@
 // ─── AI Your Gym: contactgegevens van de website (PUUR) ─────────────────────
 // Kane vult deze zelf in. Zolang een waarde null is, toont de website hem
 // nergens (geen verzonnen nummer of adres): de contactbalk toont dan alleen
-// "Plan een gratis demo".
+// "Plan een demo".
 
 export interface AygContact {
   /** Zoals het op de website staat, bijv. "040 123 45 67". */

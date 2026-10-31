@@ -10,9 +10,13 @@ import { stuur, taakUrl } from './stuur'
 import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
 import { OPVOLGEN } from '@/lib/aiyourgym/taal/woorden/club/opvolgen'
 import { Avatar } from '@/components/club/ontwerp/Avatar'
+import type { LidUitkomst } from '@/lib/club/behoud/uitkomst'
+import { UitkomstKeuze } from './UitkomstKeuze'
 
 // Een lid op de opvolglijst: wie, waarom, de voorbeeldtekst en de knoppen.
 // Bellen en mailen openen de eigen telefoon of mail van de medewerker.
+// Klaar vraagt eerst wat het opleverde (vaste lijst, migratie 482). Wie
+// Opvolgen alleen mag inzien, ziet geen knoppen.
 
 type Actie = 'gedaan' | 'overgeslagen' | 'notitie'
 
@@ -20,19 +24,22 @@ interface Props {
   item: OpvolgItem
   ledenkaart: string
   onKlaar: (tekst: string, ok: boolean, weg?: string) => void
+  /** Mag deze persoon de taak afhandelen? Zonder: alleen lezen. */
+  bewerken?: boolean
 }
 
-export function OpvolgTaak({ item, ledenkaart, onKlaar }: Props) {
+export function OpvolgTaak({ item, ledenkaart, onKlaar, bewerken = true }: Props) {
   const [bezig, setBezig] = useState<Actie | null>(null)
   const [notitieOpen, setNotitieOpen] = useState(false)
   const [notitie, setNotitie] = useState(item.notitie ?? '')
+  const [uitkomstOpen, setUitkomstOpen] = useState(false)
   const id = useId()
   const taal = useTaal()
   const t = useTekst(OPVOLGEN).taak
 
-  async function doe(actie: Actie) {
+  async function doe(actie: Actie, uitkomst?: LidUitkomst) {
     setBezig(actie)
-    const body = notitieOpen || actie === 'notitie' ? { actie, notitie } : { actie }
+    const body = { actie, ...(notitieOpen || actie === 'notitie' ? { notitie } : {}), ...(uitkomst ? { uitkomst } : {}) }
     const uit = await stuur(taakUrl(item.id), 'PATCH', body, taal)
     setBezig(null)
     if (!uit.ok) return onKlaar(uit.fout, false)
@@ -80,7 +87,11 @@ export function OpvolgTaak({ item, ledenkaart, onKlaar }: Props) {
         </form>
       )}
 
-      <div className="club-opvolg-acties">
+      {bewerken && uitkomstOpen && (
+        <UitkomstKeuze bezig={bezig === 'gedaan'} onKies={(u) => void doe('gedaan', u)} onAnnuleer={() => setUitkomstOpen(false)} />
+      )}
+
+      {bewerken && !uitkomstOpen && <div className="club-opvolg-acties">
         <div className="club-opvolg-contact">
           {item.telefoon && <a className="club-knop club-knop--klein club-knop--stil" href={`tel:${item.telefoon.replace(/[^\d+]/g, '')}`}><Phone size={14} aria-hidden /> {t.bellen}</a>}
           {item.email && <a className="club-knop club-knop--klein club-knop--stil" href={`mailto:${item.email}`}><Mail size={14} aria-hidden /> {t.mailen}</a>}
@@ -94,11 +105,11 @@ export function OpvolgTaak({ item, ledenkaart, onKlaar }: Props) {
           <button type="button" className="club-knop club-knop--klein" onClick={() => doe('overgeslagen')} disabled={bezig !== null} aria-busy={bezig === 'overgeslagen'}>
             <SkipForward size={14} aria-hidden /> {t.overslaan}
           </button>
-          <button type="button" className="club-knop club-knop--klein club-knop--primair" onClick={() => doe('gedaan')} disabled={bezig !== null} aria-busy={bezig === 'gedaan'}>
+          <button type="button" className="club-knop club-knop--klein club-knop--primair" onClick={() => setUitkomstOpen(true)} disabled={bezig !== null}>
             <Check size={14} aria-hidden /> {t.klaar}
           </button>
         </div>
-      </div>
+      </div>}
     </li>
   )
 }

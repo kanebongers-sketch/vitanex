@@ -57,7 +57,15 @@ describe('leesLeadPatch', () => {
 describe('leesHistorie en leesProefles', () => {
   it('eist tekst bij een notitie maar niet bij gebeld', () => {
     expect(leesHistorie({ soort: 'notitie', tekst: '  ' })).toMatchObject({ ok: false })
-    expect(leesHistorie({ soort: 'gebeld' })).toMatchObject({ ok: true })
+    expect(leesHistorie({ soort: 'gebeld', uitkomst: 'niet_bereikt' })).toMatchObject({ ok: true })
+  })
+
+  it('eist een uitkomst uit de vaste lijst bij bellen, optioneel bij mailen', () => {
+    expect(leesHistorie({ soort: 'gebeld' })).toEqual({ ok: false, fout: 'Kies wat het gesprek opleverde.' })
+    expect(leesHistorie({ soort: 'gebeld', uitkomst: 'misschien' })).toMatchObject({ ok: false })
+    expect(leesHistorie({ soort: 'gemaild' })).toMatchObject({ ok: true, waarde: { uitkomst: null } })
+    expect(leesHistorie({ soort: 'gemaild', uitkomst: 'afspraak_gemaakt' })).toMatchObject({ ok: true, waarde: { uitkomst: 'afspraak_gemaakt' } })
+    expect(leesHistorie({ soort: 'notitie', tekst: 'x', uitkomst: 'lid_geworden' })).toMatchObject({ ok: true, waarde: { uitkomst: null } })
   })
 
   it('weigert een proefles in het verleden of te ver vooruit', () => {

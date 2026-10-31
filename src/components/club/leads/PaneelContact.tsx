@@ -7,6 +7,8 @@ import { isDagSleutel, opvolgSnelkeuzes, opvolgStatus, toonDag } from '@/lib/clu
 import type { Doe } from './usePaneel'
 import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
 import { LEADS } from '@/lib/aiyourgym/taal/woorden/club/leads'
+import { BEHOUD_DATA } from '@/lib/aiyourgym/taal/woorden/club/behoud-data'
+import { LEAD_UITKOMSTEN, isLeadUitkomst, type LeadUitkomst } from '@/lib/club/behoud/uitkomst'
 
 interface PaneelContactProps {
   lead: Lead
@@ -16,19 +18,25 @@ interface PaneelContactProps {
 }
 
 // Contact vastleggen in een klik (Gebeld, Gemaild, Notitie, met een optionele
-// regel tekst) en meteen de volgende opvolgdatum kiezen.
+// regel tekst) en meteen de volgende opvolgdatum kiezen. De uitkomst komt uit
+// een vaste lijst (migratie 482): verplicht bij bellen, optioneel bij mailen.
 export function PaneelContact({ lead, vandaag, bezig, doe }: PaneelContactProps) {
   const [tekst, setTekst] = useState('')
   const [datum, setDatum] = useState('')
+  const [uitkomst, setUitkomst] = useState<LeadUitkomst | ''>('')
   const url = `/api/club/leads/${lead.id}`
   const afgesloten = lead.status === 'lid' || lead.status === 'verloren'
   const stand = opvolgStatus(lead, vandaag)
   const taal = useTaal()
   const t = useTekst(LEADS).contact
+  const wu = useTekst(BEHOUD_DATA).uitkomst
 
   async function leg(soort: 'gebeld' | 'gemaild' | 'notitie') {
-    const uit = await doe(`${url}/historie`, 'POST', { soort, tekst })
-    if (uit.ok) setTekst('')
+    const metUitkomst = soort !== 'notitie' && uitkomst !== '' ? { uitkomst } : {}
+    const uit = await doe(`${url}/historie`, 'POST', { soort, tekst, ...metUitkomst })
+    if (!uit.ok) return
+    setTekst('')
+    if (soort !== 'notitie') setUitkomst('')
   }
 
   async function opvolgen(dag: string | null) {
@@ -43,8 +51,15 @@ export function PaneelContact({ lead, vandaag, bezig, doe }: PaneelContactProps)
         <span>{t.besproken}</span>
         <textarea className="club-invoer" rows={2} maxLength={1000} value={tekst} onChange={(e) => setTekst(e.target.value)} />
       </label>
+      <label className="club-veld">
+        <span>{wu.leadOptioneel}</span>
+        <select className="club-invoer" value={uitkomst} onChange={(e) => setUitkomst(isLeadUitkomst(e.target.value) ? e.target.value : '')}>
+          <option value="">{wu.kies}</option>
+          {LEAD_UITKOMSTEN.map((u) => <option key={u} value={u}>{wu.lead[u]}</option>)}
+        </select>
+      </label>
       <div className="club-acties">
-        <button type="button" className="club-knop" disabled={bezig} onClick={() => leg('gebeld')}>
+        <button type="button" className="club-knop" disabled={bezig || uitkomst === ''} onClick={() => leg('gebeld')}>
           <Phone size={15} aria-hidden /> {t.gebeld}
         </button>
         <button type="button" className="club-knop" disabled={bezig} onClick={() => leg('gemaild')}>

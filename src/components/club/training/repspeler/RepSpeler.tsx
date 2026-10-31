@@ -11,6 +11,8 @@ import { RepBeeld } from './RepBeeld'
 import { RepNaSet } from './RepNaSet'
 import { RepTeller, type Weergave } from './RepTeller'
 import { useFrames, useMinderBeweging } from './useFrames'
+import { breedteVan, hoogteVan, leesSchermProfiel } from './frame-laden'
+import { plafondVoor } from './geheugen'
 import { useTik } from './useTik'
 import { useTaal } from '@/lib/aiyourgym/taal/client'
 import { REPSPELER, faseWoord } from '@/lib/aiyourgym/taal/woorden/ledenapp/repspeler'
@@ -55,14 +57,18 @@ function kantTekst(reps: number, t: (typeof REPSPELER)['nl']): string {
   return t.perKant(reps, k.links, k.rechts)
 }
 
-/** Breedte van het beeld in css-px, gemeten; de maat van de frames volgt daaruit (en uit de pixeldichtheid). */
+/**
+ * Breedte van het beeld in css-px, gemeten; de maat van de frames volgt daaruit
+ * en uit de pixeldichtheid, met een plafond op telefoons en bij databesparing.
+ */
 function useMaat(render: RepRender): [(el: HTMLDivElement | null) => void, RepMaat | null] {
   const [maat, setMaat] = useState<RepMaat | null>(null)
   const meet = useCallback(
     (el: HTMLDivElement | null) => {
       if (!el) return
+      const plafond = plafondVoor(leesSchermProfiel())
       const bepaal = () => {
-        const gekozen = kiesMaat(render.maten, el.getBoundingClientRect().width, window.devicePixelRatio)
+        const gekozen = kiesMaat(render.maten, el.getBoundingClientRect().width, window.devicePixelRatio, plafond)
         // Alleen ooit groter kiezen: nooit opnieuw laden voor een kleinere maat.
         setMaat((was) => (gekozen && (!was || gekozen.breedte > was.breedte) ? gekozen : was))
       }
@@ -103,11 +109,12 @@ export function RepSpeler(p: RepSpelerProps) {
     (s: Stand) => {
       const doek = canvas.current
       const img = frames.beelden[s.frame]
-      if (doek && img && s.frame !== laatsteFrame.current) {
+      // Breedte 0 = al vrijgegeven beeld: niet tekenen (het vorige frame blijft staan).
+      if (doek && img && s.frame !== laatsteFrame.current && breedteVan(img) > 0) {
         const ctx = doek.getContext('2d')
-        if (doek.width !== img.naturalWidth) {
-          doek.width = img.naturalWidth
-          doek.height = img.naturalHeight
+        if (doek.width !== breedteVan(img)) {
+          doek.width = breedteVan(img)
+          doek.height = hoogteVan(img)
         }
         ctx?.clearRect(0, 0, doek.width, doek.height)
         ctx?.drawImage(img, 0, 0, doek.width, doek.height)

@@ -11,7 +11,7 @@
 // - persoonlijke hulp bij het inrichten (koers Kane 18-10-2026; welke pakketten
 //   hem gratis krijgen beslist Kane bij de prijzen, daarom geen pakketnamen)
 // - database in Frankfurt: inhoud/vertrouwen.ts
-// - live in ongeveer een kwartier: START_MINUTEN in vertrouwen.ts (som van de wizardstappen, test: hoogstens 15)
+// - ledenbestand inlezen met Excel of CSV: src/lib/club/leden/import (geen tijdsclaim voor de wizard: niet gemeten)
 // - ledenapp in eigen huisstijl in elk pakket: 'Ledenapp in je eigen huisstijl' in Start, de rest bouwt daarop
 // - ledenimport met voorbeeld, nooit verwijderen: src/lib/club/leden/import
 // - opvolgen met eigen drempels: src/lib/club/automatisering/regels.ts
@@ -28,5 +28,5 @@ export const GERUSTSTELLING = [
   'Je gegevens blijven van jou',
   'Data in de EU',
   'Persoonlijke hulp bij het inrichten',
-  'Live in ongeveer een kwartier',
+  'Ledenbestand inlezen met Excel of CSV',
 ] as const

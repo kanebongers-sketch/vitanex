@@ -91,9 +91,15 @@ export function frameSrc(r: RepRender, maat: RepMaat, i: number): string {
   return frameUrl(r.bron, maat.breedte, i) ?? r.poster
 }
 
-/** De kleinste maat die scherp is op dit scherm (breedte in css-px maal devicePixelRatio), anders de grootste. */
-export function kiesMaat(maten: readonly RepMaat[], breedteCss: number, dpr: number): RepMaat | null {
+/**
+ * De kleinste maat die scherp is op dit scherm (breedte in css-px maal
+ * devicePixelRatio), anders de grootste. Met een `plafond` (telefoon, databesparing)
+ * nooit groter dan dat plafond; past er geen onder, dan de kleinste.
+ */
+export function kiesMaat(maten: readonly RepMaat[], breedteCss: number, dpr: number, plafond?: number | null): RepMaat | null {
   if (maten.length === 0) return null
+  const binnen = plafond ? maten.filter((m) => m.breedte <= plafond) : maten
+  const keus = binnen.length > 0 ? binnen : maten.slice(0, 1)
   const nodig = Math.max(1, breedteCss) * Math.min(3, Math.max(1, Number.isFinite(dpr) ? dpr : 1))
-  return maten.find((m) => m.breedte >= nodig * 0.95) ?? maten[maten.length - 1]
+  return keus.find((m) => m.breedte >= nodig * 0.95) ?? keus[keus.length - 1]
 }

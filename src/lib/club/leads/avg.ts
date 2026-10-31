@@ -49,7 +49,7 @@ export const LEAD_VELDEN = {
   geanonimiseerd_op: 'Gewist op',
 } as const
 
-export const HISTORIE_VELDEN = { soort: 'Soort', tekst: 'Tekst', auteur: 'Door', op: 'Moment' } as const
+export const HISTORIE_VELDEN = { soort: 'Soort', tekst: 'Tekst', uitkomst: 'Uitkomst', auteur: 'Door', op: 'Moment' } as const
 
 export const AFSPRAAK_VELDEN = {
   'club_afspraak_typen.naam': 'Soort afspraak',

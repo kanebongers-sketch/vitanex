@@ -15,7 +15,7 @@ const CODE = 'abcdefghijklmnopqrstuvwx'
 const NU = new Date('2026-10-17T12:00:00Z')
 const WW = 'Paars-fietsje-op-de-dijk-7'
 const EMAIL = 'sanne@voorbeeld.nl'
-const HASH = hashWachtwoord(WW)
+const HASH = await hashWachtwoord(WW)
 
 const ok = (data: unknown): Antwoord => ({ data, error: null })
 const eenRij = ok([{ id: ID }])
@@ -51,7 +51,7 @@ describe('activeerLid (uitnodiging gebruiken)', () => {
     const update = vragen.find((v) => v.tabel === 'club_lid_toegang' && v.actie === 'update')!
     const w = update.waarde as Record<string, unknown>
     expect(w).toMatchObject({ email: EMAIL, pin_hash: null, code_gebruikt_op: NU.toISOString(), mislukt: 0, blokkades: 0 })
-    expect(wachtwoordKlopt(WW, w.wachtwoord_hash as string)).toBe(true)
+    expect(await wachtwoordKlopt(WW, w.wachtwoord_hash as string)).toBe(true)
     expect(update.filters).toContainEqual(['is', 'code_gebruikt_op', null])
     expect(heeftFilter(update, 'user_id', GYM) && heeftFilter(update, 'code', CODE)).toBe(true)
     expect(JSON.stringify(vragen.map((v) => v.waarde))).not.toContain(WW)

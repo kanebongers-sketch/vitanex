@@ -15,7 +15,9 @@ import { haalLedenappChallenges } from '@/lib/club/challenges/ledenapp'
 import { haalPlan } from '@/lib/club/voeding/lezen'
 import { haalVoedingRegels } from '@/lib/club/voeding/eigen-opslag'
 import { voedingVoorApp } from '@/lib/club/voeding/model'
-import { kiesTab, type AppTab } from '@/components/club/app/Toestel'
+import type { AppTab } from '@/components/club/app/Toestel'
+import { kiesScherm } from '@/lib/club/app/tabs'
+import { SectieKiezer } from '@/components/club/app/SectieKiezer'
 import { HomeTab } from '@/components/club/app/HomeTab'
 import { LessenTab } from '@/components/club/app/LessenTab'
 import { SchemaTab } from '@/components/club/app/SchemaTab'
@@ -89,8 +91,9 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
   const { admin, userId, organisatie: org, lid } = l
   const appInstellingen = org.instellingen.ledenapp
   const tabsUit = tabsUitVoor(org)
-  const gekozen = kiesTab(zoek.tab)
-  const tab: AppTab = tabsUit.includes(gekozen) ? 'home' : gekozen
+  // Vijf tabbladen onderin; ?tab= mag ook een sectie zijn (lessen, afspraken, voortgang).
+  const scherm = kiesScherm(zoek.tab, tabsUit)
+  const tab = scherm.sectie
   const toonMeldingen = eerste(zoek.tab) === 'meldingen'
   // ?tab=kopen: betalen in de ledenapp (via het blok op Home, niet in de onderbalk).
   const toonKopen = !toonMeldingen && eerste(zoek.tab) === 'kopen'
@@ -150,7 +153,7 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
     <LedenappSchil organisatie={org}>
       <LedenApiProvider voor={l.voorvertoning ? lid.id : null}>
         <LedenappScherm
-          tab={apart ? null : tab}
+          tab={apart ? null : scherm.balk}
           tabPad={tabPad}
           merkNaam={org.naam}
           merkLogo={l.merk.logoUrl}
@@ -195,7 +198,7 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
               <p className="club-melding club-mijn-blok" role="status">{t.mijn.kopenUit(org.naam)}</p>
             ))}
           {!apart && tab === 'home' && (
-            <>
+            <HomeTab lid={appLid} data={data} nu={nu} tabPad={tabPad} instellingen={{ ...appInstellingen, tabsUit: tabsUit as typeof appInstellingen.tabsUit, qr: appInstellingen.qr && qrCheckinAan(org.instellingen.checkin) && !org.uit.includes('checkin') }} berichten={berichten ?? []} coach={coach} fotoBron={fotoBron}>
               {/* Eerste keer: drie korte kaarten (Lessen, Schema, Profiel); een tabblad dat uit staat valt weg. */}
               {intakeOpen && <IntakeKaart href={intakePad} taal={taal} />}
               {!uitlegGezien && <WelkomKaarten
@@ -213,9 +216,9 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
                 </div>
               )}
               {kopen && kopen !== 'fout' && <KopenBlok href={tabPad('kopen')} strippen={kopen.strippen} />}
-              <HomeTab lid={appLid} data={data} nu={nu} tabPad={tabPad} instellingen={{ ...appInstellingen, tabsUit: tabsUit as typeof appInstellingen.tabsUit, qr: appInstellingen.qr && qrCheckinAan(org.instellingen.checkin) && !org.uit.includes('checkin') }} berichten={berichten ?? []} coach={coach} fotoBron={fotoBron} />
-            </>
+            </HomeTab>
           )}
+          {!apart && (scherm.balk === 'boeken' || scherm.balk === 'schema') && <SectieKiezer scherm={scherm} tabsUit={tabsUit} tabPad={tabPad} />}
           {!apart && tab === 'lessen' && <LessenTab lidId={lid.id} lessen={data.lessen} regels={data.regels} nu={nu.toISOString()} strippenkaart={kopen && kopen !== 'fout' && !l.voorvertoning ? { saldo: kopen.strippen, url: metVoor('/api/club/lid/betalen/strippenkaart') } : undefined} />}
           {!apart && tab === 'schema' && <SchemaTab lidId={lid.id} schema={data.schema} logs={data.logs} historie={data.historie} nu={nu.toISOString()} />}
           {!apart && tab === 'voeding' && voeding && (

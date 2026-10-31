@@ -75,9 +75,9 @@ function opent(rollen: Rol[], pad: string): boolean {
 }
 
 describe('routes per rol (rollen v2)', () => {
-  it('eigenaar: cijfers, team, abonnement en instellingen; geen werkvloer of coaching', () => {
-    for (const pad of ['/club/cijfers', '/club/rapporten', '/club/beheer/team', '/club/beheer/rechten', '/club/beheer/abonnement', '/club/huisstijl', '/club/beheer/privacy', '/club/start', '/club/leden', '/club/leads']) expect(opent(['eigenaar'], pad), pad).toBe(true)
-    for (const pad of ['/club/training', '/club/checkin', '/club/taken', '/club/notities', '/club/rooster', '/club/personeel', '/club/voeding']) expect(opent(['eigenaar'], pad), pad).toBe(false)
+  it('eigenaar: alles binnen de eigen sportschool (besluit Kane 17-10-2026), ook werkvloer, rooster en coaching', () => {
+    for (const pad of ['/club', '/club/cijfers', '/club/rapporten', '/club/beheer/team', '/club/beheer/rechten', '/club/beheer/abonnement', '/club/huisstijl', '/club/beheer/privacy', '/club/start', '/club/leden', '/club/leads']) expect(opent(['eigenaar'], pad), pad).toBe(true)
+    for (const pad of ['/club/training', '/club/checkin', '/club/taken', '/club/notities', '/club/rooster', '/club/personeel', '/club/voeding']) expect(opent(['eigenaar'], pad), pad).toBe(true)
   })
 
   it('clubmanager: bijna alles, nooit wat van de eigenaar is', () => {
@@ -143,9 +143,8 @@ describe('API per rol (rollen v2)', () => {
   }
 
   it('zien is lezen, bewerken is wijzigen', () => {
-    // De eigenaar ziet leden en leads, maar wijzigt ze niet.
-    expect(mag(['eigenaar'])).toContain('GET /api/club/leden')
-    expect(mag(['eigenaar'])).not.toContain('POST /api/club/leden')
+    // De eigenaar mag alles; de trainer bewerkt leden.
+    expect(mag(['eigenaar'])).toEqual(expect.arrayContaining(['GET /api/club/leden', 'POST /api/club/leden', 'POST /api/club/training/schemas', 'POST /api/club/rooster/lessen']))
     expect(mag(['trainer'])).toContain('POST /api/club/leden')
     // De administratie ziet het rooster, keurt uren goed, maar plant geen diensten.
     expect(mag(['administratie'])).toEqual(expect.arrayContaining(['GET /api/club/personeel/uren', 'POST /api/club/personeel/uren']))

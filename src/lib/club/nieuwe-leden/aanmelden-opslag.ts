@@ -230,7 +230,7 @@ async function toegangMaken(admin: SupabaseClient, a: AanmeldRij, lidId: string,
     .from('club_lid_toegang')
     .insert({
       user_id: a.user_id, lid_id: lidId, code: nieuweLidCode(), code_gemaakt_op: tijd, code_gebruikt_op: tijd, actief: true,
-      email: a.email, wachtwoord_hash: hashWachtwoord(wachtwoord), wachtwoord_gekozen_op: tijd, laatst_ingelogd_op: tijd, gewijzigd_op: tijd,
+      email: a.email, wachtwoord_hash: await hashWachtwoord(wachtwoord), wachtwoord_gekozen_op: tijd, laatst_ingelogd_op: tijd, gewijzigd_op: tijd,
     })
     .select(LID_TOEGANG_KOLOMMEN)
     .single()

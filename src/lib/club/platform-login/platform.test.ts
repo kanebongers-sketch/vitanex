@@ -53,7 +53,7 @@ describe('wachtwoord kiezen met de startlink', () => {
 describe('inloggen met e-mail en wachtwoord', () => {
   it('goed: een sessie; fout: telt af; zonder wachtwoord: geen toegang', async () => {
     const { admin } = nepSupabase((v) => (v.actie === 'select' ? ok([]) : eenRij))
-    const met = account({ wachtwoordHash: hashWachtwoord(WW) })
+    const met = account({ wachtwoordHash: await hashWachtwoord(WW) })
     expect((await logInPlatform(admin, met, WW, NU)).staat).toBe('ok')
     expect(await logInPlatform(admin, met, 'Fout-wachtwoord-99', NU)).toEqual({ staat: 'fout', over: 4 })
     expect((await logInPlatform(admin, account({ pinHash: 'oud' }), WW, NU)).staat).toBe('geen_wachtwoord')

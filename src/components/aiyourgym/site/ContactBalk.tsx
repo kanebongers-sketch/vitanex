@@ -8,7 +8,7 @@ import { SITE_PADEN } from './paden'
 
 // Een dunne balk boven de kop met direct contact. Telefoon en e-mail komen uit
 // src/lib/aiyourgym/contact.ts (we verzinnen geen nummer of adres). Zolang die
-// leeg zijn, is de balk alleen een smalle regel met "Plan een gratis demo" op
+// leeg zijn, is de balk alleen een smalle regel met "Plan een demo" op
 // schermen waar die knop niet in de kop past (zie .ayg-contactbalk--leeg).
 // Teksten en link in de taal van de pagina (ACTIE en CONTACT_BALK).
 

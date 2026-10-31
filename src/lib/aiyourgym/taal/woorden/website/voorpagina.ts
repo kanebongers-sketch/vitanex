@@ -12,7 +12,7 @@ export const VOORPAGINA = woordenboek({
       titel: ['Je club,', 'een systeem.'],
       lead: 'Clubsoftware voor sportscholen: check-in, lessen, rooster, trainingsschema’s met coaching en een ledenapp in jouw naam en kleuren.',
       start: 'Start je club',
-      demo: 'Live demo bekijken',
+      demo: 'Live demo',
       beeldLabel:
         'Het scherm Vandaag van Club voor Kernhal, een verzonnen sportschool in Utrecht: tegels met de dag, de lessen met bezetting en een ledenkaart, en ervoor de ledenapp op een telefoon',
     },
@@ -63,7 +63,7 @@ export const VOORPAGINA = woordenboek({
       naam: 'Kane Bongers',
       rol: 'Personal trainer sinds 2019 en PT-manager van acht locaties.',
       verwacht: 'Eerlijk wat er wel en niet in zit. Elke maand nieuwe functies. Persoonlijke hulp bij het inrichten.',
-      knop: 'Plan een kennismaking',
+      knop: 'Plan een demo',
       fotoAlt: 'Kane Bongers',
     },
     oproep: {
@@ -81,7 +81,7 @@ export const VOORPAGINA = woordenboek({
       titel: ['Your club,', 'one system.'],
       lead: 'Club software for gyms: check-in, classes, staff rota, training programmes with coaching and a member app in your name and colours.',
       start: 'Start your club',
-      demo: 'See the live demo',
+      demo: 'Live demo',
       beeldLabel:
         'The Today screen in Club for Kernhal, a made-up gym in Utrecht: tiles for the day, the classes with attendance and a member card, with the member app on a phone in front',
     },
@@ -132,7 +132,7 @@ export const VOORPAGINA = woordenboek({
       naam: 'Kane Bongers',
       rol: 'Personal trainer since 2019 and PT manager across eight locations.',
       verwacht: 'Straight answers on what is and isn’t included. New features every month. Personal help with set-up.',
-      knop: 'Book an introduction',
+      knop: 'Book a demo',
       fotoAlt: 'Kane Bongers',
     },
     oproep: {

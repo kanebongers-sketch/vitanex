@@ -27,16 +27,24 @@ describe('wachtwoordFout', () => {
 })
 
 describe('hash', () => {
-  it('klopt alleen met het juiste wachtwoord, en elke hash is anders', () => {
+  it('klopt alleen met het juiste wachtwoord, en elke hash is anders', async () => {
     const w = 'Tr4inen-op-dinsdag'
-    const a = hashWachtwoord(w)
+    const a = await hashWachtwoord(w)
+    expect(a).toMatch(/^s2:32768:8:1:[0-9a-f]{32}:[0-9a-f]{64}$/)
     expect(a).not.toContain(w)
-    expect(a).not.toBe(hashWachtwoord(w))
-    expect(wachtwoordKlopt(w, a)).toBe(true)
-    expect(wachtwoordKlopt('Tr4inen-op-woensdag', a)).toBe(false)
-    expect(wachtwoordKlopt(w, null)).toBe(false)
-    expect(wachtwoordKlopt(w, 'kapot')).toBe(false)
-    expect(wachtwoordKlopt(w, 's2:999999999:8:1:aa:bb')).toBe(false)
+    expect(a).not.toBe(await hashWachtwoord(w))
+    expect(await wachtwoordKlopt(w, a)).toBe(true)
+    expect(await wachtwoordKlopt('Tr4inen-op-woensdag', a)).toBe(false)
+    expect(await wachtwoordKlopt(w, null)).toBe(false)
+    expect(await wachtwoordKlopt(w, 'kapot')).toBe(false)
+    expect(await wachtwoordKlopt(w, 's2:999999999:8:1:aa:bb')).toBe(false)
+  })
+
+  it('een hash van de oude synchrone versie (scryptSync) klopt nog steeds', async () => {
+    // Gemaakt met scryptSync, N 2^15, r 8, p 1, vaste salt: zo staan bestaande wachtwoorden in de database.
+    const oud = 's2:32768:8:1:00112233445566778899aabbccddeeff:ea681a20b82c213ce624e0fa1ed5599b02b1df0588401a7b3ea9efbd4455794c'
+    expect(await wachtwoordKlopt('Tr4inen-op-dinsdag', oud)).toBe(true)
+    expect(await wachtwoordKlopt('Tr4inen-op-woensdag', oud)).toBe(false)
   })
 })
 

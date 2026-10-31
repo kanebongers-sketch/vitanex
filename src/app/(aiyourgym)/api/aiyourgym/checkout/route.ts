@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
   const oorsprong = oorsprongVan(host)
   if (testbetalenVoor(a.pakketten)) {
     if (!oorsprong) return aygFout(MISLUKT, 400)
-    const id = await maakAanmelding(admin, a, 'wacht_op_betaling', nu, hashWachtwoord(a.wachtwoord))
+    const id = await maakAanmelding(admin, a, 'wacht_op_betaling', nu, await hashWachtwoord(a.wachtwoord))
     const sessieId = nieuweTestSessie()
     if (!id || !(await koppelSessie(admin, id, sessieId))) return mislukt('testbetaling starten', MISLUKT, 500)
     return aygJson({ staat: 'testbetaling', url: testbetaalAdres(oorsprong, host, siteActief(), sessieId) })
@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
   }
 
   if (!oorsprong) return aygFout(MISLUKT, 400)
-  const id = await maakAanmelding(admin, a, 'wacht_op_betaling', nu, hashWachtwoord(a.wachtwoord))
+  const id = await maakAanmelding(admin, a, 'wacht_op_betaling', nu, await hashWachtwoord(a.wachtwoord))
   if (!id) return mislukt('aanmelding bewaren', MISLUKT, 500)
   const adressen = checkoutAdressen(oorsprong, host, siteActief())
   const sessie = await maakCheckoutSessie(sleutel, { aanmeldingId: id, aanmelding: a, regels, succesUrl: adressen.succes, terugUrl: adressen.terug })

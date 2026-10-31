@@ -1,7 +1,8 @@
 // De pagina Overstappen (src/app/(aiyourgym)/(website)/aiyourgym/(site)/overstappen/page.tsx).
 // Alleen wat echt zo is gebouwd: ledenimport (src/lib/club/leden/import), de
-// startwizard (src/lib/club/start), uitnodigen per mail. Ledenadministratie,
-// incasso en abonnementen blijven waar ze nu zijn.
+// startwizard (src/lib/club/start), uitnodigen per mail. Incasso, abonnementen en
+// betalingen van leden blijven in het huidige systeem van de club. Niet
+// "ledenadministratie" noemen: zo heet ook ons pakket (verwarrend).
 
 import { woordenboek } from '../../woordenboek'
 
@@ -9,10 +10,10 @@ export const OVERSTAPPEN = woordenboek({
   nl: {
     metaTitel: 'Overstappen',
     metaOmschrijving:
-      'Zo stap je over op AI Your Gym: aanmelden, je ledenbestand inlezen als CSV of Excel en live met de startwizard. Je ledenadministratie blijft draaien.',
+      'Zo stap je over op AI Your Gym: aanmelden, je ledenbestand inlezen als CSV of Excel en live met de startwizard. Incasso en abonnementen blijven in je huidige systeem.',
     label: 'Overstappen',
     titel: 'Overstappen zonder dat je club stilvalt.',
-    tekst: 'Je ledenadministratie blijft draaien. Je ziet steeds eerst wat er gebeurt.',
+    tekst: 'Incasso en abonnementen blijven in je huidige systeem. Je ziet steeds eerst wat er gebeurt.',
     begin: 'Start je club',
     stappenLabel: 'In drie stappen',
     stappenTitel: 'Van export naar een draaiende club.',
@@ -37,8 +38,8 @@ export const OVERSTAPPEN = woordenboek({
     vragenTitel: 'Over overstappen.',
     vragen: [
       {
-        vraag: 'Moet ik stoppen met mijn ledenadministratie?',
-        antwoord: 'Nee. Incasso, abonnementen en betalingen blijven daar. AI Your Gym werkt ernaast.',
+        vraag: 'Moet ik stoppen met mijn huidige systeem?',
+        antwoord: 'Nee. Incasso, abonnementen en betalingen blijven in je huidige systeem. AI Your Gym werkt ernaast.',
       },
       {
         vraag: 'Wat als mijn bestand andere kolomnamen heeft?',
@@ -54,10 +55,10 @@ export const OVERSTAPPEN = woordenboek({
   en: {
     metaTitel: 'Switching',
     metaOmschrijving:
-      'How to switch to AI Your Gym: sign up, import your member file as CSV or Excel and go live with the set-up wizard. Your membership administration keeps running.',
+      'How to switch to AI Your Gym: sign up, import your member file as CSV or Excel and go live with the set-up wizard. Direct debits and memberships stay in your current system.',
     label: 'Switching',
     titel: 'Switch without your club standing still.',
-    tekst: 'Your membership administration keeps running. You always see what will happen first.',
+    tekst: 'Direct debits and memberships stay in your current system. You always see what will happen first.',
     begin: 'Start your club',
     stappenLabel: 'In three steps',
     stappenTitel: 'From export to a club that runs.',
@@ -82,8 +83,8 @@ export const OVERSTAPPEN = woordenboek({
     vragenTitel: 'About switching.',
     vragen: [
       {
-        vraag: 'Do I have to stop using my membership administration?',
-        antwoord: 'No. Direct debits, memberships and payments stay there. AI Your Gym works alongside it.',
+        vraag: 'Do I have to stop using my current system?',
+        antwoord: 'No. Direct debits, memberships and payments stay in your current system. AI Your Gym works alongside it.',
       },
       {
         vraag: 'What if my file has different column names?',

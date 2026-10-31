@@ -29,9 +29,9 @@ const FOUT = 'E-mailadres of wachtwoord klopt niet.'
 
 /** Voor een onbekend adres: evenveel rekenwerk als een echte controle (een keer gemaakt, bij het eerste gebruik). */
 let schijn: string | null = null
-function schijnControle(wachtwoord: string): void {
-  schijn ??= hashWachtwoord('schijn-wachtwoord-voor-gelijke-tijd')
-  wachtwoordKlopt(wachtwoord, schijn)
+async function schijnControle(wachtwoord: string): Promise<void> {
+  schijn ??= await hashWachtwoord('schijn-wachtwoord-voor-gelijke-tijd')
+  await wachtwoordKlopt(wachtwoord, schijn)
 }
 
 const TIJD = new Intl.DateTimeFormat('nl-NL', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'Europe/Amsterdam' })
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
   if (!b && CLUB_EIGEN_LOGIN) return logInAlsMedewerker(admin, email, wachtwoord)
   const { organisatie } = b ? await haalEigenOrganisatie(admin, b.organisatieId) : { organisatie: null }
   if (!b || !organisatie || !(await hostPastBij(organisatie))) {
-    schijnControle(wachtwoord)
+    await schijnControle(wachtwoord)
     return clubFout(FOUT, 401)
   }
   return antwoord(await logInMetWachtwoord(admin, b, wachtwoord, nu), beheerderCookieZetten)

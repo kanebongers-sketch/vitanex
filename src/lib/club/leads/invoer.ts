@@ -9,6 +9,7 @@ import { isLeadBron, type LeadBron } from './model'
 import { isDagSleutel } from './regels'
 import { isUuid } from './filters'
 import { normaliseerEmail, normaliseerTelefoon } from './dubbel'
+import { isLeadUitkomst, type LeadUitkomst } from '@/lib/club/behoud/uitkomst'
 
 export type Uitkomst<T> = { ok: true; waarde: T } | { ok: false; fout: string }
 
@@ -168,6 +169,8 @@ export type ContactSoort = 'gebeld' | 'gemaild' | 'notitie'
 export interface HistorieInvoer {
   soort: ContactSoort
   tekst: string | null
+  /** Wat het contact opleverde (vaste lijst, migratie 482); verplicht bij bellen. */
+  uitkomst: LeadUitkomst | null
   /** Optioneel: meteen de volgende opvolgdatum zetten (null = opvolging klaar). */
   opvolgenOp?: string | null
 }
@@ -179,7 +182,10 @@ export function leesHistorie(body: unknown): Uitkomst<HistorieInvoer> {
   const tekst = optTekst(r.tekst, 1000)
   if (tekst === undefined) return fout('De tekst is te lang (maximaal 1000 tekens).')
   if (r.soort === 'notitie' && !tekst) return fout('Een notitie mag niet leeg zijn.')
-  const uit: HistorieInvoer = { soort: r.soort, tekst }
+  if (r.uitkomst !== undefined && r.uitkomst !== null && !isLeadUitkomst(r.uitkomst)) return fout('Kies een uitkomst uit de lijst.')
+  const uitkomst = isLeadUitkomst(r.uitkomst) && r.soort !== 'notitie' ? r.uitkomst : null
+  if (r.soort === 'gebeld' && !uitkomst) return fout('Kies wat het gesprek opleverde.')
+  const uit: HistorieInvoer = { soort: r.soort, tekst, uitkomst }
   if ('opvolgenOp' in r) {
     if (r.opvolgenOp !== null && !isDagSleutel(r.opvolgenOp)) return fout('Ongeldige opvolgdatum.')
     uit.opvolgenOp = r.opvolgenOp

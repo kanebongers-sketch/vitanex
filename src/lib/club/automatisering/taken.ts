@@ -6,6 +6,7 @@
 import { MEDEWERKER_ROLLEN, type MedewerkerRol } from '@/lib/club/kern/medewerker'
 import { REGEL_SLEUTELS, isRegelSleutel, isUuid, type RegelSleutel, type Uitkomst, type Wie } from './regels'
 import type { SjabloonWaarden } from './sjabloon'
+import { isLidUitkomst, type LidUitkomst } from '@/lib/club/behoud/uitkomst'
 
 export const TAAK_STATUSSEN = ['open', 'gedaan', 'overgeslagen', 'vervallen'] as const
 export type TaakStatus = (typeof TAAK_STATUSSEN)[number]
@@ -39,6 +40,8 @@ export interface Taak {
   status: TaakStatus
   wie: Wie
   notitie: string | null
+  /** Wat het opvolgen opleverde (bij Gedaan, migratie 482). */
+  uitkomst: LidUitkomst | null
   afgehandeldDoor: string | null
   afgehandeldOp: string | null
   aangemaaktOp: string
@@ -46,7 +49,7 @@ export interface Taak {
 }
 
 export const TAAK_KOLOMMEN =
-  'id, lid_id, vestiging, regel, periode, waarde, reden, status, rol, medewerker_id, notitie, afgehandeld_door, afgehandeld_op, aangemaakt_op, club_leden(voornaam, achternaam, telefoon, email, profielfoto)'
+  'id, lid_id, vestiging, regel, periode, waarde, reden, status, rol, medewerker_id, notitie, uitkomst, afgehandeld_door, afgehandeld_op, aangemaakt_op, club_leden(voornaam, achternaam, telefoon, email, profielfoto)'
 
 function tekst(v: unknown): string | null {
   return typeof v === 'string' && v.trim() !== '' ? v : null
@@ -94,6 +97,7 @@ export function taakUitRij(rij: unknown): Taak | null {
     status: isStatus(r.status) ? r.status : 'open',
     wie: wieUit(r),
     notitie: tekst(r.notitie),
+    uitkomst: isLidUitkomst(r.uitkomst) ? r.uitkomst : null,
     afgehandeldDoor: tekst(r.afgehandeld_door),
     afgehandeldOp: tekst(r.afgehandeld_op),
     aangemaaktOp: tekst(r.aangemaakt_op) ?? '',
@@ -134,7 +138,10 @@ export function sjabloonWaarden(taak: Pick<Taak, 'regel' | 'waarde' | 'lid'>, ve
   }
 }
 
-export type TaakActie = { soort: 'gedaan' | 'overgeslagen' | 'heropen'; notitie: string | null | undefined } | { soort: 'notitie'; notitie: string | null }
+export type TaakActie =
+  | { soort: 'gedaan'; notitie: string | null | undefined; uitkomst: LidUitkomst }
+  | { soort: 'overgeslagen' | 'heropen'; notitie: string | null | undefined }
+  | { soort: 'notitie'; notitie: string | null }
 
 function leesNotitie(v: unknown): string | null | undefined | false {
   if (v === undefined) return undefined
@@ -152,7 +159,12 @@ export function leesTaakActie(ruw: unknown): Uitkomst<TaakActie> {
   const notitie = leesNotitie(r.notitie)
   if (notitie === false) return { ok: false, fout: `Een notitie is hoogstens ${NOTITIE_MAX} tekens.` }
   if (r.actie === 'notitie') return { ok: true, waarde: { soort: 'notitie', notitie: notitie ?? null } }
-  if (r.actie === 'gedaan' || r.actie === 'overgeslagen' || r.actie === 'heropen') return { ok: true, waarde: { soort: r.actie, notitie } }
+  if (r.actie === 'gedaan') {
+    // Gedaan vraagt altijd wat het opleverde (vaste lijst, voor de cijfers over behoud).
+    if (!isLidUitkomst(r.uitkomst)) return { ok: false, fout: 'Kies wat het opvolgen opleverde.' }
+    return { ok: true, waarde: { soort: 'gedaan', notitie, uitkomst: r.uitkomst } }
+  }
+  if (r.actie === 'overgeslagen' || r.actie === 'heropen') return { ok: true, waarde: { soort: r.actie, notitie } }
   return { ok: false, fout: 'Onbekende actie.' }
 }
 
@@ -160,6 +172,7 @@ export function leesTaakActie(ruw: unknown): Uitkomst<TaakActie> {
 export function actieNaarWijziging(actie: TaakActie, wie: string, nu: Date): Record<string, string | null> {
   const notitie: Record<string, string | null> = actie.notitie === undefined ? {} : { notitie: actie.notitie }
   if (actie.soort === 'notitie') return { ...notitie }
-  if (actie.soort === 'heropen') return { ...notitie, status: 'open', afgehandeld_door: null, afgehandeld_op: null }
-  return { ...notitie, status: actie.soort, afgehandeld_door: wie.slice(0, 80), afgehandeld_op: nu.toISOString() }
+  if (actie.soort === 'heropen') return { ...notitie, status: 'open', uitkomst: null, afgehandeld_door: null, afgehandeld_op: null }
+  const uitkomst = actie.soort === 'gedaan' ? actie.uitkomst : null
+  return { ...notitie, status: actie.soort, uitkomst, afgehandeld_door: wie.slice(0, 80), afgehandeld_op: nu.toISOString() }
 }

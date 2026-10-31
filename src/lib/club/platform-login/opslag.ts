@@ -79,7 +79,7 @@ export async function kiesPlatformWachtwoord(admin: SupabaseClient, a: PlatformA
   if (linkStand(a, nu) !== 'kiezen') return { staat: 'niet_mogelijk' }
   const { data, error } = await admin
     .from(TABEL)
-    .update({ wachtwoord_hash: hashWachtwoord(wachtwoord), pin_hash: null, link_hash: null, link_kiezen_tot: null, ...TELLERS_SCHOON, laatst_ingelogd_op: nu.toISOString() })
+    .update({ wachtwoord_hash: await hashWachtwoord(wachtwoord), pin_hash: null, link_hash: null, link_kiezen_tot: null, ...TELLERS_SCHOON, laatst_ingelogd_op: nu.toISOString() })
     .eq('id', a.id)
     .eq('actief', true)
     .is('wachtwoord_hash', null)
@@ -94,7 +94,7 @@ export async function kiesPlatformWachtwoord(admin: SupabaseClient, a: PlatformA
 /** Ingelogd (nog met een oude pincode-sessie) een wachtwoord zetten; daarna kan alleen e-mail plus wachtwoord. */
 export async function zetPlatformWachtwoord(admin: SupabaseClient, a: PlatformAccount, wachtwoord: string): Promise<boolean> {
   if (!a.actief) return false
-  const { data, error } = await admin.from(TABEL).update({ wachtwoord_hash: hashWachtwoord(wachtwoord), pin_hash: null, link_hash: null, link_kiezen_tot: null }).eq('id', a.id).eq('actief', true).select('id')
+  const { data, error } = await admin.from(TABEL).update({ wachtwoord_hash: await hashWachtwoord(wachtwoord), pin_hash: null, link_hash: null, link_kiezen_tot: null }).eq('id', a.id).eq('actief', true).select('id')
   return !error && Array.isArray(data) && data.length === 1
 }
 
@@ -147,7 +147,7 @@ export async function logInPlatform(admin: SupabaseClient, a: PlatformAccount, w
   if (resFout) return { staat: 'db' }
   if (!Array.isArray(gereserveerd) || gereserveerd.length !== 1) return { staat: 'fout', over: Math.max(0, MAX_POGINGEN - poging) }
 
-  if (!wachtwoordKlopt(wachtwoord, a.wachtwoordHash)) {
+  if (!(await wachtwoordKlopt(wachtwoord, a.wachtwoordHash))) {
     if (poging < MAX_POGINGEN) return { staat: 'fout', over: MAX_POGINGEN - poging }
     return blokkeer(admin, a, nu)
   }

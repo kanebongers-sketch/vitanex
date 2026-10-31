@@ -1,6 +1,6 @@
 // ─── AI Your Gym: eerlijk over wat het wel en niet doet (PUUR) ──────────────
 // Het blok "wat we wel en niet doen" en wat er bij overstappen meekomt (/overstappen). Alleen wat echt zo is gebouwd; waar het staat:
-// - geen incasso, abonnementen of facturen van leden: Club werkt naast de ledenadministratie (.claude/CLAUDE.md)
+// - geen incasso, abonnementen of facturen van leden: Club werkt naast het huidige systeem van de club (.claude/CLAUDE.md); niet "ledenadministratie" noemen, zo heet ons pakket
 // - jaarcontract per maand per vestiging, nu geen opstartkosten: besluit Kane 18-10-2026 (VRAAG_CONTRACT)
 // - database en server in Frankfurt: docs/club/LIVEGANG.md (Supabase eu-central-1), Render Frankfurt sinds 23-10-2026
 // - gescheiden per sportschool: elke club_*-query filtert op de sportschool (src/lib/club/toegang.ts)
@@ -25,8 +25,8 @@ export const WEL: readonly WelNietPunt[] = [
 
 /** Wat AI Your Gym (nu) niet doet. Eerlijk, zodat niemand voor verrassingen staat. */
 export const NIET: readonly WelNietPunt[] = [
-  { titel: 'Incasso, facturen en abonnementen van leden', tekst: 'Die blijven in je eigen ledenadministratie. AI Your Gym werkt ernaast.' },
-  { titel: 'Een koppeling met je ledenadministratie', tekst: 'Nog niet. Je leest je leden in met een CSV- of Excel-bestand.' },
+  { titel: 'Incasso, facturen en abonnementen van leden', tekst: 'Die blijven in je huidige systeem. AI Your Gym werkt ernaast.' },
+  { titel: 'Een koppeling met je huidige systeem', tekst: 'Nog niet. Je leest je leden in met een CSV- of Excel-bestand.' },
   { titel: 'Een app in de app stores', tekst: 'De ledenapp is een web-app op het beginscherm.' },
 ]
 
@@ -39,7 +39,7 @@ export const KOMT_MEE: readonly WelNietPunt[] = [
 
 /** Wat er niet meekomt, en wat je ermee doet. */
 export const KOMT_NIET_MEE: readonly WelNietPunt[] = [
-  { titel: 'Incasso en betaalgegevens', tekst: 'Blijven in je ledenadministratie, net als facturen.' },
+  { titel: 'Incasso en betaalgegevens', tekst: 'Blijven in je huidige systeem, net als facturen.' },
   { titel: 'Bezoek en lesgeschiedenis', tekst: 'Je cijfers beginnen op de dag dat je start.' },
   { titel: 'Schema’s en wachtwoorden', tekst: 'Schema’s zet je over in de editor. Leden kiezen zelf een wachtwoord.' },
 ]

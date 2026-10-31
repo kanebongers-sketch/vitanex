@@ -10,10 +10,12 @@ import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { getTaal } from '@/lib/aiyourgym/taal/server'
 import { VANDAAG } from '@/lib/aiyourgym/taal/woorden/club/vandaag-scherm'
 import { Avatar } from '@/components/club/ontwerp/Avatar'
+import { BehoudOpbouw } from './BehoudOpbouw'
 
 // Leden met risico: dezelfde lijst en hetzelfde aantal als de ledenlijst met
 // het filter "risico" (behoudsscore onder 45, bezoek op alle vestigingen).
-// Meest urgent bovenaan, met in een zin waarom, en een klik naar de ledenkaart.
+// Meest urgent bovenaan, met in een zin waarom, de opbouw van de score als
+// korte balkjes (vaste rekenregel, geen AI) en een klik naar de ledenkaart.
 
 interface Props {
   leden: RisicoLid[]
@@ -41,6 +43,7 @@ function Rij({ r, laatsteOoit, vandaag, vestiging, taal }: { r: RisicoLid; laats
             {lid.voornaam} {lid.achternaam}
           </span>
           <span className="club-vandaag-reden">{reden}.</span>
+          <BehoudOpbouw behoud={behoud} taal={taal} />
         </span>
         <span className="club-vandaag-weg">
           {weg.getal !== null && (

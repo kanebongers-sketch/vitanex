@@ -22,7 +22,9 @@ import { LidKiezer } from '@/components/club/app/LidKiezer'
 import { ProfielTab } from '@/components/club/app/ProfielTab'
 import { haalBedrijf } from '@/lib/club/bedrijf/opslag'
 import { SchemaTab } from '@/components/club/app/SchemaTab'
-import { kiesTab, Toestel, type AppTab } from '@/components/club/app/Toestel'
+import { Toestel, type AppTab } from '@/components/club/app/Toestel'
+import { kiesScherm } from '@/lib/club/app/tabs'
+import { SectieKiezer } from '@/components/club/app/SectieKiezer'
 import '@/components/club/app/app.css'
 import { haalBerichtenVoorLid } from '@/lib/club/berichten/data'
 import { SluitingenBinnenkort } from '@/components/club/sluiting/SluitingenBinnenkort'
@@ -76,9 +78,9 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
   const appInstellingen = t.organisatie.instellingen.ledenapp
   // Tabbladen die uit staan: zelf uitgezet, het onderdeel staat uit of het pakket is niet afgenomen (zelfde regel als de echte ledenapp).
   const tabsUit: string[] = tabsUitVoor(t.organisatie)
-  const gekozenTab = kiesTab(zoek.tab)
-  // Een tabblad dat uit staat bestaat niet: dan Home.
-  const tab = tabsUit.includes(gekozenTab) ? 'home' : gekozenTab
+  // Vijf tabbladen onderin; een sectie die uit staat valt terug (lib/club/app/tabs.ts).
+  const scherm = kiesScherm(zoek.tab, tabsUit)
+  const tab = scherm.sectie
   const [leden, schemas] = await Promise.all([
     zoekLeden(t.admin, t.userId, vestiging, '', 200),
     t.admin.from('club_schemas').select('lid_id').eq('user_id', t.userId).eq('status', 'actief').not('lid_id', 'is', null).limit(1000),
@@ -142,7 +144,7 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
       ))}
       <div className="club-lidapp-podium">
         <Toestel
-          tab={tab}
+          tab={scherm.balk}
           nu={nu}
           tabPad={tabPad}
           merkNaam={t.organisatie.naam}
@@ -151,11 +153,11 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
           tabsUit={tabsUit}
         >
           {tab === 'home' && (
-            <>
+            <HomeTab lid={lid} data={data} nu={nu} tabPad={tabPad} instellingen={{ ...appInstellingen, tabsUit: tabsUit as typeof appInstellingen.tabsUit, qr: appInstellingen.qr && qrCheckinAan(t.organisatie.instellingen.checkin) && !t.organisatie.uit.includes('checkin') }} berichten={berichten ?? []} coach={coach}>
               <SluitingenBinnenkort admin={t.admin} userId={t.userId} vestiging={lid.vestiging} variant="app" />
-              <HomeTab lid={lid} data={data} nu={nu} tabPad={tabPad} instellingen={{ ...appInstellingen, tabsUit: tabsUit as typeof appInstellingen.tabsUit, qr: appInstellingen.qr && qrCheckinAan(t.organisatie.instellingen.checkin) && !t.organisatie.uit.includes('checkin') }} berichten={berichten ?? []} coach={coach} />
-            </>
+            </HomeTab>
           )}
+          {(scherm.balk === 'boeken' || scherm.balk === 'schema') && <SectieKiezer scherm={scherm} tabsUit={tabsUit} tabPad={tabPad} />}
           {tab === 'lessen' && <LessenTab lidId={lid.id} lessen={data.lessen} regels={data.regels} nu={nu.toISOString()} />}
           {tab === 'schema' && <SchemaTab lidId={lid.id} schema={data.schema} logs={data.logs} historie={data.historie} nu={nu.toISOString()} />}
           {tab === 'voeding' && (
