@@ -5,7 +5,7 @@
 
 import { slugUitHost } from '@/lib/club/kern/subdomein'
 import { oorsprongVan } from './links'
-import { OUDE_PAKKETTEN, leesPakketKeuze, type PakketSleutel } from './pakketten'
+import { OUDE_PAKKETTEN, leesPakketKeuze, metBasis, type PakketSleutel } from './pakketten'
 import { pakkettenTekst } from './taal/woorden/algemeen/pakketten'
 import { isAanmeldStatus, type AanmeldStatus } from './status'
 import type { Taal } from './taal/taal'
@@ -65,7 +65,7 @@ export function abonnementUitRij(rij: unknown): AbonnementRij | null {
   if (!isAanmeldStatus(r.status)) return null
   return {
     pakket: typeof r.pakket === 'string' ? r.pakket : '',
-    pakketten: leesPakketKeuze(r.pakketten),
+    pakketten: ((p) => (p ? metBasis(p) : null))(leesPakketKeuze(r.pakketten)),
     aantalVestigingen: typeof r.aantal_vestigingen === 'number' ? r.aantal_vestigingen : 1,
     status: r.status,
     stripeKlantId: tekstOfNull(r.stripe_customer_id),

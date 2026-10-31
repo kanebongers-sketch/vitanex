@@ -10,7 +10,7 @@
 // telt alleen Stripe en is de testbetaling voor dat pakket vanzelf weg.
 
 import { afsluitbaar, allesAfsluitbaar } from './config'
-import type { PakketSleutel } from './pakketten'
+import { metBasis, type PakketSleutel } from './pakketten'
 import type { AfgerondeSessie } from './stripe-event'
 
 type Env = Record<string, string | undefined>
@@ -33,7 +33,7 @@ export function testbetalen(sleutel: PakketSleutel, env: Env = process.env): boo
  * niet uit staat.
  */
 export function testbetalenVoor(pakketten: readonly PakketSleutel[], env: Env = process.env): boolean {
-  return pakketten.length > 0 && !allesAfsluitbaar(pakketten, env) && testbetalingAan(env)
+  return pakketten.length > 0 && !allesAfsluitbaar(metBasis(pakketten), env) && testbetalingAan(env)
 }
 
 /** Staat de testbetaling aan (niet uit met AIYOURGYM_TESTBETALING=0)? */

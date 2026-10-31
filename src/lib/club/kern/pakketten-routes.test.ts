@@ -1,9 +1,10 @@
 // Bewaker van de losse pakketten (besluit Kane 29-10-2026, "enorm belangrijk"):
 //   1. Elke pagina en elke API van een pakket geeft een 404 zonder dat pakket.
-//   2. Elk pakket alleen (kern plus een pakket) heeft geen dode links: niet in
+//   2. Elke add-on met de basis (basis met add-ons, besluit Kane 31-10-2026) heeft geen dode links: niet in
 //      het menu, het zoekveld, de hulpbalk, de secties van Vandaag, het
 //      instellingencentrum, de hulpartikelen, de ledenkaart of de ledenapp.
-//   3. De kern alleen werkt ook, en alles afgenomen is precies zoals voor 29-10.
+//   3. De basis alleen werkt ook, en alles afgenomen is precies zoals voor 29-10.
+//   4. De basis (Ledenadministratie) is altijd afgenomen, ook als de rij hem mist.
 // De verwachting per pagina (VERWACHT) staat hier los van de code, zodat een
 // nieuwe pagina zonder slot opvalt.
 
@@ -12,7 +13,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import {
   ALLE_PAKKETTEN, API_PAKKET, LID_API_PAKKET, MODULE_PAKKET, ONDERDEEL_PAKKET, apiAfgenomen, apiPakket, ledenappTabAfgenomen,
-  leesAfgenomen, onderdeelPakket, verborgenVoor, wizardStapNodig, zichtbaar, type PakketSleutel, type Verborgen,
+  leesAfgenomen, leesAfgenomenInvoer, onderdeelPakket, verborgenVoor, wizardStapNodig, zichtbaar, type PakketSleutel, type Verborgen,
 } from './pakketten'
 import { MODULES, moduleAan, organisatieUitRij } from './organisatie'
 import { ONDERDEEL_SLEUTELS, orgInstellingenUitRij } from './org-instellingen'
@@ -205,11 +206,12 @@ function alleLinks(uit: readonly Verborgen[]): string[] {
 
 const FEITEN: StartFeiten = { heeftLogo: true, heeftAdres: true, vestigingen: 1, vestigingenMetAdres: 1, vestigingenIngericht: 1, lestypen: 0, vasteLessen: 0, medewerkers: 1, leden: 1, uit: [] }
 
-describe('elk pakket alleen (kern plus een pakket) heeft geen dode links', () => {
+describe('elk pakket met de basis (basis plus een add-on) heeft geen dode links', () => {
   for (const p of ALLE_PAKKETTEN) {
     describe(p, () => {
+      // verborgenVoor voegt de basis altijd toe (besluit Kane 31-10-2026).
       const uit = verborgenVoor([], [p])
-      const mag = (nodig: PakketSleutel | null) => nodig === null || nodig === p
+      const mag = (nodig: PakketSleutel | null) => nodig === null || nodig === p || nodig === 'administratie'
 
       it('menu, zoekveld, hulpbalk, Vandaag, instellingen en hulp linken alleen naar wat er is', () => {
         const links = alleLinks(uit)
@@ -220,17 +222,17 @@ describe('elk pakket alleen (kern plus een pakket) heeft geen dode links', () =>
         const eigen = alleLinks(uit).filter((l) => nodigVoorLink(l) === p)
         expect(eigen.length, `niets van ${p} te vinden`).toBeGreaterThan(0)
       })
-      it('de ledenkaart toont alleen blokken en tabbladen van dit pakket en de kern', () => {
+      it('de ledenkaart toont alleen blokken en tabbladen van dit pakket en de basis', () => {
         const r = kaartRechten({ onderdelen: null, modulesUit: uit, healthAan: true, lidgeldOpen: false })
         const blok: [boolean, PakketSleutel][] = [
           [r.training, 'training'], [r.voeding, 'training'], [r.apps, 'training'], [r.rooster, 'lessen'], [r.afspraken, 'afspraken'],
           [r.checkin, 'administratie'], [r.challenges, 'groei'], [r.berichten, 'groei'], [r.lidmaatschap, 'administratie'],
         ]
-        for (const [aan, nodig] of blok) if (aan) expect(nodig).toBe(p)
+        for (const [aan, nodig] of blok) if (aan) expect([p, 'administratie']).toContain(nodig)
         const tabs = zichtbareLidTabs(r)
         expect(tabs).toEqual(expect.arrayContaining(['overzicht', 'contact', 'privacy']))
         if (tabs.includes('training')) expect(p).toBe('training')
-        if (tabs.includes('lidmaatschap')) expect(p).toBe('administratie')
+        expect(tabs).toContain('lidmaatschap')
         if (tabs.includes('planning')) expect(['lessen', 'afspraken']).toContain(p)
       })
       it('de ledenapp toont alleen tabbladen waarvan de API er is', () => {
@@ -254,10 +256,11 @@ describe('elk pakket alleen (kern plus een pakket) heeft geen dode links', () =>
   }
 })
 
-describe('de kern alleen en alles afgenomen', () => {
-  it('kern alleen: geen enkele link naar een pakket', () => {
+describe('de basis alleen en alles afgenomen', () => {
+  it('basis alleen: geen enkele link naar een add-on', () => {
     const uit = verborgenVoor([], [])
-    for (const l of alleLinks(uit)) expect(nodigVoorLink(l), l).toBeNull()
+    expect(uit).not.toContain('pakket:administratie')
+    for (const l of alleLinks(uit)) expect([null, 'administratie'], l).toContain(nodigVoorLink(l))
     expect(wizardStapNodig([], 'lessen')).toBe(false)
   })
   it('alles afgenomen en niets uit: precies zoals voor de pakketten (geen markers, niets verborgen)', () => {
@@ -284,17 +287,24 @@ describe('de organisatie uit de database', () => {
     expect(o?.eigenUit).toEqual(['leads'])
     expect(o?.uit).toEqual(['leads'])
   })
-  it('met losse pakketten: de rest is verborgen, de eigen keuze blijft apart bewaard', () => {
+  it('met add-ons: de rest is verborgen, de basis er altijd bij, de eigen keuze blijft apart bewaard', () => {
     const o = organisatieUitRij({ ...basis, pakketten: ['lessen', 'onzin'] })
-    expect(o?.afgenomen).toEqual(['lessen'])
+    expect(o?.afgenomen).toEqual(['administratie', 'lessen'])
     expect(o?.eigenUit).toEqual(['leads'])
     expect(o?.uit).toContain('pakket:groei')
-    expect(o?.uit).toContain('checkin')
+    expect(o?.uit).not.toContain('pakket:administratie')
+    expect(o?.uit).not.toContain('checkin')
     expect(o?.uit).not.toContain('rooster')
     expect(o && moduleAan(o, 'rooster')).toBe(true)
   })
-  it('een lege lijst is alleen de kern', () => {
-    expect(leesAfgenomen([])).toEqual([])
+  it('een lege lijst is alleen de basis', () => {
+    expect(leesAfgenomen([])).toEqual(['administratie'])
     expect(leesAfgenomen(null)).toEqual([...ALLE_PAKKETTEN])
+  })
+  it('invoer voor de database zonder de basis wordt geweigerd (besluit Kane 31-10-2026)', () => {
+    expect(leesAfgenomenInvoer(['lessen'])).toBeNull()
+    expect(leesAfgenomenInvoer([])).toBeNull()
+    expect(leesAfgenomenInvoer(['groei', 'administratie'])).toEqual(['administratie', 'groei'])
+    expect(leesAfgenomenInvoer(['administratie', 'onzin'])).toBeNull()
   })
 })

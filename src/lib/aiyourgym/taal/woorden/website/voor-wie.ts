@@ -31,6 +31,8 @@ export const VOOR_WIE = woordenboek({
     soortenLabel: 'Soorten sportscholen op deze pagina',
     doelgroepen: NL_DOELGROEPEN,
     pastBij: 'Past meestal bij',
+    basisPlus: 'de basis plus',
+    alleenBasis: 'de basis',
     beeld: {
       zelfstandig: 'De check-in met de leden die net binnen zijn en hun status',
       boutique: 'Een week van het lesrooster met de bezetting per les en volle lessen met wachtlijst',
@@ -131,6 +133,8 @@ export const VOOR_WIE = woordenboek({
       },
     },
     pastBij: 'Usually a good fit for',
+    basisPlus: 'the core plus',
+    alleenBasis: 'the core',
     beeld: {
       zelfstandig: 'Check-in showing the members who just arrived and their status',
       boutique: 'A week of the timetable with attendance per class and full classes with a waiting list',

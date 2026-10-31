@@ -1,8 +1,8 @@
-// De losse pakketten (src/lib/aiyourgym/pakketten.ts) per taal: voor de
+// Basis met add-ons (src/lib/aiyourgym/pakketten.ts, besluit Kane 31-10-2026) per taal: voor de
 // prijzenpagina, het aanmelden, het abonnement in Club en de menu's. Het
 // Nederlands is de bron in pakketten.ts; het Engels zegt precies hetzelfde.
 
-import { KERN_INBEGREPEN, PAKKETTEN, type Pakket, type PakketSleutel } from '@/lib/aiyourgym/pakketten'
+import { KERN_INBEGREPEN, PAKKETTEN, isBasis, type Pakket, type PakketSleutel } from '@/lib/aiyourgym/pakketten'
 import { woordenboek } from '../../woordenboek'
 import type { Taal } from '../../taal'
 
@@ -22,15 +22,19 @@ export const PAKKET_NAMEN = woordenboek({
       team: nl('team'),
       groei: nl('groei'),
     },
-    kern: { naam: 'Altijd inbegrepen', inbegrepen: KERN_INBEGREPEN },
-    kies: 'Kies alleen wat je nodig hebt. Elk pakket werkt los van de andere.',
+    kern: { naam: 'Altijd in de basis', inbegrepen: KERN_INBEGREPEN },
+    kies: 'De basis met ledenadministratie en ledenapp zit er altijd in. Kies daarbovenop alleen de add-ons die je nodig hebt.',
+    basisNaam: 'Basis | Ledenadministratie',
+    basisLabel: 'Basis',
+    addOnLabel: 'Add-on',
+    basisVast: 'Altijd inbegrepen. Dit is de basis van AI Your Gym.',
     en: 'en',
   },
   en: {
     pakketten: {
       administratie: {
         naam: 'Membership administration',
-        voorWie: 'For gyms that track memberships, visits and metrics.',
+        voorWie: 'The core for every gym: members, memberships, visits and metrics.',
         inbegrepen: ['Membership types, pausing and cancelling on the member profile', 'Check-in with QR in the app or at the front desk', 'Monthly metrics: new members, leavers and visits', 'Reports and exports for Excel'],
       },
       lessen: {
@@ -60,10 +64,14 @@ export const PAKKET_NAMEN = woordenboek({
       },
     },
     kern: {
-      naam: 'Always included',
+      naam: 'Always in the core',
       inbegrepen: ['Member list and member profile with name and contact details', 'Member app in your own branding', 'Locations, team and permissions per role', 'Your own address, such as aiyourgym.com/yourgym', 'Import your member file and GDPR per member'],
     },
-    kies: 'Choose only what you need. Each package works on its own.',
+    kies: 'The core with membership administration and the member app is always included. On top of it, choose only the add-ons you need.',
+    basisNaam: 'Core | Membership administration',
+    basisLabel: 'Core',
+    addOnLabel: 'Add-on',
+    basisVast: 'Always included. This is the core of AI Your Gym.',
     en: 'and',
   },
 })
@@ -71,6 +79,11 @@ export const PAKKET_NAMEN = woordenboek({
 /** Naam, voor wie en wat erin zit, in een taal. */
 export function pakketInTaal(sleutel: PakketSleutel, taal: Taal): Pick<Pakket, 'naam' | 'voorWie' | 'inbegrepen'> {
   return PAKKET_NAMEN[taal].pakketten[sleutel]
+}
+
+/** De naam zoals de klant hem ziet: de basis heet "Basis | Ledenadministratie". */
+export function pakketWeergave(sleutel: PakketSleutel, taal: Taal): string {
+  return isBasis(sleutel) ? PAKKET_NAMEN[taal].basisNaam : pakketInTaal(sleutel, taal).naam
 }
 
 /** "Groepslessen en Groei" of "Lessen, Training en Groei". */

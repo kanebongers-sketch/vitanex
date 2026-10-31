@@ -17,11 +17,18 @@ describe('een pakket erbij nemen of opzeggen', () => {
     expect(leesPakketVerzoek({ pakket: 'groei', actie: 'opzeggen' }, ['groei'])).toEqual({ ok: false, fout: 'laatste' })
     expect(leesPakketVerzoek({ pakket: 'groei', actie: 'opzeggen' }, ['lessen', 'groei']).ok).toBe(true)
   })
-  it('de nieuwe lijst in vaste volgorde, nooit in place', () => {
-    const begin = ['groei'] as const
-    expect(naWijziging(begin, { pakket: 'lessen', actie: 'erbij' })).toEqual(['lessen', 'groei'])
-    expect(naWijziging(['lessen', 'groei'], { pakket: 'lessen', actie: 'opzeggen' })).toEqual(['groei'])
-    expect(begin).toEqual(['groei'])
+  it('de nieuwe lijst in vaste volgorde, altijd met de basis, nooit in place', () => {
+    const begin = ['administratie', 'groei'] as const
+    expect(naWijziging(begin, { pakket: 'lessen', actie: 'erbij' })).toEqual(['administratie', 'lessen', 'groei'])
+    expect(naWijziging(['administratie', 'lessen', 'groei'], { pakket: 'lessen', actie: 'opzeggen' })).toEqual(['administratie', 'groei'])
+    // Een oude lijst zonder basis krijgt hem er vanzelf bij.
+    expect(naWijziging(['groei'], { pakket: 'lessen', actie: 'erbij' })).toEqual(['administratie', 'lessen', 'groei'])
+    expect(begin).toEqual(['administratie', 'groei'])
+  })
+  it('de basis is niet op te zeggen, ook niet door het master account (besluit Kane 31-10-2026)', () => {
+    expect(leesPakketVerzoek({ pakket: 'administratie', actie: 'opzeggen' }, ['administratie', 'lessen'])).toEqual({ ok: false, fout: 'basis' })
+    expect(leesPakketVerzoek({ pakket: 'administratie', actie: 'opzeggen' }, [...PAKKET_SLEUTELS])).toEqual({ ok: false, fout: 'basis' })
+    expect(leesPakketVerzoek({ pakket: 'lessen', actie: 'opzeggen' }, ['administratie', 'lessen']).ok).toBe(true)
   })
   it('hoe het loopt: Kane direct, Stripe alleen voor erbij met prijs, anders testbetaling of aanvraag', () => {
     const basis: WegInvoer = { actie: 'erbij', platformEigenaar: false, stripeAbonnement: false, afsluitbaar: false, testbetalen: true }
@@ -45,7 +52,7 @@ describe('een pakket erbij nemen of opzeggen', () => {
   })
   it('van de regels van een Stripe-abonnement terug naar de pakketten', () => {
     const env = { AIYOURGYM_STRIPE_PRIJS_LESSEN: 'price_lessen01', AIYOURGYM_STRIPE_PRIJS_TEAM: 'price_team0001' }
-    expect(pakkettenVanPrijzen(['price_team0001', 'price_lessen01'], env)).toEqual(['lessen', 'team'])
+    expect(pakkettenVanPrijzen(['price_team0001', 'price_lessen01'], env)).toEqual(['administratie', 'lessen', 'team'])
     expect(pakkettenVanPrijzen(['price_lessen01', 'price_onbekend'], env)).toBeNull()
     expect(pakkettenVanPrijzen([], env)).toBeNull()
   })
@@ -76,10 +83,11 @@ describe('de losse pakketten', () => {
     expect(leesPakketKeuze('')).toBeNull()
     expect(leesPakketKeuze(['team', 'keten'])).toBeNull()
   })
-  it('een voorstel per soort sportschool: yoga alleen Groepslessen, een keten alles', () => {
-    expect(voorstelVoor('yoga')).toEqual(['lessen'])
+  it('een voorstel per soort sportschool: altijd de basis, yoga plus Groepslessen, een keten alles', () => {
+    expect(voorstelVoor('yoga')).toEqual(['administratie', 'lessen'])
     expect(voorstelVoor('keten')).toEqual([...PAKKET_SLEUTELS])
-    expect(voorstelVoor('pt')).toEqual(['training', 'afspraken'])
+    expect(voorstelVoor('pt')).toEqual(['administratie', 'training', 'afspraken'])
+    for (const v of Object.values(VOORSTEL_PER_SOORT)) expect(v).toContain('administratie')
     expect(voorstelVoor('onbekend')).toBeNull()
     for (const v of Object.values(VOORSTEL_PER_SOORT)) expect(v.length).toBeGreaterThan(0)
   })
@@ -120,7 +128,7 @@ describe('bundel op een lopend Stripe-abonnement (besluit Kane 30-10-2026)', () 
     expect(aantalVanRegels(nu, eigen, 1)).toBe(3)
   })
   it('een gewoon pakket erbij (minder dan zes): alleen die regel erbij', () => {
-    const w = regelWissel([regel('lessen')], doel(['lessen', 'groei']), eigen)
+    const w = regelWissel([regel('administratie'), regel('lessen')], doel(['administratie', 'lessen', 'groei']), eigen)
     expect(w).toEqual({ weg: [], erbij: ['price_groei0001'] })
   })
   it('idempotent: staat het al zo, dan hoeft er niets', () => {

@@ -14,10 +14,12 @@
 //     (AIYOURGYM_STRIPE_PRIJS_ALLES), via Stripe met proration; zie regelWissel.
 //     Opzeggen is altijd een aanvraag volgens het jaarcontract, ook vanuit de
 //     bundel: Kane verwerkt die.
-// Minstens een pakket blijft altijd over: alles opzeggen is het abonnement
-// opzeggen (Stripe Customer Portal).
+// Basis met add-ons (besluit Kane 31-10-2026): de basis (Ledenadministratie)
+// is niet op te zeggen zolang het abonnement loopt, ook niet door het master
+// account; alleen add-ons gaan erbij of eraf. Helemaal stoppen is het
+// abonnement opzeggen (Stripe Customer Portal). Elke lijst houdt de basis (metBasis).
 
-import { PAKKET_SLEUTELS, isPakketSleutel, sorteerPakketten, type PakketSleutel } from './pakketten'
+import { PAKKET_SLEUTELS, isBasis, isPakketSleutel, metBasis, type PakketSleutel } from './pakketten'
 import { pakketVanPrijs, stripePrijsAlles } from './config'
 
 export const PAKKET_ACTIES = ['erbij', 'opzeggen'] as const
@@ -28,7 +30,7 @@ export interface PakketVerzoek {
   actie: PakketActie
 }
 
-export type VerzoekUitslag = { ok: true; waarde: PakketVerzoek } | { ok: false; fout: 'onbekend' | 'al' | 'niet' | 'laatste' }
+export type VerzoekUitslag = { ok: true; waarde: PakketVerzoek } | { ok: false; fout: 'onbekend' | 'al' | 'niet' | 'basis' | 'laatste' }
 
 /** Systeemgrens: { pakket, actie } van de pagina, getoetst aan wat er nu is afgenomen. */
 export function leesPakketVerzoek(body: unknown, afgenomen: readonly PakketSleutel[]): VerzoekUitslag {
@@ -36,6 +38,7 @@ export function leesPakketVerzoek(body: unknown, afgenomen: readonly PakketSleut
   if (!isPakketSleutel(b.pakket) || !(PAKKET_ACTIES as readonly unknown[]).includes(b.actie)) return { ok: false, fout: 'onbekend' }
   const pakket = b.pakket
   const actie = b.actie as PakketActie
+  if (actie === 'opzeggen' && isBasis(pakket)) return { ok: false, fout: 'basis' }
   if (actie === 'erbij' && afgenomen.includes(pakket)) return { ok: false, fout: 'al' }
   if (actie === 'opzeggen' && !afgenomen.includes(pakket)) return { ok: false, fout: 'niet' }
   if (actie === 'opzeggen' && afgenomen.length <= 1) return { ok: false, fout: 'laatste' }
@@ -64,15 +67,16 @@ export function pakketWeg(i: WegInvoer): PakketWeg {
   return i.testbetalen ? 'test' : 'aanvraag'
 }
 
-/** De nieuwe lijst na een wijziging (nooit in place). */
+/** De nieuwe lijst na een wijziging (nooit in place); de basis blijft altijd. */
 export function naWijziging(afgenomen: readonly PakketSleutel[], v: PakketVerzoek): PakketSleutel[] {
-  return v.actie === 'erbij' ? sorteerPakketten([...afgenomen, v.pakket]) : afgenomen.filter((p) => p !== v.pakket)
+  return metBasis(v.actie === 'erbij' ? [...afgenomen, v.pakket] : afgenomen.filter((p) => p !== v.pakket || isBasis(p)))
 }
 
 /**
  * De pakketten achter de prijzen van een Stripe-abonnement, of null als er een
  * prijs bij zit die we niet kennen (dan veranderen we niets: liever niets dan fout).
- * De bundelprijs betekent alle zes pakketten (besluit Kane 30-10-2026).
+ * De bundelprijs betekent alle zes pakketten (besluit Kane 30-10-2026). De
+ * basis staat er altijd in (besluit Kane 31-10-2026), ook als Stripe hem mist.
  */
 export function pakkettenVanPrijzen(prijzen: readonly string[], env: Record<string, string | undefined> = process.env): PakketSleutel[] | null {
   if (prijzen.length === 0) return null
@@ -81,7 +85,7 @@ export function pakkettenVanPrijzen(prijzen: readonly string[], env: Record<stri
   const pakketten = losse.map((p) => pakketVanPrijs(p, env))
   if (pakketten.some((p) => p === null)) return null
   if (alles && losse.length < prijzen.length) return [...PAKKET_SLEUTELS]
-  return sorteerPakketten(pakketten as PakketSleutel[])
+  return metBasis(pakketten as PakketSleutel[])
 }
 
 /** Een regel van een lopend Stripe-abonnement (subscription item). */

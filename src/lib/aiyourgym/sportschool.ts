@@ -18,6 +18,7 @@ import { maakBeheerder } from '@/lib/club/beheerders/beheerder-opslag'
 import { naamMetAdres } from './sportschool-naam'
 import { emailHeeftAccount } from './dubbel'
 import type { AanmeldingRij } from './opslag'
+import { metBasis } from './pakketten'
 
 /**
  * Een toegang namens het systeem (geen ingelogde persoon): alleen voor deze
@@ -71,7 +72,8 @@ export async function maakSportschool(admin: SupabaseClient, a: AanmeldingRij, o
   }
 
   // Precies de afgenomen pakketten (besluit Kane 29-10-2026): de kolom staat standaard op alles.
-  const { error: pakketFout } = await admin.from('club_organisaties').update({ pakketten: a.pakketten, demo: false }).eq('id', id).eq('beheerder_id', beheerderId)
+  // De basis staat er altijd in (besluit Kane 31-10-2026).
+  const { error: pakketFout } = await admin.from('club_organisaties').update({ pakketten: metBasis(a.pakketten), demo: false }).eq('id', id).eq('beheerder_id', beheerderId)
   if (pakketFout) {
     await ruimSportschoolOp(admin, id, beheerderId)
     return { ok: false }

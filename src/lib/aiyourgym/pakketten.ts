@@ -1,8 +1,11 @@
-// ─── AI Your Gym: de losse pakketten (PUUR) ─────────────────────────────────
-// Besluit Kane (29-10-2026, "enorm belangrijk"): AI Your Gym is modulair. Een
-// sportschool kiest alleen wat ze nodig heeft (een of meer pakketten) en elk
-// pakket werkt los van de andere. Een kleine kern zit altijd bij elk pakket
-// (KERN_INBEGREPEN). Ontwerp: docs/aiyourgym/PAKKETTEN-MODULAIR.md.
+// ─── AI Your Gym: basis met add-ons (PUUR) ──────────────────────────────────
+// Besluit Kane (31-10-2026, vervangt "elk pakket los"): "Ledenadministratie is
+// eigenlijk de basis. Er moet een basispakket zijn." Het model heet basis met
+// add-ons. De basis (sleutel `administratie`) is altijd afgenomen, niet uit te
+// vinken en niet op te zeggen zolang het abonnement loopt. De kleine kern
+// (KERN_INBEGREPEN: account, vestigingen, team, basisgegevens van leden,
+// ledenapp) hoort bij de basis. De andere vijf zijn add-ons, los te kiezen.
+// Ontwerp: docs/aiyourgym/PAKKETTEN-MODULAIR.md.
 //
 // Eén bron voor de prijzenpagina, het aanmelden, Stripe en Club. Prijzen staan
 // hier NIET: die kiest Kane en ze staan alleen in Stripe, per pakket als
@@ -18,6 +21,8 @@ export type PakketSleutel = (typeof PAKKET_SLEUTELS)[number]
 export interface Pakket {
   sleutel: PakketSleutel
   naam: string
+  /** Het basispakket: altijd afgenomen (besluit Kane 31-10-2026). */
+  basis?: true
   /** Voor wie het pakket is, in een zin. */
   voorWie: string
   /** Wat erin zit: alleen functies die Club echt heeft. */
@@ -31,7 +36,8 @@ export const PAKKETTEN: readonly Pakket[] = [
   {
     sleutel: 'administratie',
     naam: 'Ledenadministratie',
-    voorWie: 'Voor wie lidmaatschappen, bezoek en cijfers bijhoudt.',
+    basis: true,
+    voorWie: 'De basis voor elke sportschool: leden, lidmaatschappen, bezoek en cijfers.',
     inbegrepen: ['Lidmaatschapsvormen, pauzeren en opzeggen op de ledenkaart', 'Check-in met QR in de app of aan de balie', 'Cijfers per maand: instroom, uitstroom en bezoek', 'Rapporten en exports voor Excel'],
   },
   {
@@ -66,7 +72,7 @@ export const PAKKETTEN: readonly Pakket[] = [
   },
 ]
 
-/** Wat altijd bij elk pakket zit (de kern). */
+/** Wat altijd in de basis zit (de kern). */
 export const KERN_INBEGREPEN: readonly string[] = [
   'Ledenlijst en ledenkaart met naam en contact',
   'Ledenapp in je eigen huisstijl',
@@ -74,6 +80,26 @@ export const KERN_INBEGREPEN: readonly string[] = [
   'Eigen adres, zoals aiyourgym.com/jouwgym',
   'Ledenbestand inlezen en AVG per lid',
 ]
+
+/** Het basispakket (besluit Kane 31-10-2026): altijd afgenomen. */
+export const BASIS_PAKKET = 'administratie' as const satisfies PakketSleutel
+
+/** De vijf add-ons bovenop de basis, in vaste volgorde. */
+export const ADD_ONS: readonly PakketSleutel[] = PAKKET_SLEUTELS.filter((s) => s !== BASIS_PAKKET)
+
+export function isBasis(sleutel: unknown): boolean {
+  return sleutel === BASIS_PAKKET
+}
+
+/** Zit de basis in deze keuze? */
+export function heeftBasis(lijst: readonly PakketSleutel[]): boolean {
+  return lijst.includes(BASIS_PAKKET)
+}
+
+/** Altijd met de basis erbij, in vaste volgorde en zonder dubbelen (nooit in place). */
+export function metBasis(lijst: readonly PakketSleutel[]): PakketSleutel[] {
+  return sorteerPakketten([BASIS_PAKKET, ...lijst])
+}
 
 export function isPakketSleutel(v: unknown): v is PakketSleutel {
   return typeof v === 'string' && (PAKKET_SLEUTELS as readonly string[]).includes(v)
@@ -96,6 +122,8 @@ export function sorteerPakketten(lijst: readonly PakketSleutel[]): PakketSleutel
 /**
  * Een keuze van pakketten van buiten (formulier, URL, metadata): een lijst of
  * een tekst "lessen,groei". Alleen bekende sleutels; leeg of onbekend = null.
+ * Voegt de basis NIET toe: wie dat wil gebruikt metBasis (oude links, rijen),
+ * een validatie toetst met heeftBasis.
  */
 export function leesPakketKeuze(ruw: unknown): PakketSleutel[] | null {
   const lijst = typeof ruw === 'string' ? ruw.split(',') : Array.isArray(ruw) ? ruw : null
@@ -111,18 +139,18 @@ export function leesPakketKeuze(ruw: unknown): PakketSleutel[] | null {
  */
 export const OUDE_PAKKETTEN: Readonly<Record<string, string>> = { start: 'Start', club: 'Club', keten: 'Keten' }
 
-/** Een slim voorstel per soort sportschool (de eigenaar past het aan). */
+/** Een slim voorstel per soort sportschool (de eigenaar past het aan; de basis zit er altijd in, voorstelVoor). */
 export const VOORSTEL_PER_SOORT: Readonly<Record<string, readonly PakketSleutel[]>> = {
   gym: ['administratie', 'lessen', 'training', 'team', 'groei'],
-  boutique: ['lessen', 'administratie', 'groei'],
-  pt: ['training', 'afspraken'],
+  boutique: ['administratie', 'lessen', 'groei'],
+  pt: ['administratie', 'training', 'afspraken'],
   keten: PAKKET_SLEUTELS,
-  yoga: ['lessen'],
-  vechtsport: ['lessen', 'administratie'],
-  bootcamp: ['lessen', 'groei'],
+  yoga: ['administratie', 'lessen'],
+  vechtsport: ['administratie', 'lessen'],
+  bootcamp: ['administratie', 'lessen', 'groei'],
 }
 
 export function voorstelVoor(soort: unknown): PakketSleutel[] | null {
   const v = typeof soort === 'string' ? VOORSTEL_PER_SOORT[soort] : undefined
-  return v ? sorteerPakketten(v) : null
+  return v ? metBasis(v) : null
 }

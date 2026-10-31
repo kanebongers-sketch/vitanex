@@ -13,6 +13,7 @@ import { SectieActie, Geruststelling, GERUST_BIJ_KNOP } from '@/components/aiyou
 import { Knop, PaginaKop, SectieKop } from '@/components/aiyourgym/site/bouwstenen'
 import { SITE_PADEN } from '@/components/aiyourgym/site/paden'
 import { pakkettenTekst } from '@/lib/aiyourgym/taal/woorden/algemeen/pakketten'
+import { isBasis } from '@/lib/aiyourgym/pakketten'
 import { siteAlternates } from '@/lib/aiyourgym/taal/metadata'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
@@ -47,7 +48,9 @@ function Groep({ doel, nr, taal }: { doel: Doelgroep; nr: number; taal: Taal }) 
   const tekst = t.doelgroepen[doel.sleutel]
   const beeld = BEELD[doel.sleutel]
   // Alleen ter informatie: geen link die pakketten vooraf aanvinkt (besluit Kane 30-10-2026, de klant kiest zelf).
-  const pakket = doel.pakketten.length > 0 ? pakkettenTekst(doel.pakketten, taal) : null
+  // Basis met add-ons (besluit Kane 31-10-2026): "de basis plus Groepslessen en Groei".
+  const addOns = doel.pakketten.filter((p) => !isBasis(p))
+  const pakket = doel.pakketten.length === 0 ? null : addOns.length > 0 ? `${t.basisPlus} ${pakkettenTekst(addOns, taal)}` : t.alleenBasis
   const donker = doel.sleutel === 'pt-studio'
   return (
     <section id={doel.sleutel} className={donker ? 'ayg-sectie ayg-podium ayg-groep' : 'ayg-sectie ayg-groep'} aria-labelledby={`${doel.sleutel}-titel`}>

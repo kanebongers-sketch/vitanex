@@ -78,7 +78,10 @@ describe('config', () => {
     expect(afsluitbaar('lessen', { ...env, AIYOURGYM_STRIPE_SECRET_KEY: undefined })).toBe(false)
   })
   it('een keuze is alleen afsluitbaar als elk pakket een prijs heeft', () => {
-    expect(allesAfsluitbaar(['lessen'], env)).toBe(true)
+    // De basis hoort altijd bij de regels (besluit Kane 31-10-2026): zonder basisprijs niet afsluitbaar.
+    expect(allesAfsluitbaar(['lessen'], env)).toBe(false)
+    expect(allesAfsluitbaar(['administratie', 'lessen'], { ...env, AIYOURGYM_STRIPE_PRIJS_ADMINISTRATIE: 'price_BASIS123' })).toBe(true)
+    expect(allesAfsluitbaar(['lessen'], { ...env, AIYOURGYM_STRIPE_PRIJS_ADMINISTRATIE: 'price_BASIS123' })).toBe(true)
     expect(allesAfsluitbaar(['lessen', 'groei'], env)).toBe(false)
     expect(allesAfsluitbaar([], env)).toBe(false)
   })

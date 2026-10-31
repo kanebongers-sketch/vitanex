@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { PAKKETTEN, leesPakketKeuze } from '@/lib/aiyourgym/pakketten'
+import { PAKKETTEN, leesPakketKeuze, metBasis } from '@/lib/aiyourgym/pakketten'
 import { MAX_NAAM } from '@/lib/aiyourgym/aanmelding'
 import { afsluitbaar, bundelAfsluitbaar } from '@/lib/aiyourgym/config'
 import { testbetalingAan } from '@/lib/aiyourgym/testbetaling'
@@ -31,8 +31,8 @@ interface PaginaProps {
 export default async function AanmeldenPagina({ searchParams }: PaginaProps) {
   const [zoek, taal] = await Promise.all([searchParams, getSiteTaal()])
   const t = AANMELDEN[taal]
-  // ?pakketten=lessen,groei (prijzenpagina); ?pakket= voor oude links.
-  const startPakketten = leesPakketKeuze(zoek.pakketten ?? zoek.pakket) ?? []
+  // ?pakketten=lessen,groei (prijzenpagina); ?pakket= voor oude links. De basis staat altijd aan.
+  const startPakketten = metBasis(leesPakketKeuze(zoek.pakketten ?? zoek.pakket) ?? [])
   const geannuleerd = zoek.geannuleerd === '1'
   // Naam uit de oproep op de voorpagina; alleen als begin van het veld, de controle blijft in het formulier.
   const startNaam = typeof zoek.naam === 'string' ? zoek.naam.trim().slice(0, MAX_NAAM) : ''

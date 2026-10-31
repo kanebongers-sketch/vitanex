@@ -5,7 +5,7 @@
 
 import { wachtwoordFout } from '@/lib/club/kern/wachtwoord-regels'
 import { leesSlug } from '@/lib/club/kern/subdomein'
-import { leesPakketKeuze, type PakketSleutel } from './pakketten'
+import { heeftBasis, leesPakketKeuze, type PakketSleutel } from './pakketten'
 
 /** Een body groter dan dit lezen we niet eens. */
 export const MAX_BODY_BYTES = 4_096
@@ -15,7 +15,7 @@ export const MAX_EMAIL = 120
 export const MAX_VESTIGINGEN_ONLINE = 40
 
 export interface Aanmelding {
-  /** De gekozen losse pakketten (minstens een, vaste volgorde, zonder dubbelen). */
+  /** De gekozen pakketten: altijd de basis plus de add-ons (vaste volgorde, zonder dubbelen). */
   pakketten: PakketSleutel[]
   sportschoolNaam: string
   aantalVestigingen: number
@@ -70,9 +70,12 @@ export function leesAanmelding(body: unknown): AanmeldUitslag {
   const b = typeof body === 'object' && body !== null && !Array.isArray(body) ? (body as Record<string, unknown>) : {}
   const fouten: Partial<Record<AanmeldVeld, string>> = {}
 
-  // Een of meer losse pakketten (besluit Kane 29-10-2026); "pakket" alleen voor oude links.
-  const pakketten = leesPakketKeuze(b.pakketten ?? b.pakket)
-  if (!pakketten) fouten.pakketten = 'Kies minstens een pakket.'
+  // De basis plus add-ons (besluit Kane 31-10-2026); "pakket" alleen voor oude links.
+  // Een keuze zonder de basis wordt geweigerd: het formulier stuurt hem altijd mee.
+  const gelezen = leesPakketKeuze(b.pakketten ?? b.pakket)
+  const pakketten = gelezen && heeftBasis(gelezen) ? gelezen : null
+  if (!gelezen) fouten.pakketten = 'Kies minstens een pakket.'
+  else if (!pakketten) fouten.pakketten = 'De basis (Ledenadministratie) zit altijd in je keuze.'
 
   const sportschoolNaam = tekst(b.sportschoolNaam)
   const naamProbleem = naamFout(sportschoolNaam, 'de naam van je sportschool')

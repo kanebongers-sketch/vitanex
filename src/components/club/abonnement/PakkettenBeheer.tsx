@@ -3,15 +3,16 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Check, Minus, Plus } from 'lucide-react'
-import { PAKKET_SLEUTELS, type PakketSleutel } from '@/lib/aiyourgym/pakketten'
+import { ADD_ONS, BASIS_PAKKET, type PakketSleutel } from '@/lib/aiyourgym/pakketten'
 import type { PakketWeg } from '@/lib/aiyourgym/pakket-wijziging'
 import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
-import { PAKKET_NAMEN, pakketInTaal } from '@/lib/aiyourgym/taal/woorden/algemeen/pakketten'
+import { PAKKET_NAMEN, pakketInTaal, pakketWeergave } from '@/lib/aiyourgym/taal/woorden/algemeen/pakketten'
 import { PAKKETTEN_BEHEER } from '@/lib/aiyourgym/taal/woorden/club/pakketten-beheer'
 import { kiesMeldingen } from '@/lib/aiyourgym/taal/woorden/website/meldingen'
 
-// De losse pakketten van de sportschool in Club, Abonnement (besluit Kane
-// 29-10-2026): per pakket de stand en een knop om het erbij te nemen of op te
+// Basis met add-ons in Club, Abonnement (besluit Kane 31-10-2026): de basis
+// staat vast bovenaan, zonder knop (niet op te zeggen zolang het abonnement
+// loopt). Per add-on de stand en een knop om hem erbij te nemen of op te
 // zeggen. De server bepaalt eerlijk hoe het loopt (Stripe, testbetaling of
 // een aanvraag) en de pagina zegt dat daarna precies zo.
 
@@ -64,12 +65,24 @@ export function PakkettenBeheer({ afgenomen, aanvragen }: PakkettenBeheerProps) 
         <p>{t.uitleg}</p>
         <p className="club-hint">{t.bundel}</p>
       </div>
-      <ul className="club-abo-pakketlijst">
-        {PAKKET_SLEUTELS.map((p) => {
+      <ul className="club-abo-pakketlijst" aria-label={t.basis}>
+        <li className="club-abo-pakket" data-afgenomen>
+          <div className="club-abo-pakket-tekst">
+            <strong>{pakketWeergave(BASIS_PAKKET, taal)}</strong>
+            <span>{pakketInTaal(BASIS_PAKKET, taal).voorWie}</span>
+            <span className="club-hint">{t.basisVast}</span>
+          </div>
+          <span className="club-chip club-chip--ok">
+            <Check size={13} aria-hidden /> {t.basis}
+          </span>
+        </li>
+      </ul>
+      <p className="club-abo-label">{t.addOns}</p>
+      <ul className="club-abo-pakketlijst" aria-label={t.addOns}>
+        {ADD_ONS.map((p) => {
           const tekst = pakketInTaal(p, taal)
           const heeft = afgenomen.includes(p)
           const open = aanvragen.find((a) => a.pakket === p)
-          const laatste = heeft && afgenomen.length <= 1
           return (
             <li key={p} className="club-abo-pakket" data-afgenomen={heeft || undefined}>
               <div className="club-abo-pakket-tekst">
@@ -80,7 +93,7 @@ export function PakkettenBeheer({ afgenomen, aanvragen }: PakkettenBeheerProps) 
                 {heeft ? <Check size={13} aria-hidden /> : null} {open ? (open.actie === 'erbij' ? t.aangevraagd : t.opzeggingAangevraagd) : heeft ? t.afgenomen : t.nietAfgenomen}
               </span>
               {open ? null : heeft ? (
-                <button type="button" className="club-knop" onClick={() => wijzig(p, 'opzeggen')} disabled={bezig !== null || laatste} title={laatste ? t.laatste : undefined} aria-busy={bezig === p}>
+                <button type="button" className="club-knop" onClick={() => wijzig(p, 'opzeggen')} disabled={bezig !== null} aria-busy={bezig === p}>
                   <Minus size={15} aria-hidden /> {bezig === p ? t.bezig : t.opzeggen}
                 </button>
               ) : (

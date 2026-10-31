@@ -115,13 +115,13 @@ export const HUISSTIJL_SECTIE = woordenboek({
   nl: {
     label: 'Ledenapp',
     titel: { voor: 'Jouw naam. Jouw kleuren. ', accent: 'Jouw app.' },
-    tekst: 'Kies een kleur en een thema en zie de ledenapp meekleuren. Zo werkt het ook in de software, in elk pakket.',
+    tekst: 'Kies een kleur en een thema en zie de ledenapp meekleuren. Zo werkt het ook in de software, al in de basis.',
     beeldLabel: 'De ledenapp in de gekozen kleur: volgende les, bezoeken deze maand, QR-code en een challenge',
   },
   en: {
     label: 'Member app',
     titel: { voor: 'Your name. Your colours. ', accent: 'Your app.' },
-    tekst: 'Pick a colour and a theme and watch the member app follow. That’s how it works in the software too, in every plan.',
+    tekst: 'Pick a colour and a theme and watch the member app follow. That’s how it works in the software too, already in the core.',
     beeldLabel: 'The member app in the chosen colour: next class, visits this month, QR code and a challenge',
   },
 })

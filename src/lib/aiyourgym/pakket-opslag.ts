@@ -4,15 +4,15 @@
 // altijd op de eigen sportschool (organisatie_id).
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { isPakketSleutel, type PakketSleutel } from './pakketten'
+import { isPakketSleutel, metBasis, type PakketSleutel } from './pakketten'
 import type { PakketActie } from './pakket-wijziging'
 
 export type WijzigStatus = 'aanvraag' | 'test' | 'stripe' | 'verwerkt'
 
-/** Zet precies deze pakketten op de sportschool (idempotent: een vaste lijst). */
+/** Zet precies deze pakketten op de sportschool, altijd met de basis (idempotent: een vaste lijst). */
 export async function zetPakketten(admin: SupabaseClient, organisatieId: string, pakketten: readonly PakketSleutel[]): Promise<boolean> {
   if (pakketten.length === 0) return false
-  const { error } = await admin.from('club_organisaties').update({ pakketten, bijgewerkt_op: new Date().toISOString() }).eq('id', organisatieId)
+  const { error } = await admin.from('club_organisaties').update({ pakketten: metBasis(pakketten), bijgewerkt_op: new Date().toISOString() }).eq('id', organisatieId)
   if (error) console.error('[aiyourgym] pakketten opslaan mislukt', error.code ?? '')
   return !error
 }

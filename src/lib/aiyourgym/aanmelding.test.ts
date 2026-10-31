@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { MAX_VESTIGINGEN_ONLINE, isRobot, leesAanmelding, leesEmail, leesTelefoon } from './aanmelding'
 
 const goed = {
-  pakketten: ['groei', 'lessen'],
+  pakketten: ['groei', 'administratie', 'lessen'],
   sportschoolNaam: '  Sterk   Gym ',
   aantalVestigingen: 2,
   slug: 'Sterkgym',
@@ -17,7 +17,7 @@ describe('leesAanmelding', () => {
   it('maakt goede invoer schoon', () => {
     expect(leesAanmelding(goed)).toEqual({
       ok: true,
-      waarde: { pakketten: ['lessen', 'groei'], sportschoolNaam: 'Sterk Gym', aantalVestigingen: 2, slug: 'sterkgym', eigenaarNaam: 'Sanne de Vries', eigenaarEmail: 'sanne@voorbeeld.nl', eigenaarTelefoon: '+31 6 12345678', wachtwoord: 'Blauwe-kat-rent-7' },
+      waarde: { pakketten: ['administratie', 'lessen', 'groei'], sportschoolNaam: 'Sterk Gym', aantalVestigingen: 2, slug: 'sterkgym', eigenaarNaam: 'Sanne de Vries', eigenaarEmail: 'sanne@voorbeeld.nl', eigenaarTelefoon: '+31 6 12345678', wachtwoord: 'Blauwe-kat-rent-7' },
     })
   })
   it('geeft per veld een fout', () => {
@@ -41,30 +41,38 @@ describe('leesAanmelding', () => {
     expect(uit.ok).toBe(false)
   })
   it('houdt het maximum van online aanmelden aan, voor elke keuze van pakketten', () => {
-    expect(leesAanmelding({ ...goed, pakketten: ['lessen'], aantalVestigingen: 40 }).ok).toBe(true)
-    expect(leesAanmelding({ ...goed, pakketten: ['lessen'], aantalVestigingen: 41 }).ok).toBe(false)
+    expect(leesAanmelding({ ...goed, pakketten: ['administratie', 'lessen'], aantalVestigingen: 40 }).ok).toBe(true)
+    expect(leesAanmelding({ ...goed, pakketten: ['administratie', 'lessen'], aantalVestigingen: 41 }).ok).toBe(false)
     expect(leesAanmelding({ ...goed, aantalVestigingen: 0 }).ok).toBe(false)
     expect(leesAanmelding({ ...goed, aantalVestigingen: 1.5 }).ok).toBe(false)
     expect(leesAanmelding({ ...goed, aantalVestigingen: '2' }).ok).toBe(true)
   })
-  it('losse pakketten: een, meer of alles; nooit geen of een onbekende', () => {
+  it('basis met add-ons: de basis plus nul of meer add-ons; nooit zonder basis, leeg of onbekend', () => {
     const lijst = (p: unknown) => {
       const uit = leesAanmelding({ ...goed, pakketten: p })
       return uit.ok ? uit.waarde.pakketten : null
     }
-    expect(lijst(['lessen'])).toEqual(['lessen'])
+    expect(lijst(['administratie', 'lessen'])).toEqual(['administratie', 'lessen'])
     expect(lijst(['administratie'])).toEqual(['administratie'])
     expect(lijst(['groei', 'administratie', 'groei'])).toEqual(['administratie', 'groei'])
     expect(lijst(['administratie', 'lessen', 'training', 'afspraken', 'team', 'groei'])).toHaveLength(6)
-    expect(lijst('lessen,training')).toEqual(['lessen', 'training'])
+    expect(lijst('lessen,administratie,training')).toEqual(['administratie', 'lessen', 'training'])
     expect(lijst([])).toBeNull()
     expect(lijst(['lessen', 'start'])).toBeNull()
     expect(lijst(['club'])).toBeNull()
     expect(lijst(undefined)).toBeNull()
   })
-  it('een oude link met ?pakket= werkt voor een los pakket', () => {
-    const uit = leesAanmelding({ ...goed, pakketten: undefined, pakket: 'training' })
-    expect(uit.ok && uit.waarde.pakketten).toEqual(['training'])
+  it('een keuze zonder de basis wordt geweigerd met een duidelijke melding (besluit Kane 31-10-2026)', () => {
+    for (const p of [['lessen'], ['lessen', 'groei'], 'training', ['lessen', 'training', 'afspraken', 'team', 'groei']]) {
+      const uit = leesAanmelding({ ...goed, pakketten: p })
+      expect(uit.ok).toBe(false)
+      if (!uit.ok) expect(uit.fouten.pakketten).toMatch(/basis/)
+    }
+  })
+  it('een oude link met ?pakket= werkt alleen met de basis erin', () => {
+    const uit = leesAanmelding({ ...goed, pakketten: undefined, pakket: 'administratie,training' })
+    expect(uit.ok && uit.waarde.pakketten).toEqual(['administratie', 'training'])
+    expect(leesAanmelding({ ...goed, pakketten: undefined, pakket: 'training' }).ok).toBe(false)
   })
   it('weigert onbekende pakketten, gereserveerde adressen en rare tekens', () => {
     expect(leesAanmelding({ ...goed, pakketten: ['gratis'] }).ok).toBe(false)

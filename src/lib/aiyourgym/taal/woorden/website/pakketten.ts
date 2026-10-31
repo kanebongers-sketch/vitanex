@@ -1,4 +1,4 @@
-// De teksten rond de losse pakketten op de website (prijzenpagina, aanmelden,
+// De teksten rond de basis met add-ons op de website (prijzenpagina, aanmelden,
 // prijs op maat). Naam, voor wie en wat erin zit staan per pakket in
 // woorden/algemeen/pakketten.ts (gedeeld met Club); hier alleen de website.
 
@@ -10,7 +10,7 @@ export const PAKKET_TEKST = woordenboek({
   nl: {
     prijsOpMaat: 'Prijs op aanvraag',
     perVestiging: 'Per vestiging per maand, jaarcontract',
-    bundel: 'Neem je alle zes, dan geldt een bundelprijs.',
+    bundel: 'Neem je de basis met alle vijf add-ons, dan geldt een bundelprijs.',
     kies: 'Kies dit pakket',
     gekozen: 'Gekozen',
     weetNiet: 'Weet ik nog niet',
@@ -19,7 +19,7 @@ export const PAKKET_TEKST = woordenboek({
   en: {
     prijsOpMaat: 'Price on request',
     perVestiging: 'Per location per month, annual contract',
-    bundel: 'Take all six and a bundle price applies.',
+    bundel: 'Take the core with all five add-ons and a bundle price applies.',
     kies: 'Choose this package',
     gekozen: 'Chosen',
     weetNiet: 'Not sure yet',

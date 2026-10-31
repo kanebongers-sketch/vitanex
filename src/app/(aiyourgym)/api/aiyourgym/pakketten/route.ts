@@ -14,7 +14,7 @@ import { metEngels } from '@/lib/aiyourgym/taal/woorden/website/meldingen'
 
 // POST /api/aiyourgym/pakketten  { pakket, actie: 'erbij' | 'opzeggen' }
 // Een pakket erbij nemen of opzeggen vanuit Club, Abonnement (besluit Kane
-// 29-10-2026: losse pakketten). Alleen Kane en de eigenaar, alleen voor de
+// 29-10-2026; basis met add-ons sinds 31-10-2026: de basis is niet op te zeggen). Alleen Kane en de eigenaar, alleen voor de
 // eigen sportschool, alleen vanaf de app zelf (vereisBeheerdersBeheer). De
 // regels (wanneer Stripe, testbetaling, direct of een aanvraag) staan in
 // src/lib/aiyourgym/pakket-wijziging.ts. Er gaat geen mail naar buiten.
@@ -25,10 +25,11 @@ import { metEngels } from '@/lib/aiyourgym/taal/woorden/website/meldingen'
 export const dynamic = 'force-dynamic'
 
 const MISLUKT = 'Het pakket kon niet worden aangepast. Probeer het later opnieuw.'
-const FOUT: Record<'onbekend' | 'al' | 'niet' | 'laatste', string> = {
+const FOUT: Record<'onbekend' | 'al' | 'niet' | 'basis' | 'laatste', string> = {
   onbekend: 'Kies een pakket.',
   al: 'Dit pakket heb je al.',
   niet: 'Dit pakket heb je niet.',
+  basis: 'De basis is niet op te zeggen zolang je abonnement loopt. Wil je helemaal stoppen, zeg dan je abonnement op.',
   laatste: 'Je houdt minstens een pakket. Wil je helemaal stoppen, zeg dan je abonnement op.',
 }
 

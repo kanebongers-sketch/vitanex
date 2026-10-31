@@ -21,11 +21,13 @@ describe('testbetaling', () => {
     expect(testbetalingAan({ AIYOURGYM_TESTBETALING: '0' })).toBe(false)
     expect(testbetalenVoor(['lessen'], { AIYOURGYM_TESTBETALING: '0' })).toBe(false)
   })
-  it('een keuze van losse pakketten: Stripe alleen als elk pakket een prijs heeft', () => {
-    expect(testbetalenVoor(['lessen'], STRIPE)).toBe(false)
+  it('een keuze van pakketten: Stripe alleen als elk pakket een prijs heeft, de basis telt altijd mee', () => {
+    // Zonder prijs voor de basis: testbetaling, ook al heeft de add-on een prijs (besluit Kane 31-10-2026).
+    expect(testbetalenVoor(['lessen'], STRIPE)).toBe(true)
+    expect(testbetalenVoor(['lessen'], { ...STRIPE, AIYOURGYM_STRIPE_PRIJS_ADMINISTRATIE: 'price_basis1' })).toBe(false)
     // Een pakket zonder prijs erbij: de hele aanmelding gaat via de testbetaling.
     expect(testbetalenVoor(['lessen', 'groei'], STRIPE)).toBe(true)
-    expect(testbetalenVoor(['lessen', 'groei'], { ...STRIPE, AIYOURGYM_STRIPE_PRIJS_GROEI: 'price_654321' })).toBe(false)
+    expect(testbetalenVoor(['lessen', 'groei'], { ...STRIPE, AIYOURGYM_STRIPE_PRIJS_GROEI: 'price_654321', AIYOURGYM_STRIPE_PRIJS_ADMINISTRATIE: 'price_basis1' })).toBe(false)
     expect(testbetalenVoor([], {})).toBe(false)
   })
   it('alle zes met een bundelprijs: Stripe, ook zonder losse prijzen (geen testbetaling)', () => {

@@ -7,7 +7,7 @@ import { woordenboek } from '../../woordenboek'
 export const ABONNEMENT_STATUS = woordenboek({
   nl: {
     onbekendPakket: 'Onbekend pakket',
-    bundel: 'Alle zes pakketten (bundelprijs)',
+    bundel: 'Basis met alle vijf add-ons (bundelprijs)',
     perMaand: (bedrag: string, inclBtw: boolean) => `${bedrag} per maand, ${inclBtw ? 'incl.' : 'excl.'} btw`,
     opgezegd: 'Opgezegd',
     loptTot: (datum: string) => `Loopt nog tot ${datum}.`,
@@ -28,7 +28,7 @@ export const ABONNEMENT_STATUS = woordenboek({
   },
   en: {
     onbekendPakket: 'Unknown plan',
-    bundel: 'All six packages (bundle price)',
+    bundel: 'Core with all five add-ons (bundle price)',
     perMaand: (bedrag: string, inclBtw: boolean) => `${bedrag} per month, ${inclBtw ? 'incl.' : 'excl.'} VAT`,
     opgezegd: 'Cancelled',
     loptTot: (datum: string) => `Runs until ${datum}.`,

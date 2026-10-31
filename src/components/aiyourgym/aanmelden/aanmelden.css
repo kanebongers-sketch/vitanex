@@ -110,6 +110,10 @@
 .ayg .aan-pakket:hover { transform: translateY(-2px); box-shadow: inset 0 0 0 1.5px var(--ayg-tekst-2), var(--ayg-schaduw-zacht); }
 .ayg .aan-pakket[data-gekozen] { background: var(--ayg-vlak); box-shadow: inset 0 0 0 2.5px var(--ayg-tekst), var(--ayg-schaduw); }
 .ayg .aan-pakket:has(input:focus-visible) { outline: 2px solid var(--ayg-tekst); outline-offset: 3px; }
+/* De basis (besluit Kane 31-10-2026): vast aangevinkt, over de volle breedte, niet klikbaar. */
+.ayg .aan-pakket[data-basis] { cursor: default; }
+.ayg .aan-pakket[data-basis]:hover { transform: none; box-shadow: inset 0 0 0 2.5px var(--ayg-tekst), var(--ayg-schaduw); }
+@media (min-width: 760px) { .ayg .aan-pakket[data-basis] { grid-column: 1 / -1; } }
 .ayg .aan-pakket-kop { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding-right: 32px; }
 .ayg .aan-pakket-naam { font: 700 1.6rem/1 var(--ayg-font-kop); letter-spacing: -0.03em; }
 .ayg .aan-pakket-voor { color: var(--ayg-tekst-2); font-size: 15px; }

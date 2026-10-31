@@ -44,7 +44,7 @@ export const VOORPAGINA = woordenboek({
       ledenapp: {
         kop: 'Een app in jouw naam en kleuren.',
         tekst: 'Reserveren, inchecken en het eigen schema, op het beginscherm van je leden.',
-        punten: ['Jouw logo, naam en kleuren in elk pakket', 'De week in een ring: trainingen gedaan tegen het doel', 'Lessen reserveren, met wachtlijst als het vol is'],
+        punten: ['Jouw logo, naam en kleuren, al in de basis', 'De week in een ring: trainingen gedaan tegen het doel', 'Lessen reserveren, met wachtlijst als het vol is'],
         link: 'Meer over de ledenapp',
         beeldLabel:
           'De ledenapp van Kernhal op twee telefoons: Home met de weekring, de volgende les, bezoeken en de QR-code om in te checken, en daarachter het lesrooster om te reserveren',
@@ -53,7 +53,7 @@ export const VOORPAGINA = woordenboek({
     feiten: {
       titel: 'Wat er in zit',
       stappen: 'stappen in de startwizard. Daarna staat je club live.',
-      pakketten: 'losse pakketten. Kies alleen wat je nodig hebt, elk werkt op zichzelf.',
+      pakketten: 'add-ons bovenop de basis met ledenadministratie en ledenapp. Kies alleen wat je nodig hebt.',
       talen: 'talen, Nederlands en Engels, voor je team en je leden.',
       eu: 'Database en server in Frankfurt, binnen de EU.',
     },
@@ -113,7 +113,7 @@ export const VOORPAGINA = woordenboek({
       ledenapp: {
         kop: 'An app in your name and colours.',
         tekst: 'Booking, check-in and their own programme, on your members’ home screen.',
-        punten: ['Your logo, name and colours in every plan', 'The week as a ring: sessions done against the goal', 'Book classes, with a waiting list when they are full'],
+        punten: ['Your logo, name and colours, already in the core', 'The week as a ring: sessions done against the goal', 'Book classes, with a waiting list when they are full'],
         link: 'More about the member app',
         beeldLabel:
           'The Kernhal member app on two phones: Home with the week ring, the next class, visits and the QR code to check in, and behind it the class timetable for booking',
@@ -122,7 +122,7 @@ export const VOORPAGINA = woordenboek({
     feiten: {
       titel: 'What’s inside',
       stappen: 'steps in the set-up wizard. Then your club is live.',
-      pakketten: 'separate packages. Choose only what you need, each works on its own.',
+      pakketten: 'add-ons on top of the core with membership administration and the member app. Choose only what you need.',
       talen: 'languages, Dutch and English, for your team and your members.',
       eu: 'Database and server in Frankfurt, within the EU.',
     },

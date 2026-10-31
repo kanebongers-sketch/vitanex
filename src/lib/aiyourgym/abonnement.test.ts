@@ -15,7 +15,7 @@ describe('abonnementUitRij', () => {
       pakket: 'start', pakketten: null, aantalVestigingen: 1, status: 'test', stripeKlantId: null, stripeAbonnementId: null, aangemaaktOp: 'x',
     })
     // Een modulaire aanmelding: de losse pakketten in vaste volgorde.
-    expect(abonnementUitRij({ pakket: 'los', pakketten: ['groei', 'lessen'], aantal_vestigingen: 2, status: 'actief', aangemaakt_op: 'x' })?.pakketten).toEqual(['lessen', 'groei'])
+    expect(abonnementUitRij({ pakket: 'los', pakketten: ['groei', 'lessen'], aantal_vestigingen: 2, status: 'actief', aangemaakt_op: 'x' })?.pakketten).toEqual(['administratie', 'lessen', 'groei'])
   })
   it('toont de losse pakketten, of de naam van een oud pakket', () => {
     expect(abonnementWeergave(rij({ pakket: 'los', pakketten: ['lessen', 'groei'] }), null, NU).pakket).toBe('Groepslessen en Groei')
@@ -144,7 +144,7 @@ describe('prijs uit Stripe en de bundel (besluit Kane 30-10-2026)', () => {
     const zes = rij({ pakket: 'los', pakketten: ['administratie', 'lessen', 'training', 'afspraken', 'team', 'groei'] })
     const w = abonnementWeergave(zes, s, NU, 'nl', 'price_alles0001')
     expect(w.bundel).toBe(true)
-    expect(w.pakket).toBe('Alle zes pakketten (bundelprijs)')
+    expect(w.pakket).toBe('Basis met alle vijf add-ons (bundelprijs)')
     expect(w.prijs).toMatch(/238,00 per maand, excl\. btw/)
     expect(abonnementWeergave(zes, s, NU, 'en', 'price_alles0001').prijs).toMatch(/238\.00 per month, excl\. VAT/)
     // Zonder bundelprijs in env, of met losse regels: geen bundel.

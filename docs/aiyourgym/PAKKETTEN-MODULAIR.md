@@ -1,8 +1,12 @@
-# AI Your Gym | losse pakketten
+# AI Your Gym | basis met add-ons
 
-Besluit Kane (29-10-2026, "enorm belangrijk"): een sportschool kiest alleen wat ze nodig heeft. Elk pakket werkt los van de andere. Een kleine kern zit altijd bij elk pakket.
+Besluit Kane (31-10-2026): "Ledenadministratie is eigenlijk de basis. Er moet een basispakket zijn." Dit vervangt het idee dat elk pakket los afgenomen kan worden (besluit 29-10-2026). Het model heet **basis met add-ons**:
 
-## De kern (altijd inbegrepen)
+- **Basis | Ledenadministratie** (sleutel `administratie`, EN "Core | Membership administration"): altijd afgenomen, niet uit te vinken, niet op te zeggen zolang het abonnement loopt. De kleine kern hieronder hoort bij de basis.
+- **Vijf add-ons** bovenop de basis, los te kiezen: `lessen`, `training`, `afspraken`, `team`, `groei`. In teksten heten ze "add-ons" (NL en EN), niet "uitbreidingen".
+- Code: `BASIS_PAKKET`, `ADD_ONS`, `isBasis`, `heeftBasis`, `metBasis` in `src/lib/aiyourgym/pakketten.ts`; weergavenaam via `pakketWeergave()`.
+
+## De kern (altijd in de basis)
 
 - Account, inloggen, master account
 - Vestigingen, openingstijden, regels en sluitingsdagen
@@ -11,11 +15,11 @@ Besluit Kane (29-10-2026, "enorm belangrijk"): een sportschool kiest alleen wat 
 - Ledenlijst en ledenkaart met basisgegevens (naam, contact), notities, ledenbestand inlezen, AVG per lid
 - De ledenapp (Home en Profiel, inloggen, meldingen), Vandaag, Agenda, Notities, Instellingen, Hulp, Wat is nieuw, Abonnement
 
-## De zes pakketten
+## De basis en de vijf add-ons
 
 | Sleutel | Naam | Wat erbij komt |
 |---|---|---|
-| `administratie` | Ledenadministratie | Lidmaatschapsvormen (tabblad Lidmaatschap op de ledenkaart, pauze, opzeggen), check-in (balie, kiosk, QR in de app), cijfers, rapporten |
+| `administratie` | Basis: Ledenadministratie | Lidmaatschapsvormen (tabblad Lidmaatschap op de ledenkaart, pauze, opzeggen), check-in (balie, kiosk, QR in de app), cijfers, rapporten |
 | `lessen` | Groepslessen | Rooster, lestypen, weekrooster, zalen, reserveren en wachtlijst, boekingswidget, tabblad Lessen in de ledenapp |
 | `training` | Training en coaching | Intakes en intakevragen, schema's, oefenbibliotheek met 3D, voeding, voortgang, metingen uit apps, tabbladen Schema, Voeding en Voortgang |
 | `afspraken` | Afspraken | Afspraaktypen, PT, intakes en metingen boeken, tabblad Afspraken |
@@ -26,8 +30,8 @@ Welke schermen, API's, tabbladen en wizardstappen bij welk pakket horen staat op
 
 ### Ledenapp en betalen
 
-- **De ledenapp is kern, geen eigen pakket.** Elk pakket heeft een kanaal naar leden nodig: Groepslessen om te boeken, Training voor het schema, Afspraken om een moment te kiezen. Als los pakket zou een studio met alleen Groepslessen haar leden niet kunnen laten boeken. De app toont alleen de tabbladen van wat is afgenomen.
-- **Betalen (Financien) is nu geen pakket.** Het zit er nog niet in en staat achter schakelaars; verkopen wat er niet is mag niet. Zodra het af is wordt het een zevende los pakket "Betalen": het werkt voor elk pakket (lidgeld, strippenkaarten, PT) en heeft eigen Stripe-kosten en risico voor de sportschool. Tot dan blijft de tekst eerlijk "zit er nog niet in".
+- **De ledenapp is kern, geen eigen pakket.** Elk pakket heeft een kanaal naar leden nodig: Groepslessen om te boeken, Training voor het schema, Afspraken om een moment te kiezen. De ledenapp zit in de basis. De app toont alleen de tabbladen van wat is afgenomen.
+- **Betalen (Financien) is nu geen pakket.** Het zit er nog niet in en staat achter schakelaars; verkopen wat er niet is mag niet. Zodra het af is wordt het een add-on "Betalen": het werkt voor elk pakket (lidgeld, strippenkaarten, PT) en heeft eigen Stripe-kosten en risico voor de sportschool. Tot dan blijft de tekst eerlijk "zit er nog niet in".
 
 ## Afgenomen en aan of uit
 
@@ -36,29 +40,31 @@ Welke schermen, API's, tabbladen en wizardstappen bij welk pakket horen staat op
 - Zichtbaar = afgenomen EN aan. `organisatieUitRij()` rekent `organisatie.uit` uit als de eigen keuze (`eigenUit`) plus alles van de pakketten die niet zijn afgenomen, met een marker `pakket:<sleutel>` voor onderdelen zonder eigen schakelaar. Daardoor volgen menu, zoekveld, hulpbalk, Vandaag, instellingencentrum, hulpartikelen, ledenkaart, ledenapp en wizard het vanzelf.
 - Pagina's: `eisModule()`, `eisOnderdeel()` en `eisPakket()` geven een 404. API: `vereisClubToegang()` en `vereisLidToegang()` controleren `apiAfgenomen()`. Widget: alleen met Groepslessen; proefles-aanvragen (leads) alleen met Groei, anders verwijst de widget naar de ledenapp.
 - De schakelaars "Onderdelen aan of uit" tonen alleen afgenomen onderdelen (`ModulesBlok` met `afgenomen`). Opslaan bewaart altijd `eigenUit`, nooit de afgeleide `uit`.
-- Fit Factory, de demo, het master account en alle bestaande sportscholen hebben alles (standaard van de kolom). Een lege lijst is alleen de kern.
+- Fit Factory, de demo, het master account en alle bestaande sportscholen hebben alles (standaard van de kolom). Een lege lijst is alleen de basis: `leesAfgenomen` en `verborgenVoor` voegen `administratie` altijd toe; `leesAfgenomenInvoer` weigert een lijst zonder basis.
+- Database: migratie 485 (`485_club_basispakket.sql`, nog door Kane uit te voeren) voegt `administratie` toe waar het ontbreekt (31-10-2026 alleen de testsportschool Stripetest) en zet de check `club_organisaties_basis_check`.
 
 Functies voor andere onderdelen: `heeftPakket`, `onderdeelAfgenomen`, `moduleAfgenomen`, `zichtbaar(uit, { sleutel, module })`, `pakketZichtbaar(uit, pakket)`, labels via `pakketInTaal()` en `pakkettenTekst()` (`src/lib/aiyourgym/taal/woorden/algemeen/pakketten.ts`).
 
 ## Aanmelden, Stripe en abonnement
 
-- Aanmelden: een of meer pakketten (selectievakjes) met een voorstel per soort sportschool (`VOORSTEL_PER_SOORT`, bijvoorbeeld yoga: Groepslessen). `?pakketten=lessen,groei` vult de keuze in.
-- Stripe Checkout: een regel per pakket, hoeveelheid = aantal vestigingen (jaarcontract, maandelijks per vestiging). Prijs per pakket in `AIYOURGYM_STRIPE_PRIJS_<SLEUTEL>`. Alleen als elk gekozen pakket een prijs heeft; anders testbetaling, anders een aanvraag.
-- Inrichten zet precies de gekozen pakketten. De webhook (`customer.subscription.updated`) zet daarna precies de pakketten van de regels van het abonnement (idempotent; een onbekende prijs verandert niets).
-- Club, Abonnement: per pakket erbij nemen of opzeggen. Met Stripe-abonnement en prijs: een regel erbij (Stripe rekent naar rato). Zonder Stripe: testbetaling, er wordt niets afgeschreven. Opzeggen bij een echt contract en alles zonder prijs: een aanvraag in `ayg_pakket_wijzigingen` die Kane verwerkt. Het master account zet pakketten direct. Minstens een pakket blijft over.
-- Website: prijzenpagina met de zes pakketten en de kern, "Prijs op aanvraag", geen bedragen.
+- Aanmelden: de basis staat vast aangevinkt (met slotje en korte uitleg), de add-ons zijn selectievakjes. `?pakketten=lessen,groei` vult de add-ons in; de basis komt er altijd bij. De server (`leesAanmelding`) weigert een keuze zonder basis. `VOORSTEL_PER_SOORT` bevat altijd de basis.
+- Stripe Checkout: altijd de basisregel plus een regel per add-on (`stripeRegels` voegt de basis toe), of de bundelregel als het alle zes zijn; hoeveelheid = aantal vestigingen (jaarcontract, maandelijks per vestiging). Prijs per pakket in `AIYOURGYM_STRIPE_PRIJS_<SLEUTEL>`. Alleen als elk gekozen pakket een prijs heeft; anders testbetaling, anders een aanvraag.
+- Inrichten zet precies de gekozen pakketten, altijd met de basis. De webhook (`customer.subscription.updated`) en de testbetaling zetten daarna precies de pakketten van de regels van het abonnement, altijd met de basis (`pakkettenVanPrijzen` en `zetPakketten` gebruiken `metBasis`; idempotent; een onbekende prijs verandert niets).
+- Club, Abonnement: de basis staat vast bovenaan zonder knop; per add-on erbij nemen of opzeggen. Met Stripe-abonnement en prijs: een regel erbij (Stripe rekent naar rato). Zonder Stripe: testbetaling, er wordt niets afgeschreven. Opzeggen bij een echt contract en alles zonder prijs: een aanvraag in `ayg_pakket_wijzigingen` die Kane verwerkt. Het master account zet add-ons direct. De basis opzeggen weigert de API altijd (`fout: 'basis'`), ook voor het master account; helemaal stoppen is het abonnement opzeggen.
+- Website: het verhaal is "een basis met ledenadministratie en ledenapp, plus vijf add-ons". Prijzenpagina met de kern, de basis over de volle breedte en daaronder de vijf add-ons (knop "Basis plus deze add-on"), "Prijs op aanvraag", geen bedragen. Geen "losse pakketten" of "alleen Groepslessen" meer (bewaker `src/components/aiyourgym/pakket-aantal.test.ts`).
 
 ## Startwizard
 
-Alleen de stappen van de kern en de afgenomen pakketten: de stap Lessen alleen met Groepslessen (`WIZARD_STAP_PAKKET`). De stap Onderdelen toont alleen afgenomen onderdelen.
+Alleen de stappen van de kern en de afgenomen pakketten: de stap Lessen alleen met Groepslessen (`WIZARD_STAP_PAKKET`). De stap Onderdelen toont alleen afgenomen onderdelen; de basis is niet weg te halen, de schakelaars van onderdelen binnen de basis (check-in, cijfers) blijven zoals ze zijn.
 
 ## Bewaking
 
-`src/lib/club/kern/pakketten-routes.test.ts`: elke pagina en API van een pakket geeft een 404 zonder dat pakket; elk pakket alleen (kern plus een) heeft geen dode links in menu, zoekveld, hulpbalk, Vandaag, instellingen, hulp, ledenkaart en ledenapp; de kern alleen werkt; elke nieuwe API-map en elk nieuw onderdeel moet een plek krijgen.
+`src/lib/club/kern/pakketten-routes.test.ts`: elke pagina en API van een pakket geeft een 404 zonder dat pakket; elk pakket met de basis (basis plus een add-on) heeft geen dode links in menu, zoekveld, hulpbalk, Vandaag, instellingen, hulp, ledenkaart en ledenapp; de basis alleen werkt; de basis is altijd afgenomen; elke nieuwe API-map en elk nieuw onderdeel moet een plek krijgen.
 
 ## Wat Kane nog doet
 
-1. Per pakket een prijs kiezen (per vestiging per maand, jaarcontract).
-2. In Stripe per pakket een product met een terugkerende prijs maken en het prijs-id in Render zetten als `AIYOURGYM_STRIPE_PRIJS_ADMINISTRATIE`, `_LESSEN`, `_TRAINING`, `_AFSPRAKEN`, `_TEAM`, `_GROEI`. De oude `_START`, `_CLUB`, `_KETEN` mogen weg.
-3. Kiezen of en in welke pakketten persoonlijke hulp bij het inrichten gratis is (de website noemt nu geen pakketten meer).
-4. Open aanvragen (pakket erbij of opzeggen) staan in `ayg_pakket_wijzigingen` met status `aanvraag`.
+1. Migratie 485 uitvoeren.
+2. Per pakket een prijs kiezen (per vestiging per maand, jaarcontract). Zonder prijs voor de basis (`AIYOURGYM_STRIPE_PRIJS_ADMINISTRATIE`) gaat elke aanmelding via de testbetaling.
+3. In Stripe per pakket een product met een terugkerende prijs maken en het prijs-id in Render zetten als `AIYOURGYM_STRIPE_PRIJS_ADMINISTRATIE`, `_LESSEN`, `_TRAINING`, `_AFSPRAKEN`, `_TEAM`, `_GROEI`. De oude `_START`, `_CLUB`, `_KETEN` mogen weg.
+4. Kiezen of en in welke pakketten persoonlijke hulp bij het inrichten gratis is (de website noemt nu geen pakketten meer).
+5. Open aanvragen (pakket erbij of opzeggen) staan in `ayg_pakket_wijzigingen` met status `aanvraag`.

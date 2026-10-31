@@ -15,10 +15,12 @@ import type { Taal } from '../../taal'
 const VAST: Readonly<Record<string, string>> = {
   // Aanmelden (src/lib/aiyourgym/aanmelding.ts)
   'Kies minstens een pakket.': 'Choose at least one package.',
+  'De basis (Ledenadministratie) zit altijd in je keuze.': 'The core (Membership administration) is always part of your choice.',
   // Pakketten erbij of opzeggen in Club (src/app/(aiyourgym)/api/aiyourgym/pakketten)
   'Kies een pakket.': 'Choose a package.',
   'Dit pakket heb je al.': 'You already have this package.',
   'Dit pakket heb je niet.': 'You do not have this package.',
+  'De basis is niet op te zeggen zolang je abonnement loopt. Wil je helemaal stoppen, zeg dan je abonnement op.': 'The core cannot be cancelled while your subscription runs. To stop completely, cancel your subscription.',
   'Je houdt minstens een pakket. Wil je helemaal stoppen, zeg dan je abonnement op.': 'You keep at least one package. To stop completely, cancel your subscription.',
   'Het pakket kon niet worden aangepast. Probeer het later opnieuw.': 'The package could not be changed. Please try again later.',
   'Vul de naam van je sportschool in.': 'Enter the name of your gym.',

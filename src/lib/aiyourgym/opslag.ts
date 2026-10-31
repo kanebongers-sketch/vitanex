@@ -4,7 +4,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Aanmelding } from './aanmelding'
-import { PAKKET_SLEUTELS, leesPakketKeuze, type PakketSleutel } from './pakketten'
+import { PAKKET_SLEUTELS, leesPakketKeuze, metBasis, type PakketSleutel } from './pakketten'
 import { isAanmeldStatus, volgendeStatus, type AanmeldStatus, type Gebeurtenis } from './status'
 
 export const AANMELDING_KOLOMMEN = 'id, pakket, pakketten, sportschool_naam, slug, aantal_vestigingen, eigenaar_naam, eigenaar_email, eigenaar_telefoon, status, stripe_customer_id, stripe_subscription_id, stripe_session_id, organisatie_id, eigenaar_wachtwoord_hash, aangemaakt_op, bijgewerkt_op'
@@ -13,7 +13,7 @@ export interface AanmeldingRij {
   id: string
   /** 'los' voor een modulaire aanmelding; oude aanmeldingen: start, club of keten. */
   pakket: string
-  /** De gekozen losse pakketten. Een oude aanmelding (zonder lijst) kreeg alles. */
+  /** De gekozen pakketten, altijd met de basis. Een oude aanmelding (zonder lijst) kreeg alles. */
   pakketten: PakketSleutel[]
   sportschoolNaam: string
   slug: string
@@ -51,7 +51,7 @@ export function aanmeldingUitRij(rij: unknown): AanmeldingRij | null {
   return {
     id: r.id,
     pakket: tekst(r.pakket),
-    pakketten: leesPakketKeuze(r.pakketten) ?? [...PAKKET_SLEUTELS],
+    pakketten: metBasis(leesPakketKeuze(r.pakketten) ?? PAKKET_SLEUTELS),
     sportschoolNaam: tekst(r.sportschool_naam),
     slug: tekst(r.slug),
     aantalVestigingen: typeof r.aantal_vestigingen === 'number' ? r.aantal_vestigingen : 1,
@@ -230,15 +230,17 @@ export async function geefEventVrij(admin: SupabaseClient, eventId: string): Pro
  */
 export async function zetPakkettenVanAbonnement(admin: SupabaseClient, abonnementId: string, pakketten: readonly PakketSleutel[]): Promise<'ok' | 'fout'> {
   if (pakketten.length === 0) return 'ok'
+  // De basis staat er altijd in (besluit Kane 31-10-2026).
+  const lijst = metBasis(pakketten)
   const { data, error } = await admin.from('ayg_aanmeldingen').select('id, organisatie_id').eq('stripe_subscription_id', abonnementId).maybeSingle()
   if (error) return 'fout'
   const rij = data as { id?: unknown; organisatie_id?: unknown } | null
   if (!rij || typeof rij.id !== 'string') return 'ok'
   const nu = new Date().toISOString()
-  const { error: aFout } = await admin.from('ayg_aanmeldingen').update({ pakketten, bijgewerkt_op: nu }).eq('id', rij.id)
+  const { error: aFout } = await admin.from('ayg_aanmeldingen').update({ pakketten: lijst, bijgewerkt_op: nu }).eq('id', rij.id)
   if (aFout) return 'fout'
   if (typeof rij.organisatie_id !== 'string') return 'ok'
-  const { error: oFout } = await admin.from('club_organisaties').update({ pakketten, bijgewerkt_op: nu }).eq('id', rij.organisatie_id)
+  const { error: oFout } = await admin.from('club_organisaties').update({ pakketten: lijst, bijgewerkt_op: nu }).eq('id', rij.organisatie_id)
   if (oFout) console.error('[aiyourgym] pakketten bijwerken mislukt', oFout.code ?? '')
   return oFout ? 'fout' : 'ok'
 }

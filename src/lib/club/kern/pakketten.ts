@@ -15,14 +15,18 @@
 // widget) geven een 404. Een test (pakketten-routes.test.ts) loopt alle routes
 // en elk pakket alleen langs.
 //
+// Basis met add-ons (besluit Kane 31-10-2026): de basis (`administratie`,
+// Ledenadministratie) is altijd afgenomen. leesAfgenomen en verborgenVoor
+// voegen hem altijd toe; leesAfgenomenInvoer weigert een lijst zonder basis.
+//
 // Wat bij welk pakket hoort, staat alleen hier. Een nieuw onderdeel of een
 // nieuwe API-map moet hier een plek krijgen (null = kern); de test faalt anders.
 
-import { PAKKET_SLEUTELS, isPakketSleutel, sorteerPakketten, type PakketSleutel } from '@/lib/aiyourgym/pakketten'
+import { BASIS_PAKKET, PAKKET_SLEUTELS, heeftBasis, isPakketSleutel, metBasis, sorteerPakketten, type PakketSleutel } from '@/lib/aiyourgym/pakketten'
 import type { Module } from './organisatie'
 
 export type { PakketSleutel }
-export { PAKKET_SLEUTELS }
+export { BASIS_PAKKET, PAKKET_SLEUTELS, metBasis }
 
 /** Alles afgenomen: Fit Factory, de demo, het master account en alle sportscholen van voor 29-10-2026. */
 export const ALLE_PAKKETTEN: readonly PakketSleutel[] = PAKKET_SLEUTELS
@@ -175,12 +179,12 @@ export const WIZARD_STAP_PAKKET: Readonly<Record<string, PakketSleutel>> = {
 
 /**
  * club_organisaties.pakketten lezen, vergevingsgezind: ontbreekt de kolom of is
- * hij kapot, dan alles (zo werkt het zoals voor 29-10-2026). Een lege lijst
- * blijft leeg: dan heeft de sportschool alleen de kern.
+ * hij kapot, dan alles (zo werkt het zoals voor 29-10-2026). De basis is er
+ * altijd (besluit Kane 31-10-2026), ook als hij in de rij ontbreekt.
  */
 export function leesAfgenomen(ruw: unknown): PakketSleutel[] {
   if (!Array.isArray(ruw)) return [...ALLE_PAKKETTEN]
-  return sorteerPakketten(ruw.filter(isPakketSleutel))
+  return metBasis(ruw.filter(isPakketSleutel))
 }
 
 export function heeftPakket(afgenomen: readonly PakketSleutel[], p: PakketSleutel | null | undefined): boolean {
@@ -209,7 +213,8 @@ export function onderdeelAfgenomen(afgenomen: readonly PakketSleutel[], sleutel:
  * onderdelen en markers van de pakketten die niet zijn afgenomen.
  */
 export function verborgenVoor(eigenUit: readonly Module[], afgenomen: readonly PakketSleutel[]): Verborgen[] {
-  const niet = ALLE_PAKKETTEN.filter((p) => !afgenomen.includes(p))
+  const met = metBasis(afgenomen)
+  const niet = ALLE_PAKKETTEN.filter((p) => !met.includes(p))
   const modules = (Object.keys(MODULE_PAKKET) as Module[]).filter((m) => eigenUit.includes(m) || niet.includes(MODULE_PAKKET[m] as PakketSleutel))
   return [...modules, ...niet.map(pakketMarker)]
 }
@@ -258,8 +263,14 @@ export function wizardStapNodig(afgenomen: readonly PakketSleutel[], stap: strin
   return heeftPakket(afgenomen, WIZARD_STAP_PAKKET[stap])
 }
 
-/** Uit een invoer voor de database: minstens een bekend pakket, geen dubbelen. */
+/** Uit een invoer voor de database: bekende pakketten met de basis erin, geen dubbelen. Zonder basis = null. */
 export function leesAfgenomenInvoer(ruw: unknown): PakketSleutel[] | null {
   if (!Array.isArray(ruw) || ruw.length === 0 || !ruw.every(isPakketSleutel)) return null
-  return sorteerPakketten(ruw)
+  const lijst = sorteerPakketten(ruw)
+  return heeftBasis(lijst) ? lijst : null
+}
+
+/** De basis is altijd zichtbaar als pakket: nooit uit te vinken of op te zeggen. */
+export function isBasisPakket(p: PakketSleutel): boolean {
+  return p === BASIS_PAKKET
 }

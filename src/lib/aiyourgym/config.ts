@@ -12,7 +12,7 @@
 //   AIYOURGYM_RESEND_FROM              afzender voor de welkomstmail (optioneel)
 //   AIYOURGYM_PORTAAL_URL              basis voor de inloglink zonder subdomeinen (optioneel)
 
-import { PAKKET_SLEUTELS, isAllePakketten, type PakketSleutel } from './pakketten'
+import { PAKKET_SLEUTELS, isAllePakketten, metBasis, type PakketSleutel } from './pakketten'
 
 type Env = Record<string, string | undefined>
 
@@ -70,13 +70,15 @@ export interface StripeRegel {
  * een bundelprijs: een regel met de bundel (besluit Kane 30-10-2026). Anders een
  * regel per pakket, alleen als elk pakket een prijs heeft. Ontbreekt er een
  * prijs, dan null (een abonnement met deels prijzen kan niet). Alle zes zonder
- * bundelprijs: zes losse regels, als die er alle zes zijn.
+ * bundelprijs: zes losse regels, als die er alle zes zijn. De basis
+ * (Ledenadministratie) staat er altijd bij (besluit Kane 31-10-2026).
  */
 export function stripeRegels(pakketten: readonly PakketSleutel[], env: Env = process.env): StripeRegel[] | null {
   if (pakketten.length === 0) return null
+  const lijst = metBasis(pakketten)
   const alles = stripePrijsAlles(env)
-  if (alles && isAllePakketten(pakketten)) return [{ regel: 'alles', prijsId: alles }]
-  const regels = pakketten.map((regel) => ({ regel, prijsId: stripePrijs(regel, env) }))
+  if (alles && isAllePakketten(lijst)) return [{ regel: 'alles', prijsId: alles }]
+  const regels = lijst.map((regel) => ({ regel, prijsId: stripePrijs(regel, env) }))
   return regels.every((r) => r.prijsId !== null) ? (regels as StripeRegel[]) : null
 }
 

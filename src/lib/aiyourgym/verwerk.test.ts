@@ -151,9 +151,10 @@ describe('pakketten via Stripe (losse pakketten, besluit Kane 29-10-2026)', () =
     const uit = await metEnv(() => verwerkEvent(admin, { soort: 'abonnement', id: 'evt_7', abonnementId: 'sub_1', stripeStatus: 'active', prijzen: ['price_groei001', 'price_lessen01'] }, deps()))
     expect(uit).toBe('ok')
     const org = vragen.find((v) => v.tabel === 'club_organisaties' && v.actie === 'update')
-    expect(org?.waarde).toMatchObject({ pakketten: ['lessen', 'groei'] })
+    // De basis staat er altijd in (besluit Kane 31-10-2026), ook als Stripe alleen add-ons noemt.
+    expect(org?.waarde).toMatchObject({ pakketten: ['administratie', 'lessen', 'groei'] })
     expect(org?.filters).toContainEqual(['eq', 'id', ORG])
-    expect(vragen.some((v) => v.tabel === 'ayg_aanmeldingen' && v.actie === 'update' && JSON.stringify((v.waarde as { pakketten?: unknown }).pakketten) === '["lessen","groei"]')).toBe(true)
+    expect(vragen.some((v) => v.tabel === 'ayg_aanmeldingen' && v.actie === 'update' && JSON.stringify((v.waarde as { pakketten?: unknown }).pakketten) === '["administratie","lessen","groei"]')).toBe(true)
   })
   it('twee keer hetzelfde event: dezelfde vaste lijst (idempotent, nooit optellen)', async () => {
     const een = lopend()
@@ -162,8 +163,8 @@ describe('pakketten via Stripe (losse pakketten, besluit Kane 29-10-2026)', () =
     await metEnv(() => verwerkEvent(een.admin, e, deps()))
     await metEnv(() => verwerkEvent(twee.admin, e, deps()))
     const lijst = (v: Vraag[]) => v.filter((x) => x.tabel === 'club_organisaties').map((x) => (x.waarde as { pakketten?: unknown }).pakketten)
-    expect(lijst(een.vragen)).toEqual([['lessen']])
-    expect(lijst(twee.vragen)).toEqual([['lessen']])
+    expect(lijst(een.vragen)).toEqual([['administratie', 'lessen']])
+    expect(lijst(twee.vragen)).toEqual([['administratie', 'lessen']])
   })
   it('een onbekende prijs verandert niets aan de pakketten', async () => {
     const { admin, vragen } = lopend()
