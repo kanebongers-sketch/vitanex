@@ -10,8 +10,8 @@ import type { PakketKeuze } from './types'
 // (Ledenadministratie) staat vast aangevinkt met een korte uitleg; de vijf
 // add-ons zijn selectievakjes, vormgegeven als kaarten. Niets van de add-ons
 // staat vooraf aan (besluit Kane 30-10-2026): de klant kiest zelf.
-// Geen bedragen: die toont Stripe voor het betalen. Wel een regel dat de basis
-// met alle vijf add-ons een bundelprijs heeft (besluit Kane 30-10-2026), zonder bedrag.
+// Geen bedragen: die toont Stripe voor het betalen. Wel een regel dat de prijs
+// een staffel per vestiging volgt (besluit Kane 31-10-2026), zonder bedrag.
 
 interface StapPakketProps {
   pakketten: readonly PakketKeuze[]
@@ -74,7 +74,7 @@ export function StapPakket({ pakketten, gekozen, fout, onWissel }: StapPakketPro
           )
         })}
       </div>
-      <p className="aan-uitleg">{w.bundel}</p>
+      <p className="aan-uitleg">{w.staffel}</p>
       {fout && (
         <p id="pakket-fout" className="aan-fout" role="alert">
           {fout}

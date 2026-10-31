@@ -6,6 +6,7 @@
 import { wachtwoordFout } from '@/lib/club/kern/wachtwoord-regels'
 import { leesSlug } from '@/lib/club/kern/subdomein'
 import { heeftBasis, leesPakketKeuze, type PakketSleutel } from './pakketten'
+import { leesLedenSchatting, type LedenSchatting } from './staffel'
 
 /** Een body groter dan dit lezen we niet eens. */
 export const MAX_BODY_BYTES = 4_096
@@ -19,6 +20,13 @@ export interface Aanmelding {
   pakketten: PakketSleutel[]
   sportschoolNaam: string
   aantalVestigingen: number
+  /**
+   * Schatting van het aantal actieve leden van de eerste vestiging: de
+   * bovengrens van een staffel (25 tot 5000) of 'op_maat' (meer dan 5000). De
+   * checkout gebruikt hem als hoeveelheid; daarna houdt de dagelijkse telling
+   * het bij (besluit Kane 31-10-2026, staffel.ts).
+   */
+  ledenSchatting: LedenSchatting
   slug: string
   eigenaarNaam: string
   eigenaarEmail: string
@@ -84,6 +92,9 @@ export function leesAanmelding(body: unknown): AanmeldUitslag {
   const aantalVestigingen = leesAantal(b.aantalVestigingen, MAX_VESTIGINGEN_ONLINE)
   if (aantalVestigingen === null) fouten.aantalVestigingen = `Kies 1 tot ${MAX_VESTIGINGEN_ONLINE} vestigingen.`
 
+  const ledenSchatting = leesLedenSchatting(b.ledenSchatting)
+  if (ledenSchatting === null) fouten.ledenSchatting = 'Kies hoeveel leden je eerste vestiging ongeveer heeft.'
+
   const slug = leesSlug(b.slug)
   if (!slug.ok) fouten.slug = slug.fout
 
@@ -105,10 +116,10 @@ export function leesAanmelding(body: unknown): AanmeldUitslag {
 
   if (b.akkoord !== true) fouten.akkoord = 'Ga akkoord met de voorwaarden en de privacyverklaring.'
 
-  if (Object.keys(fouten).length > 0 || !pakketten || aantalVestigingen === null || !slug.ok || !eigenaarEmail || !eigenaarTelefoon) {
+  if (Object.keys(fouten).length > 0 || !pakketten || aantalVestigingen === null || ledenSchatting === null || !slug.ok || !eigenaarEmail || !eigenaarTelefoon) {
     return { ok: false, fouten }
   }
-  return { ok: true, waarde: { pakketten, sportschoolNaam, aantalVestigingen, slug: slug.slug, eigenaarNaam, eigenaarEmail, eigenaarTelefoon, wachtwoord } }
+  return { ok: true, waarde: { pakketten, sportschoolNaam, aantalVestigingen, ledenSchatting, slug: slug.slug, eigenaarNaam, eigenaarEmail, eigenaarTelefoon, wachtwoord } }
 }
 
 /** Een onzichtbaar veld dat mensen leeg laten; robots vullen het vaak wel. */

@@ -9,18 +9,18 @@
 //   - Anders, en opzeggen bij een echt (Stripe-)contract: een aanvraag. Het
 //     contract is een jaarcontract; Kane verwerkt het volgens dat contract.
 //   - Het master account (Kane) zet pakketten direct, voor elke sportschool.
-//   - Bundel (besluit Kane 30-10-2026): heeft een sportschool na erbij nemen alle
-//     zes, dan worden de losse regels in een keer de bundelregel
-//     (AIYOURGYM_STRIPE_PRIJS_ALLES), via Stripe met proration; zie regelWissel.
-//     Opzeggen is altijd een aanvraag volgens het jaarcontract, ook vanuit de
-//     bundel: Kane verwerkt die.
+//   - Opzeggen bij een echt contract is altijd een aanvraag volgens het
+//     jaarcontract: Kane verwerkt die.
+//   - Staffels (besluit Kane 31-10-2026): elke vestiging heeft een eigen
+//     abonnement; een pakket erbij komt op elk abonnement, met de hoeveelheid
+//     (actieve leden) van dat abonnement. Geen bundel meer.
 // Basis met add-ons (besluit Kane 31-10-2026): de basis (Ledenadministratie)
 // is niet op te zeggen zolang het abonnement loopt, ook niet door het master
 // account; alleen add-ons gaan erbij of eraf. Helemaal stoppen is het
 // abonnement opzeggen (Stripe Customer Portal). Elke lijst houdt de basis (metBasis).
 
-import { PAKKET_SLEUTELS, isBasis, isPakketSleutel, metBasis, type PakketSleutel } from './pakketten'
-import { pakketVanPrijs, stripePrijsAlles } from './config'
+import { isBasis, isPakketSleutel, metBasis, type PakketSleutel } from './pakketten'
+import { pakketVanPrijs } from './config'
 
 export const PAKKET_ACTIES = ['erbij', 'opzeggen'] as const
 export type PakketActie = (typeof PAKKET_ACTIES)[number]
@@ -54,7 +54,7 @@ export interface WegInvoer {
   platformEigenaar: boolean
   /** Heeft de sportschool een lopend Stripe-abonnement? */
   stripeAbonnement: boolean
-  /** Kan de nieuwe set pakketten via Stripe (sleutel en een prijs per regel, of de bundel)? */
+  /** Kan de nieuwe set pakketten via Stripe (sleutel en een prijs per pakket)? */
   afsluitbaar: boolean
   /** Staat de testbetaling aan voor dit pakket (testbetalen)? */
   testbetalen: boolean
@@ -62,7 +62,7 @@ export interface WegInvoer {
 
 export function pakketWeg(i: WegInvoer): PakketWeg {
   if (i.platformEigenaar) return 'direct'
-  // Opzeggen bij een echt contract is altijd een aanvraag (jaarcontract), ook vanuit de bundel.
+  // Opzeggen bij een echt contract is altijd een aanvraag (jaarcontract).
   if (i.stripeAbonnement) return i.actie === 'erbij' && i.afsluitbaar ? 'stripe' : 'aanvraag'
   return i.testbetalen ? 'test' : 'aanvraag'
 }
@@ -75,16 +75,12 @@ export function naWijziging(afgenomen: readonly PakketSleutel[], v: PakketVerzoe
 /**
  * De pakketten achter de prijzen van een Stripe-abonnement, of null als er een
  * prijs bij zit die we niet kennen (dan veranderen we niets: liever niets dan fout).
- * De bundelprijs betekent alle zes pakketten (besluit Kane 30-10-2026). De
- * basis staat er altijd in (besluit Kane 31-10-2026), ook als Stripe hem mist.
+ * De basis staat er altijd in (besluit Kane 31-10-2026), ook als Stripe hem mist.
  */
 export function pakkettenVanPrijzen(prijzen: readonly string[], env: Record<string, string | undefined> = process.env): PakketSleutel[] | null {
   if (prijzen.length === 0) return null
-  const alles = stripePrijsAlles(env)
-  const losse = prijzen.filter((p) => p !== alles)
-  const pakketten = losse.map((p) => pakketVanPrijs(p, env))
+  const pakketten = prijzen.map((p) => pakketVanPrijs(p, env))
   if (pakketten.some((p) => p === null)) return null
-  if (alles && losse.length < prijzen.length) return [...PAKKET_SLEUTELS]
   return metBasis(pakketten as PakketSleutel[])
 }
 
@@ -133,7 +129,7 @@ export function wisselLeeg(w: RegelWissel): boolean {
   return w.weg.length === 0 && w.erbij.length === 0
 }
 
-/** Het aantal vestigingen op het abonnement: van een eigen regel, anders wat we zelf weten. */
+/** De hoeveelheid (actieve leden) op het abonnement: van een eigen regel, anders de terugval. */
 export function aantalVanRegels(huidig: readonly AbonnementRegel[], eigen: readonly string[], terugval: number): number {
   return huidig.find((r) => eigen.includes(r.prijsId) && r.aantal !== null)?.aantal ?? terugval
 }

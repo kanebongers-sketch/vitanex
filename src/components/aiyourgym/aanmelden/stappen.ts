@@ -6,7 +6,7 @@ import type { AanmeldVeld } from '@/lib/aiyourgym/aanmelding'
 // deze stap komt) staan per taal in het woordenboek van de aanmeldpagina.
 export const STAPPEN = [
   { sleutel: 'pakket', velden: ['pakketten'] },
-  { sleutel: 'sportschool', velden: ['sportschoolNaam', 'aantalVestigingen', 'slug'] },
+  { sleutel: 'sportschool', velden: ['sportschoolNaam', 'aantalVestigingen', 'ledenSchatting', 'slug'] },
   { sleutel: 'eigenaar', velden: ['eigenaarNaam', 'eigenaarEmail', 'eigenaarTelefoon', 'wachtwoord', 'wachtwoordHerhaal'] },
   { sleutel: 'akkoord', velden: ['akkoord'] },
 ] as const satisfies readonly { sleutel: string; velden: readonly AanmeldVeld[] }[]

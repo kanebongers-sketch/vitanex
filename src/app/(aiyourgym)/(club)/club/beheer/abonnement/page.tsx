@@ -3,7 +3,9 @@ import Link from 'next/link'
 import { eisBeheerdersBeheer, type ClubToegang } from '@/lib/club/toegang'
 import { abonnementWeergave, type AbonnementWeergave } from '@/lib/aiyourgym/abonnement'
 import { stripeAbonnementVan, vindAbonnement } from '@/lib/aiyourgym/abonnement-opslag'
-import { stripePrijsAlles, stripeSleutel } from '@/lib/aiyourgym/config'
+import { stripeSleutel } from '@/lib/aiyourgym/config'
+import { laadStaffelBlok } from '@/lib/aiyourgym/staffel-pagina'
+import { StaffelOverzicht } from '@/components/club/abonnement/StaffelOverzicht'
 import { PortaalKnop } from '@/components/club/abonnement/PortaalKnop'
 import { PakkettenBeheer } from '@/components/club/abonnement/PakkettenBeheer'
 import { openAanvragen } from '@/lib/aiyourgym/pakket-opslag'
@@ -22,7 +24,7 @@ type AboTekst = (typeof BEHEER_PAGINAS)['nl']['abonnement']
 export const dynamic = 'force-dynamic'
 
 // Het abonnement van de sportschool bij AI Your Gym: pakket, vestigingen en
-// status, de knop naar het Stripe Customer Portal (facturen, betaalgegevens,
+// status, de staffel per vestiging (actieve leden, besluit Kane 31-10-2026), de knop naar het Stripe Customer Portal (facturen, betaalgegevens,
 // opzeggen) en de losse pakketten erbij nemen of opzeggen (PakkettenBeheer).
 // Alleen Kane en de eigenaar; een clubmanager krijgt een 404.
 
@@ -84,9 +86,9 @@ export default async function AbonnementPagina() {
   const t = await eisBeheerdersBeheer()
   const [gelezen, aanvragen] = await Promise.all([vindAbonnement(t.admin, t.userId), openAanvragen(t.admin, t.userId)])
   const rij = gelezen.soort === 'gevonden' ? gelezen.rij : null
-  const stripe = rij ? await stripeAbonnementVan(rij) : null
   const nu = new Date()
   const taal = await getTaal()
+  const [stripe, staffel] = await Promise.all([rij ? stripeAbonnementVan(rij) : Promise.resolve(null), laadStaffelBlok(t.admin, t.userId, t.vestigingen, rij, taal, nu)])
   const a = BEHEER_PAGINAS[taal].abonnement
   const titel = (await instelKop('abonnement')).titel
   const sinds = rij && !Number.isNaN(Date.parse(rij.aangemaaktOp)) ? formatDatum(rij.aangemaaktOp, taal) : a.onbekend
@@ -104,7 +106,8 @@ export default async function AbonnementPagina() {
       <div className="club-abo">
         {gelezen.soort === 'fout' && <p className="club-melding club-melding--fout" role="status">{a.leesFout}</p>}
         {gelezen.soort === 'geen' && <GeenAbonnement t={t} a={a} />}
-        {rij && <Abonnement w={abonnementWeergave(rij, stripe, nu, taal, stripePrijsAlles())} sinds={sinds} betalenIngesteld={stripeSleutel() !== null} a={a} />}
+        {rij && <Abonnement w={abonnementWeergave(rij, stripe, nu, taal, t.vestigingen.length, staffel.totaal ?? stripe?.bedrag ?? null)} sinds={sinds} betalenIngesteld={stripeSleutel() !== null} a={a} />}
+        {t.vestigingen.length > 0 && <StaffelOverzicht regels={staffel.regels} metBedrag={staffel.metBedrag} metAbonnementen={staffel.metAbonnementen} wijzigingen={staffel.wijzigingen} taal={taal} />}
         <PakkettenBeheer afgenomen={t.organisatie.afgenomen} aanvragen={aanvragen ?? []} />
       </div>
     </>

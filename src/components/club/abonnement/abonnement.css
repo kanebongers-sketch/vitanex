@@ -46,3 +46,20 @@
 }
 .club-abo-kern { display: grid; gap: 4px; padding: 14px 18px; border: 1px dashed var(--line-strong); border-radius: var(--club-radius); }
 .club-abo-kern p { margin: 0; line-height: 1.5; }
+
+/* Staffel per vestiging (besluit Kane 31-10-2026): een rustige tabel, getallen rechts uitgelijnd. */
+.club-abo-staffel { display: grid; gap: 14px; }
+.club-abo-staffel-tabel { display: grid; border: 1px solid var(--line); border-radius: var(--club-radius); background: var(--bg-card); overflow: hidden; }
+.club-abo-staffel-rij { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr) minmax(0, 1.2fr) minmax(0, 1fr); align-items: center; gap: 12px; padding: 13px 18px; border-bottom: 1px solid var(--line); font-size: 15px; }
+.club-abo-staffel-rij:last-child { border-bottom: 0; }
+.club-abo-staffel-rij--kop { font-family: var(--ff-kop); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); background: color-mix(in srgb, var(--bg-card) 70%, var(--line)); }
+.club-abo-staffel-naam { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.club-abo-staffel-getal { font-variant-numeric: tabular-nums; }
+.club-abo-staffel-afspraak { margin: 0; max-width: var(--club-lees); line-height: 1.5; }
+.club-abo-staffel-wijzigingen h3 { margin: 0 0 6px; font-family: var(--ff-kop); font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+.club-abo-staffel-wijzigingen ul { margin: 0; padding-left: 18px; color: var(--text-2); line-height: 1.55; }
+@media (max-width: 560px) {
+  .club-abo-staffel-rij { grid-template-columns: minmax(0, 1fr) auto; }
+  .club-abo-staffel-rij--kop { display: none; }
+  .club-abo-staffel-rij > :nth-child(n + 3) { grid-column: 1 / -1; color: var(--text-2); font-size: 14px; }
+}

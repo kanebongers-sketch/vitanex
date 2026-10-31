@@ -1,6 +1,8 @@
 import { Check, LoaderCircle, Minus, Plus, X } from 'lucide-react'
 import { adresVeld, slugVoorstel } from '@/lib/club/kern/subdomein'
 import { MAX_NAAM, type AanmeldVeld } from '@/lib/aiyourgym/aanmelding'
+import { OP_MAAT, STAFFEL_GRENZEN, leesLedenSchatting } from '@/lib/aiyourgym/staffel'
+import { useTaal } from '@/lib/aiyourgym/taal/client'
 import { useTekst } from '@/lib/aiyourgym/taal/client'
 import { AANMELD_FORMULIER } from '@/lib/aiyourgym/taal/woorden/website/aanmelden'
 import { useAdresCheck, type AdresStatus } from './useAdresCheck'
@@ -24,6 +26,7 @@ const ICOON: Partial<Record<AdresStatus, typeof Check>> = { controleren: LoaderC
 
 export function StapSportschool({ invoer, maxVestigingen, onbeperkt, fouten, wijzig, subdomeinen }: StapSportschoolProps) {
   const t = useTekst(AANMELD_FORMULIER)
+  const getal = new Intl.NumberFormat(useTaal() === 'en' ? 'en-GB' : 'nl-NL')
   const veld = adresVeld(subdomeinen)
   const adres = useAdresCheck(invoer.slug)
   const Icoon = ICOON[adres.status]
@@ -58,6 +61,21 @@ export function StapSportschool({ invoer, maxVestigingen, onbeperkt, fouten, wij
         </div>
         <p className="aan-hint">{maxVestigingen === 1 ? t.hintEen : onbeperkt ? t.hintOnbeperkt : t.hintTot(maxVestigingen)}</p>
         {fouten.aantalVestigingen && <p className="aan-fout" role="alert">{fouten.aantalVestigingen}</p>}
+      </div>
+
+      <div className="aan-veld" data-fout={fouten.ledenSchatting ? 'ja' : undefined}>
+        <label className="aan-label" htmlFor="ledenSchatting">{t.ledenLabel}</label>
+        <div className="aan-invoer">
+        <select id="ledenSchatting" className="aan-keuzelijst" value={String(invoer.ledenSchatting)} required
+          aria-describedby="leden-hint" aria-invalid={fouten.ledenSchatting ? true : undefined}
+          onChange={(e) => wijzig('ledenSchatting', leesLedenSchatting(e.target.value) ?? '')}>
+          <option value="" disabled>{t.ledenKies}</option>
+          {STAFFEL_GRENZEN.map((g) => <option key={g} value={g}>{t.ledenTot(getal.format(g))}</option>)}
+          <option value={OP_MAAT}>{t.ledenOpMaat}</option>
+        </select>
+        </div>
+        <p className="aan-hint" id="leden-hint">{t.ledenHint}</p>
+        {fouten.ledenSchatting && <p className="aan-fout" role="alert">{fouten.ledenSchatting}</p>}
       </div>
 
       <Veld id="slug" label={t.eigenAdres} voor={veld.voor ?? undefined} achter={veld.achter ?? undefined} inputMode="url" autoCapitalize="none" autoCorrect="off" spellCheck={false} maxLength={40}

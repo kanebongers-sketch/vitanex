@@ -1,4 +1,5 @@
 import type { PakketSleutel } from '@/lib/aiyourgym/pakketten'
+import type { LedenSchatting } from '@/lib/aiyourgym/staffel'
 
 /** Wat de pagina over een los pakket aan het formulier geeft: geen bedragen (besluit Kane). */
 export interface PakketKeuze {
@@ -24,6 +25,8 @@ export interface Invoer {
   pakketten: PakketSleutel[]
   sportschoolNaam: string
   aantalVestigingen: number
+  /** Leden in de eerste vestiging (staffel), leeg tot de bezoeker kiest. */
+  ledenSchatting: LedenSchatting | ''
   slug: string
   /** Heeft de bezoeker het adres zelf aangepast? Dan volgt het de naam niet meer. */
   slugZelf: boolean

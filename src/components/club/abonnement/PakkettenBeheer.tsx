@@ -25,9 +25,9 @@ interface PakkettenBeheerProps {
 type Melding = { soort: 'ok' | 'fout'; tekst: string } | null
 
 function uitkomstTekst(json: unknown, actie: 'erbij' | 'opzeggen', t: (typeof PAKKETTEN_BEHEER)['nl']): string {
-  const antwoord = (json ?? {}) as { weg?: unknown; bundel?: unknown }
+  const antwoord = (json ?? {}) as { weg?: unknown }
   const w = antwoord.weg as PakketWeg
-  if (w === 'stripe') return antwoord.bundel === true ? t.uitkomst.stripeBundel : t.uitkomst.stripe
+  if (w === 'stripe') return t.uitkomst.stripe
   if (w === 'test' || w === 'direct') return t.uitkomst[w]
   return actie === 'erbij' ? t.uitkomst.aanvraagErbij : t.uitkomst.aanvraagOpzeggen
 }
@@ -63,7 +63,7 @@ export function PakkettenBeheer({ afgenomen, aanvragen }: PakkettenBeheerProps) 
       <div className="club-abo-pakketten-kop">
         <h2 id="abo-pakketten">{t.kop}</h2>
         <p>{t.uitleg}</p>
-        <p className="club-hint">{t.bundel}</p>
+        <p className="club-hint">{t.staffel}</p>
       </div>
       <ul className="club-abo-pakketlijst" aria-label={t.basis}>
         <li className="club-abo-pakket" data-afgenomen>

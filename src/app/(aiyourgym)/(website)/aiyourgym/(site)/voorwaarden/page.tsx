@@ -35,8 +35,30 @@ export default async function VoorwaardenPagina() {
             Er is geen proefperiode. Na het aanmelden betaal je meteen. Het contract loopt een jaar en je betaalt per maand, per
             vestiging.
           </p>
-          <h2>Prijs</h2>
-          <p>De prijs is op maat en hangt af van het pakket en het aantal vestigingen. Je krijgt de prijs vooraf, schriftelijk.</p>
+          <h2>Prijs en staffels</h2>
+          <p>
+            Elke vestiging heeft een eigen abonnement met dezelfde pakketten. De prijs per vestiging hangt af van de pakketten en
+            van het aantal actieve leden van die vestiging, in staffels: tot 25, tot 50, tot 100, tot 200, tot 500, tot 1.000 en tot
+            5.000 leden. De bedragen zie je bij het afsluiten in Stripe, voordat je betaalt.
+          </p>
+          <ul>
+            <li>
+              We tellen elke dag de actieve leden per vestiging. Een actief lid is een lid met de status actief of proef, of een
+              opgezegd lid tot en met de einddatum. Gepauzeerde, gestopte en demoleden tellen niet mee, net als leden van wie het
+              lidmaatschap nog niet is begonnen.
+            </li>
+            <li>
+              Komt een vestiging boven de grens van zijn staffel, dan geldt de hogere staffel vanaf de eerstvolgende maandfactuur,
+              zonder dat daar aparte toestemming voor nodig is. Je jaarcontract loopt gewoon door.
+            </li>
+            <li>
+              Zakt het aantal actieve leden onder de grens, dan gaat de staffel ook vanzelf omlaag, vanaf de volgende maandfactuur.
+              Er wordt niets met terugwerkende kracht verrekend.
+            </li>
+            <li>Je ziet de staffel en het aantal actieve leden per vestiging altijd in Club, bij Abonnement.</li>
+            <li>Verandert de staffel van een vestiging, dan krijg je daarover een mail.</li>
+            <li>Boven 5.000 actieve leden per vestiging geldt een prijs op maat, die we vooraf schriftelijk met je afspreken.</li>
+          </ul>
           <h2>Jouw gegevens</h2>
           <p>
             De gegevens die je invoert blijven van jou. Je kunt ze exporteren, bijvoorbeeld als CSV via de rapporten. AI Your Gym

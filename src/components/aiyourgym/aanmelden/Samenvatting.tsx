@@ -49,6 +49,12 @@ export function Samenvatting({ invoer, pakket, subdomeinen }: SamenvattingProps)
           <dt>{t.rij.vestigingen}</dt>
           <dd>{invoer.aantalVestigingen}</dd>
         </div>
+        {invoer.ledenSchatting !== '' && (
+          <div>
+            <dt>{t.rij.leden}</dt>
+            <dd>{invoer.ledenSchatting === 'op_maat' ? t.ledenOpMaat : t.ledenTot(String(invoer.ledenSchatting))}</dd>
+          </div>
+        )}
       </dl>
       <p className="aan-samen-label">{t.naAanmelden}</p>
       <ol className="aan-samen-stappen">

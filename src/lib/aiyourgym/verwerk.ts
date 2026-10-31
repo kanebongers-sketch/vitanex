@@ -18,6 +18,12 @@ export interface VerwerkDeps {
   nu: () => Date
   /** Een melding voor Kane (zonder gegevens van de aanmelder), best-effort. */
   meld?: (wat: string) => Promise<void>
+  /**
+   * Na het inrichten: het abonnement uit de checkout aan de eerste vestiging
+   * koppelen (staffels, besluit Kane 31-10-2026). Best-effort: de dagelijkse
+   * cron doet het anders alsnog.
+   */
+  koppelVestiging?: (admin: SupabaseClient, organisatieId: string) => Promise<void>
 }
 
 /** 'klaar' = niets (meer) te doen; 'nakijken' = aanvraag voor Kane; 'fout' = Stripe moet het opnieuw proberen. */
@@ -47,6 +53,7 @@ export async function verwerkSessie(admin: SupabaseClient, s: AfgerondeSessie, d
   }
   if (!(await rondInrichtingAf(admin, a.id, s))) return 'fout'
   await deps.welkom(admin, a, uit.organisatieId).catch(() => undefined)
+  if (s.abonnementId) await deps.koppelVestiging?.(admin, uit.organisatieId).catch(() => undefined)
   return 'ingericht'
 }
 

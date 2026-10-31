@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ABONNEMENT_PAD, abonnementUitRij, abonnementWeergave, bedragVanRegels, isKlantId, leesStripeAbonnement, portaalFormulier, portaalTerugUrl, type AbonnementRij, type StripeAbonnement } from './abonnement'
+import { ABONNEMENT_PAD, abonnementUitRij, abonnementWeergave, bedragVanRegels, regelBedrag, somBedrag, isKlantId, leesStripeAbonnement, portaalFormulier, portaalTerugUrl, type AbonnementRij, type StripeAbonnement } from './abonnement'
 
 const NU = new Date('2026-10-17T10:00:00Z')
 const unix = (iso: string) => Math.floor(Date.parse(iso) / 1000)
@@ -57,11 +57,11 @@ describe('abonnementWeergave', () => {
     expect(w.pakket).toBe('Club')
     expect(w.portaal).toBe(true)
   })
-  it('actief met de volgende factuur, aantal uit Stripe', () => {
-    const w = abonnementWeergave(rij(), stripe({ periodeTot: new Date('2026-11-01T12:00:00Z'), aantal: 4 }), NU)
+  it('actief met de volgende factuur; vestigingen uit Club, nooit de hoeveelheid bij Stripe (dat zijn nu leden)', () => {
+    const w = abonnementWeergave(rij(), stripe({ periodeTot: new Date('2026-11-01T12:00:00Z'), aantal: 84 }), NU, 'nl', 3)
     expect(w.status).toBe('Actief')
     expect(w.toelichting).toContain('1 november 2026')
-    expect(w.vestigingen).toBe(4)
+    expect(w.vestigingen).toBe(3)
   })
   it('actief zonder Stripe-gegevens: vestigingen uit de aanmelding', () => {
     const w = abonnementWeergave(rij(), null, NU)
@@ -121,7 +121,7 @@ describe('portaalFormulier en id-controle', () => {
   })
 })
 
-describe('prijs uit Stripe en de bundel (besluit Kane 30-10-2026)', () => {
+describe('prijs uit Stripe, ook getrapt per staffel (besluit Kane 31-10-2026)', () => {
   const regel = (bedrag: number, aantal: number, extra: Record<string, unknown> = {}) => ({ quantity: aantal, price: { id: 'price_x00001', unit_amount: bedrag, currency: 'eur', recurring: { interval: 'month', interval_count: 1 }, tax_behavior: 'exclusive', ...extra } })
   it('het bedrag per maand: prijs per stuk maal aantal, alle regels samen', () => {
     expect(bedragVanRegels([regel(2900, 2), regel(1200, 2)])).toEqual({ centen: 8200, valuta: 'eur', inclBtw: false })
@@ -135,21 +135,35 @@ describe('prijs uit Stripe en de bundel (besluit Kane 30-10-2026)', () => {
     expect(bedragVanRegels([regel(2900, 0)])).toBeNull()
   })
   it('leesStripeAbonnement neemt de prijzen en het bedrag mee', () => {
-    const s = leesStripeAbonnement({ id: 'sub_1', status: 'active', items: { data: [{ ...regel(11900, 2), price: { ...regel(11900, 2).price, id: 'price_alles0001' } }] } })
-    expect(s?.prijzen).toEqual(['price_alles0001'])
-    expect(s?.bedrag).toEqual({ centen: 23800, valuta: 'eur', inclBtw: false })
+    const s = leesStripeAbonnement({ id: 'sub_1', status: 'active', items: { data: [regel(3900, 1)] } })
+    expect(s?.prijzen).toEqual(['price_x00001'])
+    expect(s?.bedrag).toEqual({ centen: 3900, valuta: 'eur', inclBtw: false })
   })
-  it('de pagina toont de prijs uit Stripe en zegt het als de bundel geldt', () => {
-    const s = stripe({ prijzen: ['price_alles0001'], bedrag: { centen: 23800, valuta: 'eur', inclBtw: false } })
+  const STAFFELS = [25, 50, 100, 200, 500, 1000, 5000, null].map((up_to, i) => ({ up_to, flat_amount: 1000 * (i + 1), unit_amount: 0 }))
+  const getrapt = (aantal: number, extra: Record<string, unknown> = {}) => regel(0, aantal, { unit_amount: null, billing_scheme: 'tiered', tiers_mode: 'volume', tiers: STAFFELS, ...extra })
+  it('getrapte prijs (volume): het vaste bedrag van de staffel waar het aantal in valt', () => {
+    expect(regelBedrag(getrapt(25).price, 25)).toBe(1000)
+    expect(regelBedrag(getrapt(26).price, 26)).toBe(2000)
+    expect(regelBedrag(getrapt(5000).price, 5000)).toBe(7000)
+    expect(bedragVanRegels([getrapt(84), getrapt(84)])).toEqual({ centen: 6000, valuta: 'eur', inclBtw: false })
+  })
+  it('getrapt zonder opgehaalde staffels of met tiers_mode graduated: geen bedrag', () => {
+    expect(bedragVanRegels([getrapt(10, { tiers: undefined })])).toBeNull()
+    expect(bedragVanRegels([getrapt(10, { tiers_mode: 'graduated' })])).toBeNull()
+  })
+  it('bedragen van meerdere vestigingen samen, of niets als er een ontbreekt', () => {
+    const b = { centen: 3900, valuta: 'eur' as const, inclBtw: false }
+    expect(somBedrag([b, b])).toEqual({ centen: 7800, valuta: 'eur', inclBtw: false })
+    expect(somBedrag([b, null])).toBeNull()
+    expect(somBedrag([])).toBeNull()
+  })
+  it('de pagina toont de prijs uit Stripe, of het totaal van alle vestigingen', () => {
+    const s = stripe({ bedrag: { centen: 23800, valuta: 'eur', inclBtw: false } })
     const zes = rij({ pakket: 'los', pakketten: ['administratie', 'lessen', 'training', 'afspraken', 'team', 'groei'] })
-    const w = abonnementWeergave(zes, s, NU, 'nl', 'price_alles0001')
-    expect(w.bundel).toBe(true)
-    expect(w.pakket).toBe('Basis met alle vijf add-ons (bundelprijs)')
-    expect(w.prijs).toMatch(/238,00 per maand, excl\. btw/)
-    expect(abonnementWeergave(zes, s, NU, 'en', 'price_alles0001').prijs).toMatch(/238\.00 per month, excl\. VAT/)
-    // Zonder bundelprijs in env, of met losse regels: geen bundel.
-    expect(abonnementWeergave(zes, s, NU, 'nl', null).bundel).toBe(false)
-    expect(abonnementWeergave(zes, stripe({ prijzen: ['price_lessen01'] }), NU, 'nl', 'price_alles0001').bundel).toBe(false)
+    expect(abonnementWeergave(zes, s, NU, 'nl').prijs).toMatch(/238,00 per maand, excl\. btw/)
+    expect(abonnementWeergave(zes, s, NU, 'en').prijs).toMatch(/238\.00 per month, excl\. VAT/)
+    expect(abonnementWeergave(zes, s, NU, 'nl', 2, { centen: 7800, valuta: 'eur', inclBtw: false }).prijs).toMatch(/78,00/)
+    expect(abonnementWeergave(zes, s, NU, 'nl').pakket).not.toMatch(/bundel/i)
   })
   it('geen prijs zonder Stripe of bij een testaccount', () => {
     expect(abonnementWeergave(rij(), null, NU).prijs).toBeNull()

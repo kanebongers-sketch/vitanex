@@ -16,6 +16,8 @@ const VAST: Readonly<Record<string, string>> = {
   // Aanmelden (src/lib/aiyourgym/aanmelding.ts)
   'Kies minstens een pakket.': 'Choose at least one package.',
   'De basis (Ledenadministratie) zit altijd in je keuze.': 'The core (Membership administration) is always part of your choice.',
+  'Kies hoeveel leden je eerste vestiging ongeveer heeft.': 'Choose roughly how many members your first location has.',
+  'Voor meer dan 5.000 leden per vestiging maken we een prijs op maat. We hebben je gegevens ontvangen en nemen zelf contact met je op.': 'For more than 5,000 members per location we make a custom price. We have received your details and will contact you ourselves.',
   // Pakketten erbij of opzeggen in Club (src/app/(aiyourgym)/api/aiyourgym/pakketten)
   'Kies een pakket.': 'Choose a package.',
   'Dit pakket heb je al.': 'You already have this package.',

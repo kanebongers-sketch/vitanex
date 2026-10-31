@@ -5,6 +5,7 @@ const goed = {
   pakketten: ['groei', 'administratie', 'lessen'],
   sportschoolNaam: '  Sterk   Gym ',
   aantalVestigingen: 2,
+  ledenSchatting: '100',
   slug: 'Sterkgym',
   eigenaarNaam: 'Sanne de Vries',
   eigenaarEmail: 'Sanne@Voorbeeld.nl',
@@ -17,14 +18,14 @@ describe('leesAanmelding', () => {
   it('maakt goede invoer schoon', () => {
     expect(leesAanmelding(goed)).toEqual({
       ok: true,
-      waarde: { pakketten: ['administratie', 'lessen', 'groei'], sportschoolNaam: 'Sterk Gym', aantalVestigingen: 2, slug: 'sterkgym', eigenaarNaam: 'Sanne de Vries', eigenaarEmail: 'sanne@voorbeeld.nl', eigenaarTelefoon: '+31 6 12345678', wachtwoord: 'Blauwe-kat-rent-7' },
+      waarde: { pakketten: ['administratie', 'lessen', 'groei'], sportschoolNaam: 'Sterk Gym', aantalVestigingen: 2, ledenSchatting: 100, slug: 'sterkgym', eigenaarNaam: 'Sanne de Vries', eigenaarEmail: 'sanne@voorbeeld.nl', eigenaarTelefoon: '+31 6 12345678', wachtwoord: 'Blauwe-kat-rent-7' },
     })
   })
   it('geeft per veld een fout', () => {
     const uit = leesAanmelding({})
     expect(uit.ok).toBe(false)
     if (uit.ok) return
-    expect(Object.keys(uit.fouten).sort()).toEqual(['aantalVestigingen', 'akkoord', 'eigenaarEmail', 'eigenaarNaam', 'eigenaarTelefoon', 'pakketten', 'slug', 'sportschoolNaam', 'wachtwoord'])
+    expect(Object.keys(uit.fouten).sort()).toEqual(['aantalVestigingen', 'akkoord', 'eigenaarEmail', 'eigenaarNaam', 'eigenaarTelefoon', 'ledenSchatting', 'pakketten', 'slug', 'sportschoolNaam', 'wachtwoord'])
   })
   it('wachtwoord: sterk genoeg, zonder eigen naam, en de herhaling moet gelijk zijn', () => {
     const fout = (extra: Record<string, unknown>) => {
@@ -35,6 +36,19 @@ describe('leesAanmelding', () => {
     expect(fout({ wachtwoord: 'Sanne-traint-veel-7' })?.wachtwoord).toMatch(/naam of e-mailadres/)
     expect(fout({ wachtwoordHerhaal: 'iets-anders-dan-dit' })?.wachtwoordHerhaal).toMatch(/niet gelijk/)
     expect(fout({ wachtwoordHerhaal: 'Blauwe-kat-rent-7' })).toBeNull()
+  })
+  it('leden in de eerste vestiging: alleen een staffelgrens of op maat (besluit Kane 31-10-2026)', () => {
+    const schatting = (v: unknown) => {
+      const uit = leesAanmelding({ ...goed, ledenSchatting: v })
+      return uit.ok ? uit.waarde.ledenSchatting : null
+    }
+    expect(schatting(25)).toBe(25)
+    expect(schatting('5000')).toBe(5000)
+    expect(schatting('op_maat')).toBe('op_maat')
+    expect(schatting(26)).toBeNull()
+    expect(schatting(0)).toBeNull()
+    expect(schatting('')).toBeNull()
+    expect(schatting(undefined)).toBeNull()
   })
   it('zonder akkoord geen aanmelding, ook niet met een tekst "true"', () => {
     const uit = leesAanmelding({ ...goed, akkoord: 'true' })

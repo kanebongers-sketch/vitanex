@@ -30,12 +30,9 @@ describe('testbetaling', () => {
     expect(testbetalenVoor(['lessen', 'groei'], { ...STRIPE, AIYOURGYM_STRIPE_PRIJS_GROEI: 'price_654321', AIYOURGYM_STRIPE_PRIJS_ADMINISTRATIE: 'price_basis1' })).toBe(false)
     expect(testbetalenVoor([], {})).toBe(false)
   })
-  it('alle zes met een bundelprijs: Stripe, ook zonder losse prijzen (geen testbetaling)', () => {
+  it('geen bundel meer: alle zes zonder losse prijzen gaan via de testbetaling', () => {
     const zes = ['administratie', 'lessen', 'training', 'afspraken', 'team', 'groei'] as const
-    const bundel = { AIYOURGYM_STRIPE_SECRET_KEY: 'sk_test_abc', AIYOURGYM_STRIPE_PRIJS_ALLES: 'price_alles1' }
-    expect(testbetalenVoor([...zes], bundel)).toBe(false)
-    // Minder dan zes zonder losse prijs: gewoon de testbetaling.
-    expect(testbetalenVoor(['lessen'], bundel)).toBe(true)
+    expect(testbetalenVoor([...zes], { AIYOURGYM_STRIPE_SECRET_KEY: 'sk_test_abc', AIYOURGYM_STRIPE_PRIJS_ALLES: 'price_alles1' })).toBe(true)
   })
   it('sessie-id: alleen test_ met 32 tekens', () => {
     expect(isTestSessie(`test_${'a'.repeat(32)}`)).toBe(true)

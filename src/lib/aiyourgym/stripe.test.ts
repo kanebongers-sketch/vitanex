@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { handtekeningKlopt, tekenStripe, TOLERANTIE_S } from './stripe-handtekening'
 import { leesEvent, leesSessie, sessieKlaar, SESSIE_ID } from './stripe-event'
-import { afsluitbaar, allesAfsluitbaar, bundelAfsluitbaar, eigenPrijzen, mailAfzender, pakketVanPrijs, prijsEnvNaam, stripePrijs, stripePrijsAlles, stripeRegels, stripeSleutel, webhookGeheim } from './config'
+import { afsluitbaar, allesAfsluitbaar, eigenPrijzen, mailAfzender, pakketVanPrijs, prijsEnvNaam, stripePrijs, stripeRegels, stripeSleutel, webhookGeheim } from './config'
 import { checkoutFormulier, wisselFormulier, wisselSleutel } from './stripe-api'
 import { PAKKET_SLEUTELS } from './pakketten'
 
@@ -95,13 +95,10 @@ describe('config', () => {
     expect(webhookGeheim({ AIYOURGYM_STRIPE_WEBHOOK_SECRET: 'geheim' })).toBeNull()
     expect(webhookGeheim(env)).toBe('whsec_1')
   })
-  it('de bundelprijs (alle zes): alleen een price-id, geen los pakket', () => {
-    expect(stripePrijsAlles({ AIYOURGYM_STRIPE_PRIJS_ALLES: 'price_alles0001' })).toBe('price_alles0001')
-    expect(stripePrijsAlles({ AIYOURGYM_STRIPE_PRIJS_ALLES: 'prod_alles0001' })).toBeNull()
-    expect(stripePrijsAlles({})).toBeNull()
+  it('geen bundel meer (besluit Kane 31-10-2026): AIYOURGYM_STRIPE_PRIJS_ALLES telt nergens', () => {
     expect(pakketVanPrijs('price_alles0001', { AIYOURGYM_STRIPE_PRIJS_ALLES: 'price_alles0001' })).toBeNull()
-    expect(bundelAfsluitbaar({ ...env, AIYOURGYM_STRIPE_PRIJS_ALLES: 'price_alles0001' })).toBe(true)
-    expect(bundelAfsluitbaar({ AIYOURGYM_STRIPE_PRIJS_ALLES: 'price_alles0001' })).toBe(false)
+    expect(eigenPrijzen({ AIYOURGYM_STRIPE_PRIJS_ALLES: 'price_alles0001' })).toEqual([])
+    expect(allesAfsluitbaar(['administratie'], { AIYOURGYM_STRIPE_SECRET_KEY: 'sk_test_123', AIYOURGYM_STRIPE_PRIJS_ALLES: 'price_alles0001' })).toBe(false)
   })
   it('mailen alleen met afzender en Resend-sleutel', () => {
     expect(mailAfzender({ AIYOURGYM_RESEND_FROM: 'AI Your Gym <hallo@aiyourgym.com>' })).toBeNull()
@@ -114,18 +111,20 @@ describe('checkoutFormulier', () => {
     const f = checkoutFormulier({
       aanmeldingId: ID,
       regels: [{ regel: 'lessen', prijsId: 'price_1' }, { regel: 'groei', prijsId: 'price_2' }],
+      hoeveelheid: 100,
       succesUrl: 'https://aiyourgym.com/welkom?sessie={CHECKOUT_SESSION_ID}',
       terugUrl: 'https://aiyourgym.com/aanmelden',
-      aanmelding: { pakketten: ['lessen', 'groei'], sportschoolNaam: 'Sterk', aantalVestigingen: 3, slug: 'sterk', eigenaarNaam: 'S', eigenaarEmail: 's@b.nl', eigenaarTelefoon: '0612345678', wachtwoord: 'Geheim-Wachtwoord-77' },
+      aanmelding: { pakketten: ['lessen', 'groei'], sportschoolNaam: 'Sterk', aantalVestigingen: 3, ledenSchatting: 100, slug: 'sterk', eigenaarNaam: 'S', eigenaarEmail: 's@b.nl', eigenaarTelefoon: '0612345678', wachtwoord: 'Geheim-Wachtwoord-77' },
     })
     // Het wachtwoord gaat nooit naar Stripe.
     expect([...f.values()].some((v) => v.includes('Geheim-Wachtwoord-77'))).toBe(false)
     expect(f.get('mode')).toBe('subscription')
-    // Een regel per los pakket, elk met het aantal vestigingen.
+    // Een regel per pakket, elk met de geschatte leden van de eerste vestiging (staffel), niet het aantal vestigingen.
     expect(f.get('line_items[0][price]')).toBe('price_1')
-    expect(f.get('line_items[0][quantity]')).toBe('3')
+    expect(f.get('line_items[0][quantity]')).toBe('100')
     expect(f.get('line_items[1][price]')).toBe('price_2')
-    expect(f.get('line_items[1][quantity]')).toBe('3')
+    expect(f.get('line_items[1][quantity]')).toBe('100')
+    expect(f.get('subscription_data[metadata][soort]')).toBe('vestiging')
     expect(f.has('line_items[2][price]')).toBe(false)
     expect(f.get('metadata[pakketten]')).toBe('lessen,groei')
     expect(f.get('subscription_data[metadata][pakketten]')).toBe('lessen,groei')
@@ -137,40 +136,26 @@ describe('checkoutFormulier', () => {
   })
 })
 
-describe('bundel: alle zes pakketten met een eigen Stripe-prijs (besluit Kane 30-10-2026)', () => {
+describe('zes pakketten, een regel per pakket (geen bundel, besluit Kane 31-10-2026)', () => {
   const LOS = Object.fromEntries(PAKKET_SLEUTELS.map((p) => [`AIYOURGYM_STRIPE_PRIJS_${p.toUpperCase()}`, `price_${p}0001`]))
   const env = { AIYOURGYM_STRIPE_SECRET_KEY: 'sk_test_123', ...LOS, AIYOURGYM_STRIPE_PRIJS_ALLES: 'price_alles0001' }
-  const aanmelding = { pakketten: [...PAKKET_SLEUTELS], sportschoolNaam: 'Sterk', aantalVestigingen: 2, slug: 'sterk', eigenaarNaam: 'S', eigenaarEmail: 's@b.nl', eigenaarTelefoon: '0612345678', wachtwoord: 'Geheim-Wachtwoord-77' }
+  const aanmelding = { pakketten: [...PAKKET_SLEUTELS], sportschoolNaam: 'Sterk', aantalVestigingen: 2, ledenSchatting: 25 as const, slug: 'sterk', eigenaarNaam: 'S', eigenaarEmail: 's@b.nl', eigenaarTelefoon: '0612345678', wachtwoord: 'Geheim-Wachtwoord-77' }
 
-  it('alle zes met bundelprijs: een regel met de bundel', () => {
-    expect(stripeRegels([...PAKKET_SLEUTELS], env)).toEqual([{ regel: 'alles', prijsId: 'price_alles0001' }])
-  })
-  it('minder dan zes: een regel per pakket, ook met bundelprijs', () => {
-    const vijf = PAKKET_SLEUTELS.filter((p) => p !== 'groei')
-    expect(stripeRegels(vijf, env)).toEqual(vijf.map((p) => ({ regel: p, prijsId: `price_${p}0001` })))
-  })
-  it('alle zes zonder bundelprijs: zes losse regels (als die er zijn)', () => {
-    expect(stripeRegels([...PAKKET_SLEUTELS], LOS)).toHaveLength(6)
+  it('alle zes: zes regels, ook als er nog een oude bundelprijs in env staat', () => {
+    expect(stripeRegels([...PAKKET_SLEUTELS], env)).toEqual(PAKKET_SLEUTELS.map((p) => ({ regel: p, prijsId: `price_${p}0001` })))
     expect(stripeRegels([...PAKKET_SLEUTELS], { ...LOS, AIYOURGYM_STRIPE_PRIJS_GROEI: undefined })).toBeNull()
   })
-  it('alleen de bundelprijs: alle zes zijn afsluitbaar, een losse keuze niet', () => {
-    const alleenBundel = { AIYOURGYM_STRIPE_SECRET_KEY: 'sk_test_123', AIYOURGYM_STRIPE_PRIJS_ALLES: 'price_alles0001' }
-    expect(allesAfsluitbaar([...PAKKET_SLEUTELS], alleenBundel)).toBe(true)
-    expect(allesAfsluitbaar(['lessen'], alleenBundel)).toBe(false)
-    expect(allesAfsluitbaar([...PAKKET_SLEUTELS], { AIYOURGYM_STRIPE_PRIJS_ALLES: 'price_alles0001' })).toBe(false)
-  })
-  it('eigen prijzen: de zes losse en de bundel', () => {
-    expect(eigenPrijzen(env)).toHaveLength(7)
-    expect(eigenPrijzen(env)).toContain('price_alles0001')
+  it('eigen prijzen: alleen de zes pakketten', () => {
+    expect(eigenPrijzen(env)).toHaveLength(6)
+    expect(eigenPrijzen(env)).not.toContain('price_alles0001')
     expect(eigenPrijzen({})).toEqual([])
   })
-  it('checkout met alle zes: een regel met de bundel en het aantal vestigingen', () => {
+  it('checkout met alle zes: zes regels met de staffel als hoeveelheid', () => {
     const regels = stripeRegels([...PAKKET_SLEUTELS], env)!
-    const f = checkoutFormulier({ aanmeldingId: ID, aanmelding, regels, succesUrl: 'https://aiyourgym.com/welkom', terugUrl: 'https://aiyourgym.com/aanmelden' })
-    expect(f.get('line_items[0][price]')).toBe('price_alles0001')
-    expect(f.get('line_items[0][quantity]')).toBe('2')
-    expect(f.has('line_items[1][price]')).toBe(false)
-    // De metadata noemt nog steeds de zes pakketten.
+    const f = checkoutFormulier({ aanmeldingId: ID, aanmelding, regels, hoeveelheid: 25, succesUrl: 'https://aiyourgym.com/welkom', terugUrl: 'https://aiyourgym.com/aanmelden' })
+    expect(f.get('line_items[0][price]')).toBe('price_administratie0001')
+    expect(f.get('line_items[5][quantity]')).toBe('25')
+    expect(f.has('line_items[6][price]')).toBe(false)
     expect(f.get('subscription_data[metadata][pakketten]')).toBe(PAKKET_SLEUTELS.join(','))
   })
   it('regels omzetten in een verzoek: weg, erbij met het aantal, en naar rato', () => {
@@ -193,8 +178,8 @@ describe('bundel: alle zes pakketten met een eigen Stripe-prijs (besluit Kane 30
     expect(een.length).toBeLessThanOrEqual(255)
     expect(een.startsWith('ayg_wissel_sub_1_')).toBe(true)
   })
-  it('een abonnement met de bundel komt in het event als prijs mee', () => {
-    const items = { data: [{ price: { id: 'price_alles0001' } }] }
-    expect(leesEvent({ id: 'evt_b1', type: 'customer.subscription.updated', data: { object: { id: 'sub_1', status: 'active', items } } })).toMatchObject({ soort: 'abonnement', prijzen: ['price_alles0001'] })
+  it('de prijzen van een abonnement komen in het event mee', () => {
+    const items = { data: [{ price: { id: 'price_lessen0001' } }] }
+    expect(leesEvent({ id: 'evt_b1', type: 'customer.subscription.updated', data: { object: { id: 'sub_1', status: 'active', items } } })).toMatchObject({ soort: 'abonnement', prijzen: ['price_lessen0001'] })
   })
 })

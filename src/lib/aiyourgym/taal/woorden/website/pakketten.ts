@@ -10,7 +10,7 @@ export const PAKKET_TEKST = woordenboek({
   nl: {
     prijsOpMaat: 'Prijs op aanvraag',
     perVestiging: 'Per vestiging per maand, jaarcontract',
-    bundel: 'Neem je de basis met alle vijf add-ons, dan geldt een bundelprijs.',
+    staffel: 'De prijs volgt een staffel per vestiging op het aantal actieve leden. Je ziet het bedrag bij Stripe voordat je betaalt.',
     kies: 'Kies dit pakket',
     gekozen: 'Gekozen',
     weetNiet: 'Weet ik nog niet',
@@ -19,7 +19,7 @@ export const PAKKET_TEKST = woordenboek({
   en: {
     prijsOpMaat: 'Price on request',
     perVestiging: 'Per location per month, annual contract',
-    bundel: 'Take the core with all five add-ons and a bundle price applies.',
+    staffel: 'The price follows a tier per location based on the number of active members. You see the amount at Stripe before you pay.',
     kies: 'Choose this package',
     gekozen: 'Chosen',
     weetNiet: 'Not sure yet',

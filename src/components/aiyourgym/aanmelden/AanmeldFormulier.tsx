@@ -29,8 +29,6 @@ interface AanmeldFormulierProps {
   startPakketten: readonly PakketSleutel[]
   /** Staat de testbetaling aan (zolang Stripe niet voor alles een prijs heeft)? */
   testAan: boolean
-  /** Is de bundel (alle zes pakketten, eigen Stripe-prijs) online af te sluiten? */
-  bundel?: boolean
   /** Staan de subdomeinen aan? Dan naam.aiyourgym.com, anders aiyourgym.com/naam. */
   subdomeinen: boolean
   /** Naam van de sportschool die de bezoeker al typte (oproep op de voorpagina, ?naam=). */
@@ -38,12 +36,12 @@ interface AanmeldFormulierProps {
 }
 
 const LEEG: Omit<Invoer, 'pakketten'> = {
-  sportschoolNaam: '', aantalVestigingen: 1, slug: '', slugZelf: false, eigenaarNaam: '', eigenaarEmail: '', eigenaarTelefoon: '', wachtwoord: '', wachtwoordHerhaal: '', akkoord: false, website: '',
+  sportschoolNaam: '', aantalVestigingen: 1, ledenSchatting: '', slug: '', slugZelf: false, eigenaarNaam: '', eigenaarEmail: '', eigenaarTelefoon: '', wachtwoord: '', wachtwoordHerhaal: '', akkoord: false, website: '',
 }
 
 type Verzenden = { staat: 'rust' } | { staat: 'bezig' } | { staat: 'fout'; melding: string } | { staat: 'ontvangen'; melding: string }
 
-export function AanmeldFormulier({ pakketten, startPakketten, testAan, bundel = false, subdomeinen, startNaam = '' }: AanmeldFormulierProps) {
+export function AanmeldFormulier({ pakketten, startPakketten, testAan, subdomeinen, startNaam = '' }: AanmeldFormulierProps) {
   // Ook met pakketten uit de URL begint het formulier bij de keuze: er kan er nog een bij.
   const [invoer, setInvoer] = useState<Invoer>({ ...LEEG, sportschoolNaam: startNaam, slug: startNaam ? slugVoorstel(startNaam) : '', pakketten: [...startPakketten] })
   const [stap, setStap] = useState(0)
@@ -54,7 +52,7 @@ export function AanmeldFormulier({ pakketten, startPakketten, testAan, bundel = 
   const taal = useTaal()
   const t = AANMELD_FORMULIER[taal]
 
-  const pakket = gekozenVan(pakketten, invoer.pakketten, testAan, taal, bundel)
+  const pakket = gekozenVan(pakketten, invoer.pakketten, testAan, taal)
 
   const wijzig: Wijzig = (veld, waarde) => {
     setInvoer((oud) => ({ ...oud, [veld]: waarde }))

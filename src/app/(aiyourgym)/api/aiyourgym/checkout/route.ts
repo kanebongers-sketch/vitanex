@@ -12,6 +12,7 @@ import { hashWachtwoord } from '@/lib/club/kern/wachtwoord'
 import { EMAIL_NIET_BRUIKBAAR, emailVrijVoorAanmelding } from '@/lib/aiyourgym/dubbel'
 import { koppelSessie, maakAanmelding, slugVrij, teVeelRecent } from '@/lib/aiyourgym/opslag'
 import { maakCheckoutSessie } from '@/lib/aiyourgym/stripe-api'
+import { OP_MAAT } from '@/lib/aiyourgym/staffel'
 import { adminOfNull, aygFout, aygJson, poortOpen, publiekeHost } from '@/lib/aiyourgym/api'
 import { metEngels } from '@/lib/aiyourgym/taal/woorden/website/meldingen'
 import { meldFout } from '@/lib/club/betrouwbaarheid/melden'
@@ -21,8 +22,10 @@ import { meldFout } from '@/lib/club/betrouwbaarheid/melden'
 // 29-10-2026). Zijn ze allemaal online af te sluiten (Stripe-sleutel en per
 // pakket een prijs in env), dan volgt Stripe Checkout met een regel per pakket.
 // Geen proefperiode (besluit Kane 30-10-2026): de eerste maand wordt meteen
-// betaald. Alle zes met een bundelprijs (AIYOURGYM_STRIPE_PRIJS_ALLES,
-// besluit Kane 30-10-2026): een regel met de bundel (stripeRegels).
+// betaald. Staffels (besluit Kane 31-10-2026): de checkout is het abonnement
+// van de eerste vestiging; de hoeveelheid van elke regel is de geschatte
+// staffel (ledenSchatting), daarna houdt de dagelijkse telling het bij. Meer
+// dan 5000 leden is prijs op maat: altijd een aanvraag voor Kane. Geen bundel.
 // Zonder Stripe volgt een nagespeelde betaling op onze eigen site
 // (src/lib/aiyourgym/testbetaling.ts, besluit Kane 23-10-2026). Staat ook die
 // uit, dan bewaren we de aanmelding als 'aanvraag' voor Kane en zeggen we
@@ -31,6 +34,7 @@ import { meldFout } from '@/lib/club/betrouwbaarheid/melden'
 export const dynamic = 'force-dynamic'
 
 const AANVRAAG = `${NIET_OPEN} We hebben je gegevens ontvangen en nemen zelf contact met je op.`
+const OP_MAAT_AANVRAAG = 'Voor meer dan 5.000 leden per vestiging maken we een prijs op maat. We hebben je gegevens ontvangen en nemen zelf contact met je op.'
 const MISLUKT = 'Aanmelden lukte niet. Probeer het later opnieuw.'
 
 /** Een stap die misging vastleggen in club_fouten (zonder gegevens van de aanmelder). */
@@ -68,6 +72,12 @@ export async function POST(req: NextRequest) {
   if (emailVrij === null) return mislukt('e-mailadres controleren', MISLUKT, 500)
   if (!emailVrij) return aygJson(metEngels({ fout: 'Controleer de gemarkeerde velden.', fouten: { eigenaarEmail: EMAIL_NIET_BRUIKBAAR } }), 409)
 
+  if (a.ledenSchatting === OP_MAAT) {
+    const id = await maakAanmelding(admin, a, 'aanvraag', nu)
+    return id ? aygJson(metEngels({ staat: 'aanvraag', melding: OP_MAAT_AANVRAAG })) : mislukt('aanvraag bewaren', MISLUKT, 500)
+  }
+  const hoeveelheid = a.ledenSchatting
+
   const sleutel = stripeSleutel()
   const regels = stripeRegels(a.pakketten)
   const host = publiekeHost(req)
@@ -88,7 +98,7 @@ export async function POST(req: NextRequest) {
   const id = await maakAanmelding(admin, a, 'wacht_op_betaling', nu, await hashWachtwoord(a.wachtwoord))
   if (!id) return mislukt('aanmelding bewaren', MISLUKT, 500)
   const adressen = checkoutAdressen(oorsprong, host, siteActief())
-  const sessie = await maakCheckoutSessie(sleutel, { aanmeldingId: id, aanmelding: a, regels, succesUrl: adressen.succes, terugUrl: adressen.terug })
+  const sessie = await maakCheckoutSessie(sleutel, { aanmeldingId: id, aanmelding: a, regels, hoeveelheid, succesUrl: adressen.succes, terugUrl: adressen.terug })
   if (!sessie || !(await koppelSessie(admin, id, sessie.id))) return mislukt(sessie ? 'sessie koppelen' : 'Stripe-sessie maken', 'Betalen kon niet worden gestart. Probeer het later opnieuw.', 502)
   return aygJson({ staat: 'betalen', url: sessie.url })
 }

@@ -15,8 +15,14 @@ const TIMEOUT_MS = 15_000
 export interface CheckoutInvoer {
   aanmeldingId: string
   aanmelding: Aanmelding
-  /** De regels uit stripeRegels(): een per gekozen pakket, of een bundelregel bij alle zes. */
+  /** De regels uit stripeRegels(): een per gekozen pakket (altijd met de basis). */
   regels: readonly StripeRegel[]
+  /**
+   * De hoeveelheid op elke regel: de geschatte leden van de eerste vestiging
+   * (bovengrens van de gekozen staffel, staffel.ts). Stripe kiest daarmee de
+   * staffel (tiers_mode=volume); daarna houdt de dagelijkse telling het bij.
+   */
+  hoeveelheid: number
   succesUrl: string
   terugUrl: string
 }
@@ -28,11 +34,13 @@ export interface CheckoutInvoer {
 export function checkoutFormulier(c: CheckoutInvoer): URLSearchParams {
   const f = new URLSearchParams()
   f.set('mode', 'subscription')
-  // Een regel per los pakket, of een bundelregel bij alle zes; de hoeveelheid is
-  // het aantal vestigingen (per vestiging per maand).
+  // Een abonnement per vestiging (Stripe staat dezelfde prijs niet twee keer in
+  // een abonnement toe). Deze checkout is het abonnement van de eerste
+  // vestiging: een regel per pakket, de hoeveelheid is het aantal leden.
+  const hoeveelheid = String(Math.max(1, Math.trunc(c.hoeveelheid)))
   c.regels.forEach((p, i) => {
     f.set(`line_items[${i}][price]`, p.prijsId)
-    f.set(`line_items[${i}][quantity]`, String(c.aanmelding.aantalVestigingen))
+    f.set(`line_items[${i}][quantity]`, hoeveelheid)
   })
   f.set('success_url', c.succesUrl)
   f.set('cancel_url', c.terugUrl)
@@ -46,12 +54,15 @@ export function checkoutFormulier(c: CheckoutInvoer): URLSearchParams {
   f.set('subscription_data[metadata][aanmelding_id]', c.aanmeldingId)
   f.set('subscription_data[metadata][slug]', c.aanmelding.slug)
   f.set('subscription_data[metadata][pakketten]', c.aanmelding.pakketten.join(','))
+  f.set('subscription_data[metadata][soort]', 'vestiging')
+  f.set('subscription_data[metadata][vestiging]', 'eerste')
   return f
 }
 
 /**
  * De regels van een lopend abonnement in een keer omzetten (PUUR): regels weg en
- * regels erbij met hetzelfde aantal vestigingen, in een verzoek, zodat Stripe
+ * regels erbij met dezelfde hoeveelheid (het aantal actieve leden van de
+ * vestiging), in een verzoek, zodat Stripe
  * nooit een tussenstand ziet (en de webhook ook niet). Stripe rekent naar rato.
  */
 export function wisselFormulier(w: RegelWissel, aantal: number): URLSearchParams {
@@ -122,6 +133,28 @@ export async function haalCheckoutSessie(sleutel: string, sessieId: string): Pro
 /** Een abonnement ophalen (ruwe JSON, lees met leesStripeAbonnement in abonnement.ts). */
 export async function haalAbonnement(sleutel: string, abonnementId: string): Promise<unknown | null> {
   return stripeVraag(sleutel, `/subscriptions/${encodeURIComponent(abonnementId)}`, { method: 'GET' })
+}
+
+/** Een abonnement met de staffels van de prijzen erbij (voor het bedrag op de abonnementspagina). */
+export async function haalAbonnementMetStaffels(sleutel: string, abonnementId: string): Promise<unknown | null> {
+  return stripeVraag(sleutel, `/subscriptions/${encodeURIComponent(abonnementId)}?expand[]=items.data.price.tiers`, { method: 'GET' })
+}
+
+/** Alle abonnementen van een klant (ook opgezegde), om een eerdere poging terug te vinden. */
+export async function lijstAbonnementen(sleutel: string, klantId: string): Promise<unknown | null> {
+  return stripeVraag(sleutel, `/subscriptions?customer=${encodeURIComponent(klantId)}&status=all&limit=100`, { method: 'GET' })
+}
+
+/** Een nieuw abonnement (een vestiging erbij). Het id, of null. */
+export async function maakAbonnement(sleutel: string, formulier: URLSearchParams, idempotentie: string): Promise<string | null> {
+  const id = (await stripeVraag(sleutel, '/subscriptions', { method: 'POST', body: formulier, idempotentie }) as { id?: unknown } | null)?.id
+  return typeof id === 'string' && id.startsWith('sub_') ? id : null
+}
+
+/** Een abonnement bijwerken (hoeveelheid of metadata). true als Stripe het deed. */
+export async function werkAbonnementBij(sleutel: string, abonnementId: string, formulier: URLSearchParams, idempotentie?: string): Promise<boolean> {
+  const json = await stripeVraag(sleutel, `/subscriptions/${encodeURIComponent(abonnementId)}`, { method: 'POST', body: formulier, idempotentie })
+  return typeof (json as { id?: unknown } | null)?.id === 'string'
 }
 
 /**

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { PAKKETTEN, leesPakketKeuze, metBasis } from '@/lib/aiyourgym/pakketten'
 import { MAX_NAAM } from '@/lib/aiyourgym/aanmelding'
-import { afsluitbaar, bundelAfsluitbaar } from '@/lib/aiyourgym/config'
+import { afsluitbaar } from '@/lib/aiyourgym/config'
 import { testbetalingAan } from '@/lib/aiyourgym/testbetaling'
 import { subdomeinenActief } from '@/lib/aiyourgym/schakelaar'
 import { AanmeldSchil } from '@/components/aiyourgym/aanmelden/AanmeldSchil'
@@ -60,7 +60,7 @@ export default async function AanmeldenPagina({ searchParams }: PaginaProps) {
             {t.geannuleerd}
           </p>
         )}
-        <AanmeldFormulier pakketten={pakketten} startPakketten={startPakketten} testAan={testAan} bundel={bundelAfsluitbaar()} subdomeinen={subdomeinenActief()} startNaam={startNaam} />
+        <AanmeldFormulier pakketten={pakketten} startPakketten={startPakketten} testAan={testAan} subdomeinen={subdomeinenActief()} startNaam={startNaam} />
       </section>
     </AanmeldSchil>
   )

@@ -9,6 +9,7 @@ import { testbetalen } from '@/lib/aiyourgym/testbetaling'
 import { aantalVanRegels, leesAbonnementRegels, leesPakketVerzoek, naWijziging, pakketWeg, regelWissel, wisselLeeg, type AbonnementRegel } from '@/lib/aiyourgym/pakket-wijziging'
 import { bewaarWijziging, sluitAanvraag, zetPakketten } from '@/lib/aiyourgym/pakket-opslag'
 import { haalAbonnement, wisselRegels } from '@/lib/aiyourgym/stripe-api'
+import { alleAbonnementIds } from '@/lib/aiyourgym/vestiging-abonnement-opslag'
 import { aygFout, aygJson } from '@/lib/aiyourgym/api'
 import { metEngels } from '@/lib/aiyourgym/taal/woorden/website/meldingen'
 
@@ -18,9 +19,11 @@ import { metEngels } from '@/lib/aiyourgym/taal/woorden/website/meldingen'
 // eigen sportschool, alleen vanaf de app zelf (vereisBeheerdersBeheer). De
 // regels (wanneer Stripe, testbetaling, direct of een aanvraag) staan in
 // src/lib/aiyourgym/pakket-wijziging.ts. Er gaat geen mail naar buiten.
-// Bundel (besluit Kane 30-10-2026): alle zes = een bundelregel op Stripe; erbij
-// naar zes zet de losse regels in een verzoek om naar de bundel. Opzeggen is
-// altijd een aanvraag volgens het jaarcontract, ook vanuit de bundel.
+// Staffels (besluit Kane 31-10-2026): elke vestiging heeft een eigen
+// Stripe-abonnement. Een pakket erbij komt op elk abonnement van de
+// sportschool, met de hoeveelheid (actieve leden) van dat abonnement. Lukt een
+// abonnement niet, dan een 502; opnieuw klikken slaat de al gedane over
+// (regelWissel is dan leeg), dus nooit dubbel. Geen bundel meer.
 
 export const dynamic = 'force-dynamic'
 
@@ -68,18 +71,20 @@ export async function POST(req: NextRequest) {
 
   if (weg === 'stripe') {
     if (!sleutel || !doel || !abonnementId || !rij) return aygFout(MISLUKT, 503)
-    // Eerst de regels zoals ze nu bij Stripe staan.
-    const regels: AbonnementRegel[] | null = leesAbonnementRegels(await haalAbonnement(sleutel, abonnementId))
-    if (!regels) return aygFout(MISLUKT, 502)
     const eigen = eigenPrijzen()
-    const wissel = regelWissel(regels, doel.map((r) => r.prijsId), eigen)
-    // Staat het al zo bij Stripe (nog een keer geklikt), dan hoeft er niets.
-    if (!wisselLeeg(wissel) && !(await wisselRegels(sleutel, abonnementId, regels.map((r) => r.id), wissel, aantalVanRegels(regels, eigen, rij.aantalVestigingen)))) return aygFout(MISLUKT, 502)
+    for (const id of await alleAbonnementIds(t.admin, t.userId, abonnementId)) {
+      // Eerst de regels zoals ze nu bij Stripe staan.
+      const regels: AbonnementRegel[] | null = leesAbonnementRegels(await haalAbonnement(sleutel, id))
+      if (!regels) return aygFout(MISLUKT, 502)
+      const wissel = regelWissel(regels, doel.map((r) => r.prijsId), eigen)
+      // Staat het al zo bij Stripe (nog een keer geklikt), dan hoeft er niets.
+      if (!wisselLeeg(wissel) && !(await wisselRegels(sleutel, id, regels.map((r) => r.id), wissel, aantalVanRegels(regels, eigen, 1)))) return aygFout(MISLUKT, 502)
+    }
   }
 
   if (!(await zetPakketten(t.admin, t.userId, nieuw))) return aygFout(MISLUKT, 500)
   await bewaarWijziging(t.admin, t.userId, pakket, actie, weg === 'stripe' ? 'stripe' : weg === 'test' ? 'test' : 'verwerkt', t.naam)
   await sluitAanvraag(t.admin, t.userId, pakket)
   await logActie(t, actie === 'erbij' ? 'Pakket erbij genomen' : 'Pakket opgezegd', pakket, null)
-  return aygJson({ weg, afgenomen: nieuw, bundel: weg === 'stripe' && doel?.[0]?.regel === 'alles' })
+  return aygJson({ weg, afgenomen: nieuw })
 }

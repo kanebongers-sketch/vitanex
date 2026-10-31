@@ -37,7 +37,7 @@
 - [ ] **Btw**: btw-nummer (komt met de KvK-inschrijving), tarief voor software-abonnementen, factuureisen en omzetgrenzen laten uitleggen door een boekhouder.
 - [ ] **Facturen** die voldoen aan de eisen (Stripe kan facturen maken; laten controleren of ze kloppen voor Nederland).
 - [ ] **Stripe-account op naam van het bedrijf** (niet privé), met KvK- en btw-gegevens, en de Stripe-voorwaarden accepteren als bedrijf.
-- [ ] **Prijzen en proefperiode** in de voorwaarden zetten zoals ze in Stripe staan (geen prijzen op de website, wel schriftelijk vooraf aan de klant).
+- [ ] **Prijzen** zoals ze in Stripe staan (staffels per vestiging, tabel in `docs/aiyourgym/STRIPE.md`): geen bedragen op de website, de klant ziet ze in Stripe voor het betalen. Er is geen proefperiode (besluit Kane 30-10-2026).
 - [ ] **Administratie en bewaarplicht** (7 jaar voor de belastingdienst) inrichten.
 
 ## 6. Wat in de concepten nog ontbreekt
@@ -59,6 +59,7 @@
 - Totstandkoming, looptijd, verlenging en opzegging (staat nu "nog uit te werken").
 - Wat er gebeurt na de proefperiode (automatisch betaald of niet).
 - Betaling, facturatie, btw, te late betaling, opschorten bij wanbetaling, prijswijzigingen.
+- Prijs en staffels: staat er sinds 31-10-2026 als concept (artikel "Prijs en staffels", tekst in `algemene-voorwaarden.md`). Bij de definitieve versie laten toetsen: automatisch naar een hogere staffel zonder aparte toestemming, binnen een jaarcontract.
 - Beschikbaarheid, onderhoud en storingen (staat nu "nog uit te werken").
 - Aansprakelijkheid en overmacht (staat nu "nog uit te werken").
 - Intellectueel eigendom: de software blijft van AI Your Gym, de sportschool krijgt een gebruiksrecht; de gegevens blijven van de sportschool (dat laatste staat er al).

@@ -10,8 +10,9 @@
 // Eén bron voor de prijzenpagina, het aanmelden, Stripe en Club. Prijzen staan
 // hier NIET: die kiest Kane en ze staan alleen in Stripe, per pakket als
 // AIYOURGYM_STRIPE_PRIJS_<SLEUTEL> (bijvoorbeeld AIYOURGYM_STRIPE_PRIJS_LESSEN).
-// Contract: jaarcontract, maandelijks betaald per vestiging (de hoeveelheid van
-// elke regel in Stripe is het aantal vestigingen).
+// Contract: jaarcontract, maandelijks betaald per vestiging. Elke vestiging heeft
+// een eigen Stripe-abonnement; de hoeveelheid van elke regel is het aantal
+// actieve leden van die vestiging (staffel, besluit Kane 31-10-2026, staffel.ts).
 // Welke schermen, API's en tabbladen bij een pakket horen: src/lib/club/kern/pakketten.ts.
 // Engelse teksten: src/lib/aiyourgym/taal/woorden/algemeen/pakketten.ts.
 
@@ -107,11 +108,6 @@ export function isPakketSleutel(v: unknown): v is PakketSleutel {
 
 export function vindPakket(sleutel: unknown): Pakket | null {
   return PAKKETTEN.find((p) => p.sleutel === sleutel) ?? null
-}
-
-/** Zijn dit alle zes pakketten (de bundel, besluit Kane 30-10-2026)? */
-export function isAllePakketten(lijst: readonly PakketSleutel[]): boolean {
-  return PAKKET_SLEUTELS.every((s) => lijst.includes(s))
 }
 
 /** In vaste volgorde en zonder dubbelen. */
