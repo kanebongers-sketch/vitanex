@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Plus } from 'lucide-react'
+import { Plus, Settings2 } from 'lucide-react'
 import { eisModule } from '@/lib/club/toegang'
 import { clubPad, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
@@ -18,6 +18,11 @@ import { LeadsWerkvlak } from '@/components/club/leads/LeadsWerkvlak'
 import { clubTekst } from '@/lib/aiyourgym/taal/server'
 import { LEADS } from '@/lib/aiyourgym/taal/woorden/club/leads'
 import { kanBewerken } from '@/lib/club/rollen/wie'
+import { magOnderdeel } from '@/lib/club/beheerders/rechten'
+import { onderdeelAfgenomen } from '@/lib/club/kern/pakketten'
+import { OpvolgenTab } from '@/components/club/leads/OpvolgenTab'
+import { OPVOLGEN } from '@/lib/aiyourgym/taal/woorden/club/opvolgen'
+import type { ClubToegang } from '@/lib/club/toegang'
 import '@/components/club/leads/leads.css'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -28,13 +33,56 @@ function eerste(v: string | string[] | undefined): string | undefined {
   return Array.isArray(v) ? v[0] : v
 }
 
-// Leads en proeflessen: bovenaan wat vandaag moet, daaronder de pijplijn van
-// eerste contact tot lid. Filters en het open paneel staan in de URL.
+/** Mag deze persoon de opvolglijst zien (recht en pakket)? */
+function zietOpvolgen(t: ClubToegang): boolean {
+  return magOnderdeel(t.onderdelen, 'opvolgen') && onderdeelAfgenomen(t.organisatie.afgenomen, 'opvolgen')
+}
+
+/** Tabbladen Leads en Opvolgen; Opvolgen alleen voor wie hem mag zien. */
+async function LeadsTabs({ vestiging, actief }: { vestiging: string; actief: 'leads' | 'opvolgen' }) {
+  const tp = (await clubTekst(LEADS)).pagina
+  return (
+    <nav className="club-segment club-leads-tabs" aria-label={tp.tabs.label}>
+      <Link href={clubPad('/leads', vestiging)} aria-current={actief === 'leads' ? 'page' : undefined}>{tp.tabs.leads}</Link>
+      <Link href={clubPad('/leads', vestiging, { tab: 'opvolgen' })} aria-current={actief === 'opvolgen' ? 'page' : undefined}>{tp.tabs.opvolgen}</Link>
+    </nav>
+  )
+}
+
+// Leden · Leads (ontwerp 03-11-2026): tabbladen Leads en Opvolgen. Leads:
+// bovenaan wat vandaag moet, daaronder de pijplijn van eerste contact tot lid.
+// Opvolgen: de volledige opvolglijst (het oude /club/opvolgen, nu een 308
+// hierheen). Tabblad, filters en het open paneel staan in de URL.
 export default async function LeadsPagina({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisModule('leads')
   const zoek = await searchParams
   const vestiging = kiesUit(t.vestigingen, zoek.v)
   if (!vestiging) return <GeenVestigingen />
+  const opvolgen = zietOpvolgen(t)
+  if (opvolgen && eerste(zoek.tab) === 'opvolgen') {
+    const tp = (await clubTekst(LEADS)).pagina
+    const magInstellen = magOnderdeel(t.onderdelen, 'beheer')
+    return (
+      <>
+        <section className="club-paginakop">
+          <div>
+            <p className="club-boventitel">{naamVan(t.vestigingen, vestiging)}</p>
+            <h1>{tp.titel}</h1>
+            <p>{tp.introOpvolgen}</p>
+          </div>
+          {magInstellen && (
+            <div className="club-acties">
+              <Link href="/club/beheer/automatiseringen" className="club-knop club-knop--stil club-knop--klein">
+                <Settings2 size={15} aria-hidden /> {(await clubTekst(OPVOLGEN)).pagina.regels}
+              </Link>
+            </div>
+          )}
+        </section>
+        <LeadsTabs vestiging={vestiging} actief="opvolgen" />
+        <OpvolgenTab t={t} vestiging={vestiging} />
+      </>
+    )
+  }
   const filters = leesFilters(zoek)
   const nu = new Date()
   const tp = (await clubTekst(LEADS)).pagina
@@ -73,6 +121,7 @@ export default async function LeadsPagina({ searchParams }: { searchParams: Zoek
           </div>
         )}
       </section>
+      {opvolgen && <LeadsTabs vestiging={vestiging} actief="leads" />}
 
       {leads === null && <p className="club-melding club-melding--fout">{tp.laadFout}</p>}
       {lessen === null && <p className="club-melding">{tp.roosterFout}</p>}

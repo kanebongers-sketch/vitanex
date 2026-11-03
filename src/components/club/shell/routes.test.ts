@@ -1,12 +1,12 @@
 // Bewaker: elke link in Club en de ledenapp wijst naar een pagina die echt bestaat.
 // Leest de routemappen onder src/app/(aiyourgym)/(club) en legt daar naast:
-// het menu (ONDERDELEN plus hun schermen), de hulpbalk, het instellingencentrum
+// het menu (ONDERDELEN plus hun schermen), Hulp in de kop, het instellingencentrum
 // en elke letterlijke '/club/...' of '/mijn/...' in de broncode van Club.
 import { describe, expect, it } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import { ONDERDELEN } from './onderdelen'
-import { HULPBALK } from './hulpbalk-items'
+import { KOP_HULP } from './kop-hulp'
 import { INSTEL_PAGINAS } from '@/lib/club/kern/instel-paginas'
 
 const ROOT = path.resolve(__dirname, '../../../..')
@@ -101,8 +101,8 @@ describe('routes van Club en de ledenapp', () => {
     expect(fout).toEqual([])
   })
 
-  it('elk item van de hulpbalk heeft een pagina', () => {
-    expect(HULPBALK.map((i) => clubPad(i.pad)).filter((p) => !bestaat(p))).toEqual([])
+  it('Hulp en Wat is nieuw rechtsboven hebben een pagina, en Koppelingen ook', () => {
+    expect([...KOP_HULP.map((i) => clubPad(i.pad)), '/club/koppelingen'].filter((p) => !bestaat(p))).toEqual([])
   })
 
   it('elke pagina van het instellingencentrum bestaat', () => {

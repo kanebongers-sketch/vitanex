@@ -227,3 +227,16 @@
 .club-leden-naamregel { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
 .club-leden-appchip { flex: none; padding: 1px 8px; font-size: 12px; letter-spacing: 0.04em; }
 .club-leden-kopknoppen { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
+/* Ledenlijst: tweede acties onder Meer, een rustig menu onder de knop. */
+.club-app .club-leden-meer { position: relative; }
+.club-app .club-leden-meer > summary { list-style: none; cursor: pointer; }
+.club-app .club-leden-meer > summary::-webkit-details-marker { display: none; }
+.club-app .club-leden-meer > summary svg { transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1); }
+.club-app .club-leden-meer[open] > summary svg { transform: rotate(180deg); }
+.club-app .club-leden-meermenu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; display: grid; min-width: 220px; padding: 6px; border: 1px solid var(--line); border-radius: var(--club-radius); background: var(--bg-card); box-shadow: var(--club-schaduw); animation: club-leden-meer-in 160ms cubic-bezier(0.16, 1, 0.3, 1); }
+.club-app .club-leden-meermenu a { display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 8px 10px; border-radius: var(--club-radius-klein); color: var(--text-1); font-size: 14px; text-decoration: none; }
+.club-app .club-leden-meermenu a:hover { background: var(--club-vlak); }
+.club-app .club-leden-meermenu a:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+@media (pointer: coarse) { .club-app .club-leden-meermenu a { min-height: 44px; } }
+@keyframes club-leden-meer-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .club-app .club-leden-meermenu { animation: none; } .club-app .club-leden-meer > summary svg { transition: none; } }

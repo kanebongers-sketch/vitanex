@@ -213,3 +213,19 @@
 @media (max-width: 560px) {
   .club-vandaag-opbouw { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+
+/* ── Club in 10 minuten (03-11-2026) ────────────────────────────────────────
+   Rechts in de kop de hoofdactie Inchecken (opent de balie op volledig
+   scherm); blokken zonder inhoud staan er niet, dus een blok alleen loopt
+   over de volle breedte. Zonder takenlijst een rustige regel met een knop. */
+.club-vandaag-kopacties { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px 16px; margin-bottom: 6px; }
+.club-vandaag-kopacties .club-vandaag-stand { margin: 0; }
+.club-vandaag-hoofdactie { gap: 8px; }
+.club-vandaag-enkel { display: grid; gap: 14px; }
+.club-vandaag-leeg-actie { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; padding: 16px 18px; border: 1px dashed var(--line); border-radius: var(--club-hoek-3, 14px); }
+.club-vandaag-leeg-actie h2 { margin: 0; font-family: var(--ff-kop); font-size: clamp(20px, 2vw, 24px); font-weight: 700; line-height: 1; text-transform: uppercase; }
+.club-vandaag-leeg-actie p { margin: 4px 0 0; font-size: 13.5px; color: var(--text-3); }
+@media (max-width: 599px) {
+  .club-vandaag-kopacties { width: 100%; justify-content: space-between; }
+}
+@media (pointer: coarse) { .club-vandaag-hoofdactie { min-height: 44px; } }

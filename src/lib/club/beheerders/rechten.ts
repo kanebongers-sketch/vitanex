@@ -55,6 +55,8 @@ const API_ONDERDEEL: Record<string, string> = {
   // Inloglinks van medewerkers: in Instellingen > Medewerkers (alleen eigenaar en clubmanager, zie medewerker-login/rechten.ts).
   'medewerker-toegang': 'instellingen',
   kladblok: 'notities',
+  // Mededelingen en werkwijzen voor het team (migratie 489).
+  prikbord: 'prikbord',
   leads: 'leads',
   leden: 'leden',
   personeel: 'personeel',

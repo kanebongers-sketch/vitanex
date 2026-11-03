@@ -31,6 +31,16 @@ export const CIJFERS = woordenboek({
       downloaden: (label: string) => `${label} downloaden als CSV`,
       fout: 'Downloaden lukte niet. Probeer het opnieuw.',
     },
+    exports: {
+      exporteren: 'Exporteren',
+      hoofdstuk: (hoofdstuk: string) => `${hoofdstuk} exporteren`,
+      downloaden: (rapport: string) => `${rapport} downloaden als CSV`,
+      titel: 'Alle exports',
+      sub: (bereik: string, maand: string) => `${bereik}, ${maand}. CSV voor Excel.`,
+      voorbeeld: 'Voorbeeld',
+      voorbeeldVan: (rapport: string) => `Voorbeeld van ${rapport} bekijken`,
+      alleRapporten: 'Naar Rapporten',
+    },
     algemeen: {
       geenData: 'geen data',
       periode: 'Periode',
@@ -253,6 +263,16 @@ export const CIJFERS = woordenboek({
     csv: {
       downloaden: (label: string) => `Download ${label} as CSV`,
       fout: 'The download did not work. Please try again.',
+    },
+    exports: {
+      exporteren: 'Export',
+      hoofdstuk: (hoofdstuk: string) => `Export ${hoofdstuk}`,
+      downloaden: (rapport: string) => `Download ${rapport} as CSV`,
+      titel: 'All exports',
+      sub: (bereik: string, maand: string) => `${bereik}, ${maand}. CSV for Excel.`,
+      voorbeeld: 'Preview',
+      voorbeeldVan: (rapport: string) => `Preview ${rapport}`,
+      alleRapporten: 'Go to Reports',
     },
     algemeen: {
       geenData: 'no data',

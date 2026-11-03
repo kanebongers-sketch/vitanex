@@ -149,3 +149,4 @@
 @media (prefers-reduced-motion: reduce) {
   .club-leads-kaart:hover { transform: none; }
 }
+.club-app .club-leads-tabs { margin: 2px 0 6px; }

@@ -39,8 +39,14 @@ import { VANDAAG } from '@/lib/aiyourgym/taal/woorden/club/vandaag-scherm'
 import { startDoorverwijzing } from '@/lib/club/rollen/model'
 import { WelkomVoorRol } from '@/components/club/welkom/WelkomVoorRol'
 import { ikAlsAfvinker } from '@/lib/club/taken/ik'
-import { isLeiding, kanBewerken } from '@/lib/club/rollen/wie'
+import { isLeiding, kanBewerken, v2Minstens } from '@/lib/club/rollen/wie'
 import { NieuweLedenSectie } from '@/components/club/nieuwe-leden/NieuweLedenSectie'
+import { alleenActief, haalTaken } from '@/lib/club/taken/opslag'
+import { VANDAAG_SECTIES } from '@/lib/aiyourgym/taal/woorden/club/vandaag'
+import Link from 'next/link'
+import { ScanLine } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { PrikbordRegel } from '@/components/club/prikbord/PrikbordRegel'
 
 // Vandaag: het eerste scherm van de clubsoftware en het ene dagscherm voor de
 // vloer (besluit Kane 27-10-2026, minder tabbladen). Van boven naar beneden:
@@ -50,6 +56,30 @@ import { NieuweLedenSectie } from '@/components/club/nieuwe-leden/NieuweLedenSec
 // om op te letten. Check-in, taken en opvolgen laden los in een Suspense, zodat
 // de pagina snel in beeld staat. Een clubmanager ziet alleen de secties van
 // onderdelen die de eigenaar hem gaf en die aan staan.
+// Ontwerp "Club in 10 minuten" (03-11-2026): een hoofdactie bovenaan (Inchecken),
+// direct daaronder de regel met open mededelingen van het Prikbord, en alleen wat
+// vandaag aandacht vraagt: een leeg blok staat er niet (een leesfout wel, met
+// melding). Opvolgen heet Bellen vandaag; zonder takenlijst een knop om er een te maken.
+
+/** Een vestiging met een actieve takenlijst? null bij een leesfout (dan gewoon de tabel). */
+async function heeftTakenlijst(t: ClubToegang, vestiging: string): Promise<boolean | null> {
+  const data = await haalTaken(t.admin, t.userId, vestiging)
+  return data ? alleenActief(data).lijsten.length > 0 : null
+}
+
+/** Twee kolommen als beide iets hebben, anders een over de volle breedte; niets = niets. */
+function Duo({ links, rechts }: { links: ReactNode[]; rechts: ReactNode[] }) {
+  const l = links.filter(Boolean)
+  const r = rechts.filter(Boolean)
+  if (l.length === 0 && r.length === 0) return null
+  if (l.length === 0 || r.length === 0) return <div className="club-vandaag-stapel club-vandaag-enkel">{l.length > 0 ? l : r}</div>
+  return (
+    <div className="club-raster club-vandaag-raster">
+      <div className="club-k7 club-vandaag-stapel">{l}</div>
+      <div className="club-k5 club-vandaag-stapel">{r}</div>
+    </div>
+  )
+}
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await clubTekst(VANDAAG)).titel }
@@ -92,11 +122,12 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
   const taal = await getTaal()
   const tv = VANDAAG[taal]
   const maandag = maandagVan(dagSleutel(nu))
-  const [wizard, ruweData, week, kladblok] = await Promise.all([
+  const [wizard, ruweData, week, kladblok, takenlijst] = await Promise.all([
     naarStartwizard(t),
     haalVandaag(t.admin, t.userId, vestiging, nu, taal),
     mag('agenda') ? haalAgendaWeek(t.admin, t.userId, vestiging, maandag) : null,
     mag('notities') ? haalKladblok(t.admin, t.userId, vestiging) : null,
+    zie('taken') ? heeftTakenlijst(t, vestiging) : null,
   ])
   if (wizard) redirect('/club/start')
   const data = beperkVandaag(ruweData, mag)
@@ -108,16 +139,32 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
   const leadsOfJarig = zie('leads') || zie('leden')
   // Trainer en andere vloerrollen: kort scherm, Nu in de club en Leden met risico onder Meer.
   const leiding = isLeiding(t)
+  const sw = VANDAAG_SECTIES[taal]
   const risicoBlok = mag('leden') ? (
-    <div className="club-raster club-vandaag-raster">
-      <div className="club-k7">
-        <RisicoLeden leden={data.risico} laatsteOoit={data.laatsteOoit} vandaag={data.vandaag} vestiging={vestiging} />
-      </div>
-      <div className="club-k5 club-vandaag-stapel">
-        <NieuwDezeWeek leden={data.nieuw} vestiging={vestiging} />
-      </div>
-    </div>
+    <Duo
+      links={[data.risico.length > 0 && <RisicoLeden key="risico" leden={data.risico} laatsteOoit={data.laatsteOoit} vandaag={data.vandaag} vestiging={vestiging} />]}
+      rechts={[data.nieuw.length > 0 && <NieuwDezeWeek key="nieuw" leden={data.nieuw} vestiging={vestiging} />]}
+    />
   ) : null
+  // Lessen, wie er werkt, overdracht en agenda: alleen als er vandaag iets staat (of een leesfout).
+  const diensten = data.werkvloer.diensten
+  const dagBlokken = (
+    <Duo
+      links={[mag('rooster') && data.lessen.length > 0 && <LesTijdlijn key="lessen" lessen={data.lessen} nu={data.nu} roosterPad={clubPad('/rooster', vestiging)} />]}
+      rechts={[
+        mag('personeel') && (diensten === null || diensten.length > 0) && <WieWerkt key="werkt" diensten={diensten} vestiging={vestiging} />,
+        mag('notities') && (overdracht === null || overdracht.length > 0) && <OverdrachtVandaag key="overdracht" notities={overdracht} vestiging={vestiging} />,
+        mag('agenda') && (agendaVandaag === null || agendaVandaag.length > 0) && <AgendaVandaag key="agenda" items={agendaVandaag} vestiging={vestiging} />,
+      ]}
+    />
+  )
+  // Bellen vandaag, rechts: leads die aan de beurt zijn en wie er jarig is; lege lijsten vallen weg.
+  const bellenRechts = [
+    zie('leads') && data.opvolgen.length > 0 && <LeadsOpvolgen key="leads" leads={data.opvolgen} totaal={data.opvolgenTotaal} vandaag={data.vandaag} vestiging={vestiging} />,
+    zie('leden') && data.jarig.length > 0 && <JarigVandaag key="jarig" jarigen={data.jarig} vestiging={vestiging} />,
+  ].filter(Boolean)
+  // Takenlijsten maken: wie Taken mag beheren (zonder rollen v2: wie Taken mag zien).
+  const magLijstMaken = v2Minstens(t, 'taken', 'beheren') ?? true
   return (
     <>
       <header className="club-vandaag-kop">
@@ -127,10 +174,21 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
             {weekdag} <span>{rest.join(' ')}</span>
           </h1>
         </div>
-        <p className="club-vandaag-stand">
-          {tv.standVan} <time dateTime={data.nu.toISOString()}>{tijdNl(data.nu)}</time>
-        </p>
+        <div className="club-vandaag-kopacties">
+          <p className="club-vandaag-stand">
+            {tv.standVan} <time dateTime={data.nu.toISOString()}>{tijdNl(data.nu)}</time>
+          </p>
+          {zie('checkin') && (
+            <Link href={clubPad('/checkin', vestiging)} className="club-knop club-vandaag-hoofdactie" aria-label={sw.checkin.hoofdactieUitleg}>
+              <ScanLine aria-hidden size={17} /> {sw.checkin.hoofdactie}
+            </Link>
+          )}
+        </div>
       </header>
+
+      <Suspense fallback={null}>
+        <PrikbordRegel vestiging={vestiging} />
+      </Suspense>
 
       <WelkomVoorRol t={t} vestiging={vestiging} pagina="vandaag" />
 
@@ -157,16 +215,7 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
       {/* Leiding ziet de drukte meteen; de vloer houdt het scherm kort en klapt hem open onder Meer. */}
       {leiding && <VandaagHero data={data} />}
 
-      <div className="club-raster club-vandaag-raster">
-        <div className="club-k7">
-          {mag('rooster') && <LesTijdlijn lessen={data.lessen} nu={data.nu} roosterPad={clubPad('/rooster', vestiging)} />}
-        </div>
-        <div className="club-k5 club-vandaag-stapel">
-          {mag('personeel') && <WieWerkt diensten={data.werkvloer.diensten} vestiging={vestiging} />}
-          {mag('notities') && <OverdrachtVandaag notities={overdracht} vestiging={vestiging} />}
-          {mag('agenda') && <AgendaVandaag items={agendaVandaag} vestiging={vestiging} />}
-        </div>
-      </div>
+      {dagBlokken}
 
       {/* Nieuwe leden: toevoegen, aanmeldlink en wat leden zelf deden (aanmelding via link, intake). */}
       {zie('leden') && (
@@ -175,16 +224,11 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
         </Suspense>
       )}
 
-      {zie('taken') && <TakenSectie admin={t.admin} userId={t.userId} vestiging={vestiging} vandaag={nlDelen(nu).datum} ik={ikAlsAfvinker(t)} />}
+      {zie('taken') && <TakenSectie admin={t.admin} userId={t.userId} vestiging={vestiging} vandaag={nlDelen(nu).datum} ik={ikAlsAfvinker(t)} heeftLijst={takenlijst} magMaken={magLijstMaken} />}
 
       {(zie('opvolgen') || leadsOfJarig) && (
         <OpvolgSectie admin={t.admin} userId={t.userId} vestiging={vestiging} vestigingNaam={vestigingNaam} magLeden={zie('opvolgen')} magBewerken={kanBewerken(t, 'opvolgen')} magRegels={mag('beheer')}>
-          {leadsOfJarig ? (
-            <>
-              {zie('leads') && <LeadsOpvolgen leads={data.opvolgen} totaal={data.opvolgenTotaal} vandaag={data.vandaag} vestiging={vestiging} />}
-              {zie('leden') && <JarigVandaag jarigen={data.jarig} vestiging={vestiging} />}
-            </>
-          ) : null}
+          {bellenRechts.length > 0 ? bellenRechts : null}
         </OpvolgSectie>
       )}
 

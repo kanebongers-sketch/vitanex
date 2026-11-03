@@ -5,6 +5,7 @@ import type { Bereik } from '@/lib/club/cijfers/periode'
 import { maandKort, maandNaam, type Maand } from '@/lib/club/cijfers/maand'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
+import type { CijferHoofdstuk } from '@/lib/club/rapporten/exports'
 import { CIJFERS, type CijfersTekst } from '@/lib/aiyourgym/taal/woorden/club/cijfers'
 
 export interface CijferContext {
@@ -17,6 +18,17 @@ export interface CijferContext {
   vandaag: string
   /** De taal van de pagina (cookie ayg-taal). */
   taal: Taal
+  /**
+   * Exporteren per hoofdstuk (dezelfde CSV als /club/rapporten); null zonder
+   * recht op Rapporten: dan geen exportknoppen.
+   */
+  exports: Record<CijferHoofdstuk, HoofdstukExport[]> | null
+}
+
+/** Een exportknop in de kop van een hoofdstuk: de naam van het rapport en de CSV-link. */
+export interface HoofdstukExport {
+  label: string
+  href: string
 }
 
 /** De teksten van de cijferpagina in de taal van de context. */

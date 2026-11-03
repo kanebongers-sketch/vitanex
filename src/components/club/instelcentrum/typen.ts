@@ -21,6 +21,8 @@ export interface CentrumRegel {
   href: string | null
   /** Kleine links eronder (wat bij deze regel hoort). */
   links: CentrumLink[]
+  /** Alleen bij Pakketten en onderdelen, voor wie hem mag zetten: "Alles tonen" en de stand. */
+  allesTonen?: { aan: boolean }
 }
 
 export interface CentrumCategorie {
@@ -30,6 +32,11 @@ export interface CentrumCategorie {
   /** Staat er in deze categorie iets open? */
   let: boolean
   rijen: CentrumRegel[]
+}
+
+/** Koppelingen als losse link bovenaan, naast de startwizard. */
+export interface CentrumKoppelingen {
+  href: string
 }
 
 export interface CentrumStart {

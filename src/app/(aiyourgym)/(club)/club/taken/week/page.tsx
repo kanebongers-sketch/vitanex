@@ -16,6 +16,8 @@ import { PrintKnop } from '@/components/club/taken/Hulpjes'
 import { PersoonKiezer } from '@/components/club/taken/PersoonKiezer'
 import { TakenKop, WeekBladeren } from '@/components/club/taken/TakenKop'
 import { TakenRaster } from '@/components/club/taken/TakenRaster'
+import { uitlegHref } from '@/components/club/taken/TakenDag'
+import { uitlegBijTaken } from '@/lib/club/prikbord/taken-uitleg'
 import '@/components/club/taken/taken.css'
 import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
 import { TAKEN } from '@/lib/aiyourgym/taal/woorden/club/taken'
@@ -33,11 +35,12 @@ export default async function TakenWeekPagina({ searchParams }: { searchParams: 
   const vestiging = kiesUit(t.vestigingen, params.v)
   if (!vestiging) return <GeenVestigingen />
   const w = weekContext(leesWeek(params.week), nlDelen(new Date()).datum)
-  const [data, afvinkingen, notities, medewerkers] = await Promise.all([
+  const [data, afvinkingen, notities, medewerkers, uitleg] = await Promise.all([
     haalTaken(t.admin, t.userId, vestiging),
     haalAfvinkingen(t.admin, t.userId, vestiging, w.maandag, w.zondag),
     haalNotities(t.admin, t.userId, vestiging, w.maandag, w.zondag),
     haalMedewerkers(t.admin, t.userId, vestiging),
+    uitlegBijTaken(t),
   ])
   const actief = data ? alleenActief(data) : null
   const taal = await getTaal()
@@ -80,7 +83,7 @@ export default async function TakenWeekPagina({ searchParams }: { searchParams: 
         >
           <PersoonKiezer />
           {actief.lijsten.map((l) => (
-            <TakenRaster key={l.id} lijst={l} taken={actief.taken.filter((x) => x.lijstId === l.id)} dagen={w.dagen} />
+            <TakenRaster key={l.id} lijst={l} taken={actief.taken.filter((x) => x.lijstId === l.id)} dagen={w.dagen} uitlegHref={uitlegHref(uitleg, l.id, vestiging)} />
           ))}
           <WeekNotities dagen={w.dagen} notities={notities} />
         </AfvinkProvider>

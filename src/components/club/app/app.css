@@ -438,3 +438,46 @@ button.club-lidapp-qr-kaart:active { transform: scale(0.985); }
   .club-lidapp-stap-beeld .club-training-beeld { --club-training-beeld-maat: 72px; }
   .club-lidapp-vandaag h3 { font-size: 44px; }
 }
+
+/* ── Home, eenvoud (03-11-2026, EENVOUD-10-MINUTEN.md hoofdstuk 5) ───────────
+   QR bovenaan, dus de begroeting is klein. Deze week is een blok: de ring, en
+   bezoek en reeks als twee rustige cijfers eronder. */
+.club-lidapp-welkomkop--kort { gap: 6px; padding-top: 4px; }
+.club-lidapp-welkomkop--kort .club-lidapp-naam { font-size: clamp(30px, 9vw, 40px); }
+.club-lidapp-welkomkop--kort .club-lidapp-welkom { margin-top: 2px; font-size: 14px; }
+
+.club-lidapp-week:not([data-ring]) { grid-template-columns: minmax(0, 1fr); }
+.club-lidapp-week-cijfers {
+  grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin: 0;
+  border-radius: 16px; overflow: hidden; background: var(--line);
+}
+.club-lidapp-week-cijfers > div { display: grid; gap: 4px; padding: 12px 14px; background: var(--club-opp-1, var(--bg-card)); }
+.club-lidapp-week-cijfers dt { display: inline-flex; align-items: center; gap: 5px; font-family: var(--ff-kop); font-size: 12px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-3); }
+.club-lidapp-week-cijfers dd { margin: 0; font-size: 13.5px; color: var(--text-2); }
+.club-lidapp-week-cijfers strong { margin-right: 4px; font-family: var(--ff-kop); font-size: 30px; font-weight: 700; line-height: 1; color: var(--text-1); font-variant-numeric: tabular-nums; }
+.club-lidapp-week-cijfers > [data-actief] strong, .club-lidapp-week-cijfers > [data-actief] dt svg { color: var(--brand-tekst, var(--brand)); }
+
+/* De weekring: SVG eerst, de 3D-ring legt zich er pas later overheen. */
+.club-lidapp-weekring { position: relative; flex: none; }
+.club-lidapp-weekring-3d { position: absolute; inset: 0; pointer-events: none; animation: club-lidapp-weekring-in 400ms var(--club-ease-uit, ease-out) both; }
+.club-lidapp-weekring[data-3d] .club-ring svg { opacity: 0; transition: opacity 300ms var(--ease); }
+.club-lidapp-weekring .club-ring-midden { z-index: 2; }
+@keyframes club-lidapp-weekring-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* Alle berichten: een uitklapper onder het nieuwste bericht. */
+.club-lidapp-alleberichten > summary {
+  display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 14px;
+  border: 1px solid var(--line); border-radius: 999px; cursor: pointer; list-style: none;
+  font-size: 14px; font-weight: 600; color: var(--text-1);
+  transition: background-color 140ms var(--ease), border-color 140ms var(--ease);
+}
+.club-lidapp-alleberichten > summary::-webkit-details-marker { display: none; }
+.club-lidapp-alleberichten > summary:hover { background: var(--club-vlak-hover); border-color: var(--line-strong); }
+.club-lidapp-alleberichten > summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-lidapp-alleberichten[open] > summary { margin-bottom: 10px; }
+.club-lidapp-alleberichten-lijst { display: grid; gap: 10px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .club-lidapp-weekring-3d { animation: none; }
+  .club-lidapp-weekring[data-3d] .club-ring svg, .club-lidapp-alleberichten > summary { transition: none; }
+}

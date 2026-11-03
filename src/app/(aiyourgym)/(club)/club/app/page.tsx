@@ -6,7 +6,7 @@ import { clubPad, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
 import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import Link from 'next/link'
-import { Printer, Send, Settings2 } from 'lucide-react'
+import { Eye, Printer, Send, Settings2 } from 'lucide-react'
 import { magOnderdeel } from '@/lib/club/beheerders/rechten'
 import { instelHref, instelPagina, instelPaginaInTaal, magInstelPagina } from '@/lib/club/kern/instel-paginas'
 import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
@@ -26,6 +26,7 @@ import { Toestel, type AppTab } from '@/components/club/app/Toestel'
 import { kiesScherm } from '@/lib/club/app/tabs'
 import { SectieKiezer } from '@/components/club/app/SectieKiezer'
 import '@/components/club/app/app.css'
+import { LedenappSecties } from '@/components/club/ledenapp-scherm/LedenappSecties'
 import { haalBerichtenVoorLid } from '@/lib/club/berichten/data'
 import { SluitingenBinnenkort } from '@/components/club/sluiting/SluitingenBinnenkort'
 import { haalVoortgang } from '@/lib/club/voortgang/data'
@@ -39,10 +40,11 @@ import { voedingVoorApp } from '@/lib/club/voeding/model'
 import { LedenappVoeding } from '@/components/club/voeding/LedenappVoeding'
 import { haalMedewerkerKaartje } from '@/lib/club/profielfoto/opslag'
 
-// Ledenapp: voorvertoning van de app zoals een lid hem op zijn telefoon ziet.
-// Kies een (demo)lid; tabblad en lid staan in de URL. Dit is Ledenapp in de
-// hulpbalk onderaan: bovenaan ook de poster met QR-code, leden uitnodigen (de
-// activatielink per lid) en de instellingen van de app, voor wie dat mag.
+// Leden · Ledenapp (ontwerp "Club in 10 minuten", 03-11-2026): een plek voor
+// alles van de app. Hoofdactie Bekijk als lid (de voorvertoning onderaan, kies
+// een (demo)lid; tabblad en lid staan in de URL). Daarboven wat je in de app
+// zet: Berichten, Community en Challenges. In de kop ook de poster met
+// QR-code, leden uitnodigen en de instellingen van de app, voor wie dat mag.
 
 /** De knoppen naar de poster, het uitnodigen en de instellingen; alleen wat deze persoon mag. */
 async function LedenappActies({ t, vestiging }: { t: ClubToegang; vestiging: string }) {
@@ -51,16 +53,16 @@ async function LedenappActies({ t, vestiging }: { t: ClubToegang; vestiging: str
   const leden = moduleAan(t.organisatie, 'leden') && magOnderdeel(t.onderdelen, 'leden')
   const instel = instelPagina('ledenapp')
   const magInstellen = instel ? magInstelPagina(instel, instelKijker(t)) : false
-  if (!leden && !magInstellen) return null
   return (
     <div className="club-acties" aria-label={tekst.acties}>
+      <a href="#bekijk-als-lid" className="club-knop club-knop--primair"><Eye size={16} aria-hidden /> {tekst.bekijkAlsLid}</a>
       {leden && (
         <>
-          <Link href={clubPad('/leden/app-poster', vestiging)} className="club-knop club-knop--klein"><Printer size={15} aria-hidden /> {tekst.poster}</Link>
-          <Link href={clubPad('/leden', vestiging)} className="club-knop club-knop--klein" title={tekst.uitnodigenUitleg}><Send size={15} aria-hidden /> {tekst.uitnodigen}</Link>
+          <Link href={clubPad('/leden/app-poster', vestiging)} className="club-knop club-knop--stil club-knop--klein"><Printer size={15} aria-hidden /> {tekst.poster}</Link>
+          <Link href={clubPad('/leden', vestiging)} className="club-knop club-knop--stil club-knop--klein" title={tekst.uitnodigenUitleg}><Send size={15} aria-hidden /> {tekst.uitnodigen}</Link>
         </>
       )}
-      {instel && magInstellen && <Link href={instelHref(instel, vestiging)} className="club-knop club-knop--klein"><Settings2 size={15} aria-hidden /> {instelPaginaInTaal(instel, taal).titel}</Link>}
+      {instel && magInstellen && <Link href={instelHref(instel, vestiging)} className="club-knop club-knop--stil club-knop--klein"><Settings2 size={15} aria-hidden /> {instelPaginaInTaal(instel, taal).titel}</Link>}
     </div>
   )
 }
@@ -93,21 +95,28 @@ export default async function ClubLedenapp({ searchParams }: { searchParams: Zoe
 
   const kop = (
     <>
-    <header className="club-paginakop">
-      <div>
-        <p className="club-boventitel">{naamVan(t.vestigingen, vestiging)} · {tekst.voorvertoning}</p>
-        <h1>{tekst.titel}</h1>
-        <p>{tekst.intro}</p>
+      <header className="club-paginakop">
+        <div>
+          <p className="club-boventitel">{naamVan(t.vestigingen, vestiging)}</p>
+          <h1>{tekst.titel}</h1>
+          <p>{tekst.intro}</p>
+        </div>
+        <LedenappActies t={t} vestiging={vestiging} />
+      </header>
+      <LedenappSecties t={t} vestiging={vestiging} />
+      <div className="club-las-bekijkkop" id="bekijk-als-lid">
+        <div>
+          <h2 className="club-las-kop2">{tekst.bekijkAlsLid}</h2>
+          <p>{tekst.bekijkUitleg}</p>
+        </div>
+        {lid && (
+          <LidKiezer
+            opties={opties.map((l) => ({ id: l.id, naam: volledigeNaam(l), heeftSchema: metSchema.has(l.id) }))}
+            gekozen={lid.id}
+            basisPad={clubPad('/app', vestiging, { tab })}
+          />
+        )}
       </div>
-      <LedenappActies t={t} vestiging={vestiging} />
-      {lid && (
-        <LidKiezer
-          opties={opties.map((l) => ({ id: l.id, naam: volledigeNaam(l), heeftSchema: metSchema.has(l.id) }))}
-          gekozen={lid.id}
-          basisPad={clubPad('/app', vestiging, { tab })}
-        />
-      )}
-    </header>
     </>
   )
   if (!lid) {

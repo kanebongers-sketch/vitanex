@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { haalMedewerkers } from '@/lib/club/kern/medewerker'
 import { weekParam } from '@/lib/club/rooster/tijd'
+import { clubPad } from '@/lib/club/kern/vestiging'
 import { alleenActief, haalAfsluitrondes, haalAfvinkingen, haalNotities, haalTaken } from '@/lib/club/taken/opslag'
 import { takenHref } from '@/lib/club/taken/url'
 import { weekContext } from '@/lib/club/taken/week'
@@ -14,6 +15,12 @@ import { PersoonKiezer } from './PersoonKiezer'
 import { TakenRaster } from './TakenRaster'
 import { clubTekst } from '@/lib/aiyourgym/taal/server'
 import { TAKEN } from '@/lib/aiyourgym/taal/woorden/club/taken'
+
+/** De link naar de werkwijze bij deze lijst op het Prikbord, of null. */
+export function uitlegHref(uitleg: ReadonlyMap<string, string> | undefined, lijstId: string, vestiging: Vestiging): string | null {
+  const id = uitleg?.get(lijstId)
+  return id ? clubPad('/prikbord', vestiging, { w: id }) : null
+}
 
 // De taken van een dag in de Excel-weergave (besluit Kane: dezelfde tabel als
 // de week, met een kolom): wie vinkt af, de lijsten, het notitieveld en op de
@@ -31,9 +38,11 @@ interface Props {
   vandaag: string
   /** De ingelogde medewerker: vinkt meteen af onder de eigen naam (ikAlsAfvinker). */
   ik?: Persoon | null
+  /** Takenlijst naar werkwijze op het Prikbord: dan staat er "Hoe doe je dit" bij de lijst. */
+  uitleg?: ReadonlyMap<string, string>
 }
 
-export async function TakenDag({ admin, userId, vestiging, dag, vandaag, ik = null }: Props) {
+export async function TakenDag({ admin, userId, vestiging, dag, vandaag, ik = null, uitleg }: Props) {
   const w = weekContext(weekParam(dag), vandaag)
   const [data, afvinkingen, notities, rondes, medewerkers] = await Promise.all([
     haalTaken(admin, userId, vestiging),
@@ -73,7 +82,7 @@ export async function TakenDag({ admin, userId, vestiging, dag, vandaag, ik = nu
     >
       <PersoonKiezer />
       {actief.lijsten.map((l) => (
-        <TakenRaster key={l.id} lijst={l} taken={actief.taken.filter((x) => x.lijstId === l.id)} dagen={[dag]} />
+        <TakenRaster key={l.id} lijst={l} taken={actief.taken.filter((x) => x.lijstId === l.id)} dagen={[dag]} uitlegHref={uitlegHref(uitleg, l.id, vestiging)} />
       ))}
       <DagNotities datum={dag} begin={notities} />
       {dag === vandaag && <DagAfsluiten lijsten={actief.lijsten} taken={actief.taken} dagen={w.dagen} ronde={rondes[0] ?? null} />}

@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import type { CSSProperties, ReactNode } from 'react'
 import { Suspense } from 'react'
-import Link from 'next/link'
 import { clubToegang, eisClubToegang } from '@/lib/club/toegang'
 import { huisstijlVariabelen } from '@/lib/club/kern/huisstijl'
 import { LOGO_FIT_FACTORY, huisstijlExtra, moduleAan } from '@/lib/club/kern/organisatie'
@@ -9,8 +8,8 @@ import { HuisstijlAuto, autoAttribuut } from '@/components/club/shell/HuisstijlA
 import { magOnderdeel } from '@/lib/club/beheerders/rechten'
 import { ClubBalk } from '@/components/club/shell/ClubBalk'
 import { zoekItems } from '@/components/club/shell/zoeken'
-import { hulpbalkVoor, kijkerSleutel } from '@/components/club/shell/hulpbalk-items'
-import { Hulpbalk } from '@/components/club/shell/Hulpbalk'
+import { kijkerSleutel } from '@/components/club/shell/kop-hulp'
+import { leesGebruikStand } from '@/lib/club/menu/in-gebruik-opslag'
 import { heeftInstellingen } from '@/lib/club/kern/instel-paginas'
 import { instelKijker } from '@/lib/club/instel-toegang'
 import { MerkProvider } from '@/components/club/shell/MerkContext'
@@ -21,7 +20,7 @@ import { WizardPoort } from '@/components/club/start/WizardPoort'
 import { StartBalk, WizardWacht } from '@/components/club/start/StartBalk'
 import { getTaal } from '@/lib/aiyourgym/taal/server'
 import { MENU } from '@/lib/aiyourgym/taal/woorden/club/menu'
-import { ONDERDELEN, isZichtbaar } from '@/components/club/shell/onderdelen'
+import { ONDERDELEN, isZichtbaar, nogLeeg } from '@/components/club/shell/onderdelen'
 import { AanDeSlagKop } from '@/components/club/shell/AanDeSlagKop'
 import { tellerRechten, welkeTellers } from '@/lib/club/menu/tellers'
 import { magTestRol } from '@/lib/club/rollen/testrol'
@@ -69,8 +68,8 @@ export default async function ClubLayout({ children }: { children: ReactNode }) 
   // hulp en het abonnement; het team wacht tot de eigenaar klaar is.
   const poortDicht = await wizardPoortDicht(t)
   const eigenaar = magBeheerdersBeheren(t)
-  // De hulpbalk onderaan (Instellingen, Koppelingen, Ledenapp, Wat is nieuw, Hulp), alleen wat deze persoon mag.
-  const hulpbalk = hulpbalkVoor(kijker, instellingen)
+  // Verbergen tot gebruikt (Taken, Prikbord): pas in het menu als er iets in staat (src/lib/club/menu/in-gebruik.ts).
+  const leeg = poortDicht ? [] : nogLeeg(await leesGebruikStand(t))
   // Wie er kijkt, voor wat hij al zag bij Wat is nieuw (alleen in zijn eigen browser bewaard).
   const persoon = kijkerSleutel(t)
   const taal = await getTaal()
@@ -98,8 +97,12 @@ export default async function ClubLayout({ children }: { children: ReactNode }) 
             <StartBalk naam={org.naam} logoUrl={merk.logoUrl} wizard={eigenaar} />
           ) : (
             <Suspense fallback={<div className="club-kop club-kop--laden" aria-hidden />}>
-              <ClubBalk testomgeving={t.isPlatformEigenaar} merk={merk} uit={org.uit} toegestaan={t.onderdelen} instellingen={instellingen} zoek={zoekItems(kijker, instellingen, taal)} ledenZoeken={ledenZoeken} hulpbalk={hulpbalk}
+              <ClubBalk testomgeving={t.isPlatformEigenaar} merk={merk} uit={org.uit} toegestaan={t.onderdelen} instellingen={instellingen} zoek={zoekItems(kijker, instellingen, taal)} ledenZoeken={ledenZoeken}
+                nogLeeg={leeg}
                 persoon={persoon}
+                naam={t.naam}
+                demo={org.demo}
+                kane={t.isPlatformEigenaar ? { andereSportschool: t.organisaties.length > 1 } : null}
                 tellers={tellers}
                 aanDeSlag={
                   <Suspense fallback={null}>
@@ -110,29 +113,11 @@ export default async function ClubLayout({ children }: { children: ReactNode }) 
             </Suspense>
           )}
           <main className="club-werkvlak">{!poortDicht ? children : eigenaar ? <WizardPoort>{children}</WizardPoort> : <WizardWacht naam={org.naam} />}</main>
-          {!poortDicht && (
-            <Suspense fallback={null}>
-              <Hulpbalk sleutels={hulpbalk} persoon={persoon} />
-            </Suspense>
-          )}
         </VestigingenProvider>
       </MerkProvider>
+      {/* De voet houdt alleen de naam; de links van het master account staan onder je naam rechtsboven. */}
       <footer className="club-voet">
         <span>{org.naam} Club{org.demo ? ` · ${tv.demo}` : ''}{t.isPlatformEigenaar ? ` · ${tv.testomgeving}` : ''}</span>
-        {t.isPlatformEigenaar && t.organisaties.length > 1 && (
-          <Link href="/club/huisstijl#sportscholen-kop" className="club-voet-wissel">
-            {tv.andereSportschool}
-          </Link>
-        )}
-        {t.isPlatformEigenaar && (
-          <span className="club-voet-links">
-            <Link href="/club/platform" className="club-voet-wissel">{tv.platform}</Link>
-            {/* Eigen root layout: Next laadt de website dan als volledige pagina. */}
-            <Link href="/" className="club-voet-wissel">{tv.website}</Link>
-            <Link href="/club/hulp/meldingen" className="club-voet-wissel">{tv.supportmeldingen}</Link>
-            <Link href="/club/systeem" className="club-voet-wissel">{tv.systeem}</Link>
-          </span>
-        )}
       </footer>
     </div>
   )

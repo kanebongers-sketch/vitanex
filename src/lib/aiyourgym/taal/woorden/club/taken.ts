@@ -66,6 +66,7 @@ export const TAKEN = woordenboek({
     raster: {
       taak: 'Taak',
       week: 'Week',
+      hoeDoeJeDit: 'Hoe doe je dit',
       teller: (gedaan: number, minimum: number) => `${gedaan} van ${minimum}`,
       tellerTitel: (gedaan: number, minimum: number, status: string) => `${gedaan} van ${minimum} deze week, ${status}`,
       status: { gehaald: 'gehaald', bezig: 'nog te doen', achter: 'loopt achter', vrij: '' },
@@ -247,6 +248,7 @@ export const TAKEN = woordenboek({
     raster: {
       taak: 'Task',
       week: 'Week',
+      hoeDoeJeDit: 'How to do this',
       teller: (gedaan: number, minimum: number) => `${gedaan} of ${minimum}`,
       tellerTitel: (gedaan: number, minimum: number, status: string) => `${gedaan} of ${minimum} this week, ${status}`,
       status: { gehaald: 'achieved', bezig: 'still to do', achter: 'running behind', vrij: '' },

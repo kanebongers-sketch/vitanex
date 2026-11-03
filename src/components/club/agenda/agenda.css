@@ -20,3 +20,12 @@
 .club-app .ag-leeg { display: grid; place-items: center; min-height: 56px; border-radius: var(--club-radius-klein); border: 1px dashed var(--line); background: none; color: var(--text-4); cursor: pointer; transition: color 160ms ease, border-color 160ms ease; }
 .club-app .ag-leeg:hover { color: var(--brand-tekst, var(--brand)); border-color: var(--brand); }
 .club-app .ag-item:focus-visible, .club-app .ag-leeg:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+/* Filter Alles: de afspraken met leden ertussen, als link naar Met leden. */
+.club-app a.ag-item { text-decoration: none; }
+.club-app .ag-item--lid { border-left-color: var(--brand-2, var(--brand)); background: color-mix(in srgb, var(--brand-2, var(--brand)) 7%, var(--club-vlak)); }
+.club-app .ag-item--lid:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+/* De kop van de Agenda: filters links onder de titel, een rustige rij. */
+.club-app .ag-filters { margin: 4px 0 2px; }
+.club-app .ag-terug { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-2); text-decoration: none; }
+.club-app .ag-terug:hover { color: var(--text-1); }
+@media (pointer: coarse) { .club-app .ag-item, .club-app .ag-leeg { min-height: 44px; } }

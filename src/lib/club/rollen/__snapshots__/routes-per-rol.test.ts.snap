@@ -73,6 +73,7 @@ exports[`routes per rol (rollen v2) > per rol vastgelegd 1`] = `
     "/club/koppelingen",
     "/club/nieuw",
     "/club/personeel",
+    "/club/prikbord",
     "/club/rapporten",
   ],
   "eigenaar": [
@@ -123,6 +124,7 @@ exports[`routes per rol (rollen v2) > per rol vastgelegd 1`] = `
     "/club/notities",
     "/club/opvolgen",
     "/club/personeel",
+    "/club/prikbord",
     "/club/rapporten",
     "/club/rooster",
     "/club/start",
@@ -185,6 +187,7 @@ exports[`routes per rol (rollen v2) > per rol vastgelegd 1`] = `
     "/club/notities",
     "/club/opvolgen",
     "/club/personeel",
+    "/club/prikbord",
     "/club/rapporten",
     "/club/rooster",
     "/club/start",
@@ -205,6 +208,7 @@ exports[`routes per rol (rollen v2) > per rol vastgelegd 1`] = `
     "/club/koppelingen",
     "/club/nieuw",
     "/club/notities",
+    "/club/prikbord",
     "/club/rooster",
   ],
   "instructeur+roosteraar": [
@@ -215,6 +219,7 @@ exports[`routes per rol (rollen v2) > per rol vastgelegd 1`] = `
     "/club/nieuw",
     "/club/notities",
     "/club/personeel",
+    "/club/prikbord",
     "/club/rooster",
   ],
   "manager": [
@@ -255,6 +260,7 @@ exports[`routes per rol (rollen v2) > per rol vastgelegd 1`] = `
     "/club/notities",
     "/club/opvolgen",
     "/club/personeel",
+    "/club/prikbord",
     "/club/rapporten",
     "/club/rooster",
     "/club/taken",
@@ -275,6 +281,7 @@ exports[`routes per rol (rollen v2) > per rol vastgelegd 1`] = `
     "/club/koppelingen",
     "/club/nieuw",
     "/club/personeel",
+    "/club/prikbord",
     "/club/rooster",
   ],
   "trainer": [
@@ -298,6 +305,7 @@ exports[`routes per rol (rollen v2) > per rol vastgelegd 1`] = `
     "/club/nieuw",
     "/club/notities",
     "/club/opvolgen",
+    "/club/prikbord",
     "/club/taken",
     "/club/taken/beheer",
     "/club/taken/overzicht",

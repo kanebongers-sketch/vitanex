@@ -21,6 +21,7 @@ import { CLUB_LEDEN_LOGIN } from '@/lib/club/ledenlogin/schakelaar'
 import { mailKlaar } from '@/lib/club/app-uitnodigen/regels'
 import { leesVapidSleutels, pushActief } from '@/lib/club/push/sleutels'
 import '@/components/club/shell/koppelingen.css'
+import { InstelKruimel } from '@/components/club/beheer/InstelKruimel'
 import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { KOPPEL_TEKST } from '@/lib/aiyourgym/taal/woorden/club/koppelingen'
@@ -30,7 +31,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 export const dynamic = 'force-dynamic'
 
-// Koppelingen (hulpbalk onderaan, idee Kane 23-10-2026): alleen wat echt in
+// Koppelingen (idee Kane 23-10-2026; sinds 03-11-2026 een losse link bovenaan
+// Beheer · Instellingen, met de weg terug naar het centrum): alleen wat echt in
 // Club zit, met de stand zoals die nu is, en een link naar de pagina waar je
 // het instelt. Wie de instel-pagina niet mag zien, ziet de koppeling niet
 // (regels en standen in src/lib/club/kern/koppelingen.ts).
@@ -96,6 +98,7 @@ export default async function KoppelingenPagina({ searchParams }: { searchParams
 
   return (
     <>
+      <InstelKruimel id="koppelingen" vestiging={vestiging} />
       <header className="club-paginakop">
         <div>
           <p className="club-boventitel">{t.organisatie.naam}</p>

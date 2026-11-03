@@ -1,10 +1,10 @@
 // ─── Club, rollen v2: de rijen van Rechten per rol (PUUR) ───────────────────
-// De groepen zoals het menu, plus een groep Instellingen en bedrijf voor wat
+// De vijf plekken zoals het menu, plus een groep Instellingen en bedrijf voor wat
 // niet in het menu staat. Elke sleutel uit RECHT_SLEUTELS staat er precies een
 // keer in (behalve Hulp: die heeft iedereen). Een rij met een slot is alleen
 // voor de eigenaar; een rij buiten het pakket wordt grijs, niet weggelaten.
 
-import { GROEPEN, ONDERDELEN, groepInTaal, inMenu, onderdeelInTaal } from '@/components/club/shell/onderdelen'
+import { ONDERDELEN, PLEKKEN, inMenu, onderdeelInTaal, plekInTaal } from '@/components/club/shell/onderdelen'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import type { Verborgen } from '@/lib/club/kern/pakketten'
 import { ROLLEN_TEKST } from '@/lib/aiyourgym/taal/woorden/club/rollen'
@@ -29,7 +29,7 @@ export interface RechtenGroepV2 {
 }
 
 /** Extra sleutels die in een groep van het menu horen (naast hun onderdeel). */
-const EXTRA_IN_GROEP: Readonly<Record<string, string>> = { uren: 'planning' }
+const EXTRA_IN_GROEP: Readonly<Record<string, string>> = { uren: 'rooster' }
 
 type Extra = (typeof EXTRA_SLEUTELS)[number]
 
@@ -43,14 +43,14 @@ function rijVoor(sleutel: string, uit: readonly Verborgen[], taal: Taal): Rechte
 export function rechtenGroepenV2(uit: readonly Verborgen[], taal: Taal = 'nl'): RechtenGroepV2[] {
   const dagelijks = (s: string) => {
     const o = ONDERDELEN.find((x) => x.sleutel === s)
-    return o !== undefined && (inMenu(o) || Boolean(o.sectie))
+    return o !== undefined && (inMenu(o) || Boolean(o.sectie) || Boolean(o.onder))
   }
   const teTonen = RECHT_SLEUTELS.filter((s) => s !== 'hulp')
-  const groepen: RechtenGroepV2[] = GROEPEN.map((g) => ({
+  const groepen: RechtenGroepV2[] = PLEKKEN.map((g) => ({
     sleutel: g.sleutel,
-    label: groepInTaal(g, taal).label,
+    label: plekInTaal(g, taal).label,
     rijen: teTonen
-      .filter((s) => (dagelijks(s) && ONDERDELEN.find((x) => x.sleutel === s)?.groep === g.sleutel) || EXTRA_IN_GROEP[s] === g.sleutel)
+      .filter((s) => (dagelijks(s) && ONDERDELEN.find((x) => x.sleutel === s)?.plek === g.sleutel) || EXTRA_IN_GROEP[s] === g.sleutel)
       .map((s) => rijVoor(s, uit, taal)),
   }))
   const gebruikt = new Set(groepen.flatMap((g) => g.rijen.map((r) => r.sleutel)))

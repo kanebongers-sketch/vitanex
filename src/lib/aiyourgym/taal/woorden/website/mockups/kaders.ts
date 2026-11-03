@@ -4,12 +4,12 @@
 // echte menu laat zien; komt er in Club een onderdeel bij, dan faalt de woordenboektest
 // tot het Engels er ook staat. Tabbladen per Nederlandse naam (zo geven de schermen ze door).
 
-import { GROEPEN, ONDERDELEN, inMenu, type GroepSleutel } from '@/components/club/shell/onderdelen'
+import { GROEPEN, ONDERDELEN, inOudMenu, type GroepSleutel } from '@/components/club/shell/onderdelen'
 import { HULPBALK, type HulpSleutel } from '@/components/club/shell/hulpbalk-items'
 import { woordenboek } from '../../../woordenboek'
 
 const groepen = Object.fromEntries(GROEPEN.map((g) => [g.sleutel, g.label])) as Record<GroepSleutel, string>
-const onderdelen: Record<string, string> = Object.fromEntries(ONDERDELEN.filter(inMenu).map((o) => [o.sleutel, o.label]))
+const onderdelen: Record<string, string> = Object.fromEntries(ONDERDELEN.filter(inOudMenu).map((o) => [o.sleutel, o.label]))
 const hulpbalk = Object.fromEntries(HULPBALK.map((i) => [i.sleutel, i.label])) as Record<HulpSleutel, string>
 
 export const KADERS = woordenboek({

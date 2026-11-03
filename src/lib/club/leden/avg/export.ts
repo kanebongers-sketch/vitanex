@@ -66,6 +66,8 @@ export interface ExportRuw {
   profielfoto: Rij[]
   // Reden van opzeggen of stoppen (migratie 482).
   opzeggingen: Rij[]
+  // Uitvoeringen van een werkwijze op het Prikbord met een koppeling aan dit lid (migratie 489).
+  werkwijzeUitvoeringen: Rij[]
 }
 
 export type SectieSleutel = Exclude<keyof ExportRuw, 'lid'>
@@ -296,10 +298,16 @@ export const SECTIES: readonly Sectie[] = [
     titel: 'Reden van opzeggen of stoppen',
     velden: { actie: 'Actie', reden: 'Reden', toelichting: 'Toelichting', einddatum: 'Einddatum', vastgelegd_door: 'Vastgelegd door', aangemaakt_op: 'Vastgelegd op' },
   },
+  // Uitvoeringen van een werkwijze (bijvoorbeeld een ongeval) met dit lid erbij (migratie 489).
+  {
+    sleutel: 'werkwijzeUitvoeringen',
+    titel: 'Werkwijzen uitgevoerd met dit lid',
+    velden: { 'club_werkwijzen.titel': 'Werkwijze', versie: 'Versie', vestiging: 'Vestiging', profiel_id: 'Uitgevoerd door', gestart_op: 'Gestart op', afgerond_op: 'Afgerond op', notitie: 'Notitie' },
+  },
 ]
 
 /** Kolommen met een medewerker-id: in het bestand de naam, nooit het id. */
-const MEDEWERKER_KOLOMMEN: ReadonlySet<string> = new Set(['medewerker_id', 'coach_id'])
+const MEDEWERKER_KOLOMMEN: ReadonlySet<string> = new Set(['medewerker_id', 'coach_id', 'profiel_id'])
 
 /** Een waarde via een pad met punten; ingesloten tabellen kunnen een lijst van een zijn. */
 export function waardeOpPad(rij: Rij, pad: string): unknown {

@@ -9,7 +9,7 @@ import { woordenboek } from '../../woordenboek'
 export const PERSONEEL = woordenboek({
   nl: {
     pagina: {
-      titel: 'Personeel',
+      titel: 'Diensten',
       laadFout: 'Het personeel kon niet worden geladen. Ververs de pagina om het opnieuw te proberen.',
     },
     labels: {
@@ -18,7 +18,7 @@ export const PERSONEEL = woordenboek({
       uurStatus: { gepland: 'Gepland', gewerkt: 'Gewerkt', goedgekeurd: 'Goedgekeurd', verwerkt: 'Verwerkt' },
       reden: { verlof: 'Verlof', vrij: 'Vrij', ziek: 'Ziek' },
       periode: { week: 'Week', '4weken': '4 weken', maand: 'Maand' },
-      tab: { week: 'Weekrooster', team: 'Beschikbaarheid', mijn: 'Mijn diensten', uren: 'Uren' },
+      tab: { week: 'Week', team: 'Beschikbaarheid', mijn: 'Mijn diensten', uren: 'Uren' },
       weekdagen: ['Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag', 'Zondag'],
     },
     algemeen: {
@@ -39,14 +39,14 @@ export const PERSONEEL = woordenboek({
     },
     kop: {
       boventitel: (vestiging: string) => `${vestiging} · Fitnesspersoneel`,
-      titel: 'Personeel',
+      titel: 'Diensten',
       week: (nr: number) => `Week ${nr}`,
       weekBereik: (van: string, tot: string, jaar: string) => `${van} tot ${tot} ${jaar}`,
       weekKiezen: 'Week kiezen',
       vorigeWeek: 'Vorige week',
       dezeWeek: 'Deze week',
       volgendeWeek: 'Volgende week',
-      tabs: 'Onderdeel van personeel',
+      tabs: 'Onderdeel van diensten',
     },
     week: {
       laadFout: 'Het rooster kon niet worden geladen. Ververs de pagina om het opnieuw te proberen.',
@@ -302,7 +302,7 @@ export const PERSONEEL = woordenboek({
   },
   en: {
     pagina: {
-      titel: 'Staff',
+      titel: 'Shifts',
       laadFout: 'The staff could not be loaded. Refresh the page to try again.',
     },
     labels: {
@@ -311,7 +311,7 @@ export const PERSONEEL = woordenboek({
       uurStatus: { gepland: 'Planned', gewerkt: 'Worked', goedgekeurd: 'Approved', verwerkt: 'Processed' },
       reden: { verlof: 'Leave', vrij: 'Day off', ziek: 'Sick' },
       periode: { week: 'Week', '4weken': '4 weeks', maand: 'Month' },
-      tab: { week: 'Weekly rota', team: 'Availability', mijn: 'My shifts', uren: 'Hours' },
+      tab: { week: 'Week', team: 'Availability', mijn: 'My shifts', uren: 'Hours' },
       weekdagen: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
     },
     algemeen: {
@@ -332,14 +332,14 @@ export const PERSONEEL = woordenboek({
     },
     kop: {
       boventitel: (vestiging: string) => `${vestiging} · Gym floor staff`,
-      titel: 'Staff',
+      titel: 'Shifts',
       week: (nr: number) => `Week ${nr}`,
       weekBereik: (van: string, tot: string, jaar: string) => `${van} to ${tot} ${jaar}`,
       weekKiezen: 'Choose a week',
       vorigeWeek: 'Previous week',
       dezeWeek: 'This week',
       volgendeWeek: 'Next week',
-      tabs: 'Staff sections',
+      tabs: 'Shift sections',
     },
     week: {
       laadFout: 'The rota could not be loaded. Refresh the page to try again.',

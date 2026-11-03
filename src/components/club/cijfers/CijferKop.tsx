@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Download } from 'lucide-react'
 import type { Bereik } from '@/lib/club/cijfers/periode'
 import { maandenReeks, maandNaam, maandVan, plusMaanden, vensterNaam, VROEGSTE_MAAND, type Maand, type MaandVenster } from '@/lib/club/cijfers/maand'
 import { dagLang } from '@/lib/club/cijfers/tijd'
@@ -21,6 +21,8 @@ interface Props {
   venster: MaandVenster
   vandaag: string
   taal: Taal
+  /** De hoofdactie Exporteren (naar #exports), alleen met recht op Rapporten. */
+  exporteren?: boolean
 }
 
 /** Zoveel maanden terug staan in de keuzelijst. */
@@ -30,7 +32,7 @@ function hoofdletter(t: string): string {
   return t.charAt(0).toUpperCase() + t.slice(1)
 }
 
-export function CijferKop({ vestiging, vestigingNaam, aantalVestigingen, maand, bereik, venster, vandaag, taal }: Props) {
+export function CijferKop({ vestiging, vestigingNaam, aantalVestigingen, maand, bereik, venster, vandaag, taal, exporteren = false }: Props) {
   const t = CIJFERS[taal].kop
   const nu = maandVan(vandaag)
   const pad = (m: Maand, b: Bereik) => clubPad('/cijfers', vestiging, { maand: m, ...(b === 'alle' ? { bereik: 'alle' } : {}) })
@@ -86,6 +88,11 @@ export function CijferKop({ vestiging, vestigingNaam, aantalVestigingen, maand, 
             {t.alleVestigingen}
           </Link>
         </div>
+        {exporteren && (
+          <a href="#exports" className="club-knop club-cijfers-hoofdactie">
+            <Download aria-hidden size={16} /> {CIJFERS[taal].exports.exporteren}
+          </a>
+        )}
       </nav>
     </header>
   )

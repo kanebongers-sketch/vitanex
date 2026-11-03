@@ -1,25 +1,25 @@
 import { describe, expect, it } from 'vitest'
 import { LayoutGrid } from 'lucide-react'
 import type { InstelKijker } from '@/lib/club/kern/instel-paginas'
-import { ONDERDELEN, inMenu } from './onderdelen'
-import { HULPBALK } from './hulpbalk-items'
-import { HULP_ICOON, ONDERDEEL_ICOON, heeftZoekIcoon, onderdeelIcoon, zoekIcoon } from './iconen'
+import { ONDERDELEN, PLEKKEN, schermenVan } from './onderdelen'
+import { KOP_HULP } from './kop-hulp'
+import { HULP_ICOON, ONDERDEEL_ICOON, PLEK_ICOON, heeftZoekIcoon, onderdeelIcoon, plekIcoon, zoekIcoon } from './iconen'
 import { ledenItems, zoekItems } from './zoeken'
 
 const ALLES: InstelKijker = { uit: [], toegestaan: null, medewerker: false, betalenAan: false }
 
 describe('iconen', () => {
-  it('elk onderdeel en elk item van de hulpbalk heeft een eigen icoon', () => {
+  it('elke plek, elk onderdeel en het vraagteken hebben een eigen icoon', () => {
+    for (const p of PLEKKEN) expect(PLEK_ICOON[p.sleutel], p.sleutel).toBeDefined()
+    expect(new Set(PLEKKEN.map((p) => plekIcoon(p.sleutel))).size).toBe(PLEKKEN.length)
     for (const o of ONDERDELEN) expect(ONDERDEEL_ICOON[o.sleutel], o.sleutel).toBeDefined()
-    for (const h of HULPBALK) expect(HULP_ICOON[h.sleutel], h.sleutel).toBeDefined()
+    for (const h of KOP_HULP) expect(HULP_ICOON[h.sleutel], h.sleutel).toBeDefined()
   })
 
-  it('rustig en consistent: in een groep van het menu geen twee onderdelen met hetzelfde icoon', () => {
-    const groepen = new Map<string, unknown[]>()
-    for (const o of ONDERDELEN.filter((x) => inMenu(x) || x.sectie || x.sleutel === 'vandaag')) {
-      const lijst = groepen.get(o.groep) ?? []
-      expect(lijst, `${o.groep}: ${o.sleutel}`).not.toContain(ONDERDEEL_ICOON[o.sleutel])
-      groepen.set(o.groep, [...lijst, ONDERDEEL_ICOON[o.sleutel]])
+  it('rustig en consistent: binnen een plek geen twee schermen met hetzelfde icoon', () => {
+    for (const p of PLEKKEN) {
+      const iconen = [...schermenVan(p.sleutel), ...ONDERDELEN.filter((o) => o.plek === p.sleutel && (o.sectie || o.onder))].map((o) => ONDERDEEL_ICOON[o.sleutel])
+      expect(new Set(iconen).size, p.sleutel).toBe(iconen.length)
     }
   })
 

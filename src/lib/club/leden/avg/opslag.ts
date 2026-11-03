@@ -78,6 +78,8 @@ export const AVG_BRONNEN: Record<Exclude<keyof ExportRuw, 'lid' | 'leadHistorie'
   profielfoto: { tabel: 'club_profielfotos', select: 'bron, toegevoegd_door, toestemming_op, toestemming_tekst_versie, aangemaakt_op', volgorde: 'aangemaakt_op' },
   // Reden van opzeggen of stoppen (migratie 482).
   opzeggingen: { tabel: 'club_lid_opzeggingen', select: 'actie, reden, toelichting, einddatum, vastgelegd_door, aangemaakt_op', volgorde: 'aangemaakt_op' },
+  // Uitvoeringen van een werkwijze met dit lid erbij (migratie 489).
+  werkwijzeUitvoeringen: { tabel: 'club_werkwijze_uitvoeringen', select: 'versie, vestiging, profiel_id, gestart_op, afgerond_op, notitie, club_werkwijzen(titel)', volgorde: 'gestart_op' },
 }
 
 const MAX_RIJEN = 10_000

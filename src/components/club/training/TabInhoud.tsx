@@ -1,4 +1,10 @@
 import Link from 'next/link'
+import { ArrowRight, Plus } from 'lucide-react'
+import { clubPad } from '@/lib/club/kern/vestiging'
+import { maandagVan, nlDelen } from '@/lib/club/rooster/tijd'
+import { haalSjablonen } from '@/lib/club/voeding/lezen'
+import { SjablonenLijst } from '@/components/club/voeding/Lijsten'
+import '@/components/club/voeding/voeding.css'
 import type { ClubToegang } from '@/lib/club/toegang'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { haalIntakes, haalOefeningen, haalSchemas, haalTrainingslog } from '@/lib/club/training/data'
@@ -14,8 +20,9 @@ import { toonDatum } from '@/lib/club/training/weergave'
 import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
 import { CLUB_TRAINING } from '@/lib/aiyourgym/taal/woorden/club/training'
 
-// De inhoud van de vier tabbladen. Server Components: ze halen alleen de data
-// van het tabblad dat open staat.
+// De inhoud van Schema's (met Intakes deze week en de lijst met alle intakes)
+// en de delen van de Bibliotheek. Server Components: ze halen alleen de data
+// van wat open staat.
 
 interface TabProps {
   t: ClubToegang
@@ -107,4 +114,48 @@ export async function TabOefeningen({ t, filter }: { t: ClubToegang; filter: Oef
   const oefeningen = await haalOefeningen(t.admin, t.userId)
   if (!oefeningen) return <Fout wat="deOefeningen" />
   return <OefeningenBeheer oefeningen={oefeningen} beginFilter={filter} />
+}
+
+/**
+ * Bovenaan Schema's: de intakes van deze week (maandag tot nu en later),
+ * hoogstens zes. Geen intakes deze week: het blok staat er niet.
+ */
+export async function IntakesDezeWeek({ t, vestiging, lid, trainers }: TabProps) {
+  const intakes = await haalIntakes(t.admin, t.userId, { vestiging, lidId: lid?.id ?? null }, 20)
+  if (!intakes) return null
+  const maandag = maandagVan(nlDelen(new Date()).datum)
+  const week = intakes.filter((i) => i.datum >= maandag).slice(0, 6)
+  if (week.length === 0) return null
+  const tp = (await clubTekst(CLUB_TRAINING)).pagina
+  const paden = trainingPaden(vestiging)
+  return (
+    <section className="club-training-weekintakes" aria-labelledby="intakes-week-kop">
+      <header className="club-sectiekop">
+        <h2 id="intakes-week-kop" className="club-training-tussenkop">{tp.intakesWeek} <span className="club-training-teller">{week.length}</span></h2>
+        <Link href={trainingPad(vestiging, 'intakes', lid?.id ?? null)} className="club-training-meer">{tp.alleIntakes} <ArrowRight size={14} aria-hidden /></Link>
+      </header>
+      <IntakeLijst intakes={week} trainers={trainers} editorHref={paden.editor} lidHref={paden.intakesVanLid} toonLid={!lid} />
+    </section>
+  )
+}
+
+/** Bibliotheek, deel Voeding: de voedingssjablonen; openen en wijzigen op het volledige scherm bij Voeding. */
+export async function TabVoedingSjablonen({ t, vestiging }: Pick<TabProps, 't' | 'vestiging'>) {
+  const [sjablonen, tp] = await Promise.all([haalSjablonen(t.admin, t.userId), clubTekst(CLUB_TRAINING)])
+  const w = tp.pagina.voeding
+  return (
+    <section className="club-training-stapel" aria-labelledby="voeding-sjablonen-kop">
+      <header className="club-sectiekop">
+        <h2 id="voeding-sjablonen-kop" className="club-training-tussenkop">{w.titel}</h2>
+        <Link href={clubPad('/voeding', vestiging, { tab: 'sjablonen', nieuw: '1' })} className="club-knop club-knop--klein"><Plus size={15} aria-hidden /> {w.nieuw}</Link>
+      </header>
+      {sjablonen === null ? (
+        <p className="club-melding club-melding--fout" role="alert">{w.fout}</p>
+      ) : sjablonen.length === 0 ? (
+        <p className="club-leeg">{w.leeg}</p>
+      ) : (
+        <SjablonenLijst sjablonen={sjablonen} gekozen={null} vestiging={vestiging} />
+      )}
+    </section>
+  )
 }

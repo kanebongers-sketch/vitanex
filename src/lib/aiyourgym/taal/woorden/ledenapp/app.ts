@@ -47,6 +47,7 @@ export const LEDENAPP = woordenboek({
       om: (dag: string, tijd: string) => `${dag} om ${tijd}`,
       vandaagProgramma: 'Vandaag op het programma',
       schemaDag: (schema: string, letter: string) => `${schema}, dag ${letter}`,
+      alleBerichten: (n: number) => `Alle berichten (${n})`,
     },
     regels: {
       annulerenTotBegin: 'Gratis annuleren kan tot de les begint.',
@@ -179,6 +180,7 @@ export const LEDENAPP = woordenboek({
       wachtwoordKop: 'Kies een wachtwoord',
       wachtwoordUitleg: 'Je logt voortaan in met e-mailadres en wachtwoord. Kies je wachtwoord nu.',
       wachtwoordKnop: 'Wachtwoord opslaan',
+      account: 'Account',
     },
     uitleg: {
       label: 'Over de ledenapp',
@@ -245,6 +247,7 @@ export const LEDENAPP = woordenboek({
       om: (dag: string, tijd: string) => `${dag} at ${tijd}`,
       vandaagProgramma: 'On the programme today',
       schemaDag: (schema: string, letter: string) => `${schema}, day ${letter}`,
+      alleBerichten: (n: number) => `All messages (${n})`,
     },
     regels: {
       annulerenTotBegin: 'You can cancel for free until the class starts.',
@@ -377,6 +380,7 @@ export const LEDENAPP = woordenboek({
       wachtwoordKop: 'Choose a password',
       wachtwoordUitleg: 'From now on you log in with email and password. Choose your password now.',
       wachtwoordKnop: 'Save password',
+      account: 'Account',
     },
     uitleg: {
       label: 'About the member app',

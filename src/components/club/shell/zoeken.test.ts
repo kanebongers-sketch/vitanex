@@ -25,19 +25,31 @@ describe('zoekItems', () => {
     for (const verboden of ['Huisstijl', 'Rechten per rol', 'Instellingen', 'Zalen', 'Cijfers', 'Abonnement en facturen', 'Ledenapp']) expect(labels).not.toContain(verboden)
   })
 
-  it('de hulpbalk is te vinden, met plek Onderaan en de sneltoets', () => {
+  it('wat in de hulpbalk stond, staat op zijn nieuwe plek en is te vinden', () => {
     const items = zoekItems(ALLES, true)
-    const hulp = items.filter((i) => i.id.startsWith('hulp-'))
-    expect(hulp.map((i) => i.label)).toEqual(['Instellingen', 'Koppelingen', 'Ledenapp', 'Wat is nieuw', 'Hulp'])
-    expect(hulp.every((i) => i.plek === 'Onderaan')).toBe(true)
-    expect(hulp.find((i) => i.label === 'Instellingen')?.toets).toBe('G I')
-    expect(filterZoek(items, 'koppelingen')[0].pad).toBe('/koppelingen')
-    expect(filterZoek(items, 'updates')[0].pad).toBe('/nieuw')
+    expect(items.filter((i) => i.id.startsWith('kop-')).map((i) => [i.label, i.plek])).toEqual([['Hulp', 'Rechtsboven'], ['Wat is nieuw', 'Rechtsboven']])
+    expect(items.find((i) => i.id === 'kop-hulp')?.toets).toBe('G H')
+    expect(items.find((i) => i.id === 'menu-beheer')).toMatchObject({ label: 'Instellingen', plek: 'Beheer', toets: 'G I' })
+    expect(items.find((i) => i.id === 'menu-app')).toMatchObject({ label: 'Ledenapp', plek: 'Leden' })
+    expect(filterZoek(items, 'koppelingen')[0]).toMatchObject({ pad: '/koppelingen', plek: 'Beheer · Instellingen' })
+    expect(filterZoek(items, 'updates').map((i) => i.pad)).toContain('/nieuw')
+  })
+
+  it('oude namen vinden de nieuwe plek', () => {
+    const items = zoekItems(ALLES, true)
+    expect(filterZoek(items, 'werkvloer')[0].id).toBe('menu-vandaag')
+    expect(filterZoek(items, 'groepslessen').map((i) => i.id)).toContain('menu-rooster')
+    expect(filterZoek(items, 'personeel')[0].id).toBe('menu-personeel')
+    expect(filterZoek(items, 'rapporten')[0]).toMatchObject({ id: 'menu-rapporten', plek: 'Beheer · Cijfers' })
+    expect(filterZoek(items, 'community')[0]).toMatchObject({ id: 'menu-community', plek: 'Leden · Ledenapp' })
+    expect(filterZoek(items, 'afspraken')[0]).toMatchObject({ id: 'menu-afspraken', plek: 'Rooster · Agenda' })
+    expect(filterZoek(items, 'notities').map((i) => i.id)).toContain('menu-notities')
+    expect(filterZoek(items, 'wat is nieuw')[0].id).toBe('kop-nieuw')
   })
 
   it('onderdeel uit: niet te vinden', () => {
     const labels = zoekItems({ ...ALLES, uit: ['rooster'] }, true).map((i) => i.label)
-    expect(labels).not.toContain('Groepslessen')
+    expect(labels).not.toContain('Lessen')
     expect(labels).not.toContain('Weekrooster')
   })
 })
@@ -45,7 +57,7 @@ describe('zoekItems', () => {
 describe('secties op Vandaag', () => {
   it('check-in en opvolgen landen op hun anker op Vandaag', () => {
     const items = zoekItems(ALLES, true)
-    expect(filterZoek(items, 'check-in')[0]).toMatchObject({ id: 'vandaag-checkin', pad: '#checkin', plek: 'Werkvloer · Vandaag', toets: 'G C' })
+    expect(filterZoek(items, 'check-in')[0]).toMatchObject({ id: 'vandaag-checkin', pad: '#checkin', plek: 'Vandaag', toets: 'G C' })
     expect(filterZoek(items, 'opvolgen')[0]).toMatchObject({ id: 'vandaag-opvolgen', pad: '#opvolgen' })
     expect(zoekHref(filterZoek(items, 'opvolgen')[0], 'budel')).toBe('/club?v=budel#opvolgen')
   })
@@ -67,10 +79,10 @@ describe('secties op Vandaag', () => {
   })
 })
 
-describe('taken (eigen tab in Werkvloer, besluit Kane 28-10-2026)', () => {
+describe('taken (eigen scherm op Vandaag, besluit Kane 28-10-2026)', () => {
   it('taken en poetsrooster landen op het takenscherm', () => {
     const items = zoekItems(ALLES, true)
-    expect(filterZoek(items, 'taken')[0]).toMatchObject({ id: 'menu-taken', pad: '/taken', plek: 'Werkvloer', toets: 'G K' })
+    expect(filterZoek(items, 'taken')[0]).toMatchObject({ id: 'menu-taken', pad: '/taken', plek: 'Vandaag', toets: 'G K' })
     expect(filterZoek(items, 'poetsrooster')[0]).toMatchObject({ id: 'menu-taken', pad: '/taken' })
     expect(filterZoek(items, 'dagelijkse taken')[0].pad).toBe('/taken')
     expect(zoekHref(filterZoek(items, 'poetsrooster')[0], 'budel')).toBe('/club/taken?v=budel')
@@ -86,7 +98,7 @@ describe('filterZoek', () => {
   it('alle woorden moeten passen en accenten maken niet uit', () => {
     expect(normaliseerZoek('  Ideeën  ')).toBe('ideeen')
     expect(filterZoek(items, 'ideeen').map((i) => i.label)).toContain('Notities')
-    expect(filterZoek(items, 'ledenapp bekijken')[0].id).toBe('hulp-ledenapp')
+    expect(filterZoek(items, 'ledenapp bekijken')[0].id).toBe('menu-app')
   })
 })
 

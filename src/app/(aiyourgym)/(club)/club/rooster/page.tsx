@@ -88,6 +88,7 @@ export default async function RoosterPagina({ searchParams }: { searchParams: Zo
         volgende={weekParam(plusDagen(maandag, 7))}
         isDezeWeek={dagen.includes(nuNl.datum)}
         staat={staat}
+        vasteWeekHref={magInstellen ? clubPad('/instellingen/weekrooster', vestiging) : null}
       />
       <WelkomVoorRol t={t} vestiging={vestiging} pagina="rooster" />
       {lessen === null ? (

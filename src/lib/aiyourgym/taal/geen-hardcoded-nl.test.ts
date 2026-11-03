@@ -115,6 +115,9 @@ export const CLUB_KLAAR = [
   'src/components/club/ontwerp',
   'src/app/(aiyourgym)/(club)/club/hulp',
   'src/app/(aiyourgym)/(club)/club/notities',
+  // Het Prikbord (03-11-2026, migratie 489).
+  'src/components/club/prikbord',
+  'src/app/(aiyourgym)/(club)/club/prikbord',
   'src/app/(aiyourgym)/(club)/club/platform',
   'src/app/(aiyourgym)/(club)/club/systeem',
   'src/app/(aiyourgym)/(club)/club/koppelingen',

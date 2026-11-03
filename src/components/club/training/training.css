@@ -296,3 +296,19 @@
   .club-training-print footer { margin-top: 6mm; font-size: 8pt; color: color-mix(in srgb, black 70%, transparent); }
   .club-training-print footer p { margin: 0 0 1mm; }
 }
+/* Training · Bibliotheek: de delen als rustige tekstlinks onder de tabbladen. */
+.club-app .club-training-delen { display: flex; flex-wrap: wrap; gap: 4px 20px; margin: 0 0 18px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.club-app .club-training-delen a { position: relative; padding: 6px 0; font-size: 14px; font-weight: 600; color: var(--text-3); text-decoration: none; transition: color 160ms ease; }
+.club-app .club-training-delen a:hover { color: var(--text-1); }
+.club-app .club-training-delen a[aria-current='page'] { color: var(--text-1); }
+.club-app .club-training-delen a[aria-current='page']::after { content: ''; position: absolute; left: 0; right: 0; bottom: -11px; height: 2px; background: var(--brand); }
+.club-app .club-training-delen a:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; border-radius: 3px; }
+@media (pointer: coarse) { .club-app .club-training-delen a { min-height: 44px; display: inline-flex; align-items: center; } }
+/* Schema's: Intakes deze week bovenaan. */
+.club-app .club-training-weekintakes { display: grid; gap: 10px; margin: 0 0 26px; }
+.club-app .club-training-meer { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--brand-tekst, var(--brand)); text-decoration: none; }
+.club-app .club-training-meer:hover svg { transform: translateX(3px); }
+.club-app .club-training-meer svg { transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1); }
+.club-app .club-training-terug { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-2); text-decoration: none; }
+.club-app .club-training-terug:hover { color: var(--text-1); }
+@media (prefers-reduced-motion: reduce) { .club-app .club-training-meer svg, .club-app .club-training-delen a { transition: none; } }

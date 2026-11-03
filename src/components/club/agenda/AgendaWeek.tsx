@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition, type FormEvent } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Plus, Trash2, X } from 'lucide-react'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
@@ -12,15 +13,39 @@ import { stuur } from '@/components/club/leden/stuur'
 
 // De week van een vestiging: zeven dagen naast elkaar (op de telefoon onder
 // elkaar), elke afspraak met tijd, soort en wie. Tik op een afspraak om hem te
-// wijzigen; "Nieuwe afspraak" opent hetzelfde formulier leeg.
+// wijzigen; "Nieuwe afspraak" opent hetzelfde formulier leeg. In het filter
+// Alles staan de afspraken met leden ertussen (links naar Met leden).
 
 const HERHAAL = [3, 7, 11, 25] as const
+
+/** Een afspraak met een lid in het filter Alles: alleen tonen, openen gaat via Met leden. */
+export interface AgendaExtra {
+  id: string
+  datum: string
+  /** ISO-tijdstip, voor de volgorde. */
+  beginOp: string
+  tijd: string
+  titel: string
+  meta: string
+  href: string
+}
 
 interface Props {
   vestiging: Vestiging
   dagen: { datum: string; items: AgendaItem[] }[]
   vandaag: string
   medewerkers: readonly { id: string; naam: string }[]
+  /** Filter Alles: de afspraken met leden ertussen. */
+  extra?: readonly AgendaExtra[]
+}
+
+type Regel = { soort: 'eigen'; item: AgendaItem; sorteer: string } | { soort: 'extra'; item: AgendaExtra; sorteer: string }
+
+/** De regels van een dag: hele dag eerst, dan op begintijd, eigen en extra door elkaar. */
+function regelsVan(items: readonly AgendaItem[], extra: readonly AgendaExtra[]): Regel[] {
+  const eigen: Regel[] = items.map((a) => ({ soort: 'eigen', item: a, sorteer: a.heleDag ? '0' : `1${a.beginOp}` }))
+  const ander: Regel[] = extra.map((x) => ({ soort: 'extra', item: x, sorteer: `1${x.beginOp}` }))
+  return [...eigen, ...ander].sort((a, b) => a.sorteer.localeCompare(b.sorteer))
 }
 
 interface Concept {
@@ -40,7 +65,7 @@ interface Concept {
 const leegConcept = (datum: string): Concept => ({ id: null, titel: '', soort: 'afspraak', datum, begin: '09:00', eind: '10:00', heleDag: false, medewerkerId: '', notitie: '', herhaalWeken: 0 })
 const vanItem = (a: AgendaItem): Concept => ({ id: a.id, titel: a.titel, soort: a.soort, ...formWaarden(a), heleDag: a.heleDag, medewerkerId: a.medewerkerId ?? '', notitie: a.notitie ?? '', herhaalWeken: 0 })
 
-export function AgendaWeek({ vestiging, dagen, vandaag, medewerkers }: Props) {
+export function AgendaWeek({ vestiging, dagen, vandaag, medewerkers, extra = [] }: Props) {
   const router = useRouter()
   const [concept, setConcept] = useState<Concept | null>(null)
   const [fout, setFout] = useState<string | null>(null)
@@ -151,24 +176,38 @@ export function AgendaWeek({ vestiging, dagen, vandaag, medewerkers }: Props) {
               {dagLabel(d.datum)}
               {d.datum === vandaag ? <span className="club-chip club-chip--merk">{t.vandaag}</span> : null}
             </h2>
-            {d.items.length === 0 ? (
-              <button type="button" className="ag-leeg" onClick={() => { setFout(null); setConcept(leegConcept(d.datum)) }}>
-                <span className="club-sr">{t.toevoegenOp(dagLabel(d.datum))}</span>
-                <Plus size={14} aria-hidden />
-              </button>
-            ) : (
-              <ul className="ag-items">
-                {d.items.map((a) => (
-                  <li key={a.id}>
-                    <button type="button" className={`ag-item ag-item--${a.soort}`} onClick={() => { setFout(null); setConcept(vanItem(a)) }}>
-                      <span className="ag-tijd">{tijdLabel(a, taal)}</span>
-                      <span className="ag-titel">{a.titel}</span>
-                      <span className="ag-meta">{w.soort[a.soort]}{a.medewerkerId && naamVan.get(a.medewerkerId) ? ` · ${naamVan.get(a.medewerkerId)}` : ''}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+            {(() => {
+              const regels = regelsVan(d.items, extra.filter((x) => x.datum === d.datum))
+              if (regels.length === 0) {
+                return (
+                  <button type="button" className="ag-leeg" onClick={() => { setFout(null); setConcept(leegConcept(d.datum)) }}>
+                    <span className="club-sr">{t.toevoegenOp(dagLabel(d.datum))}</span>
+                    <Plus size={14} aria-hidden />
+                  </button>
+                )
+              }
+              return (
+                <ul className="ag-items">
+                  {regels.map((r) => r.soort === 'extra' ? (
+                    <li key={`x-${r.item.id}`}>
+                      <Link href={r.item.href} className="ag-item ag-item--lid" aria-label={`${w.afspraakLabel}: ${r.item.titel}, ${r.item.tijd}`}>
+                        <span className="ag-tijd">{r.item.tijd}</span>
+                        <span className="ag-titel">{r.item.titel}</span>
+                        <span className="ag-meta">{r.item.meta}</span>
+                      </Link>
+                    </li>
+                  ) : (
+                    <li key={r.item.id}>
+                      <button type="button" className={`ag-item ag-item--${r.item.soort}`} onClick={() => { setFout(null); setConcept(vanItem(r.item)) }}>
+                        <span className="ag-tijd">{tijdLabel(r.item, taal)}</span>
+                        <span className="ag-titel">{r.item.titel}</span>
+                        <span className="ag-meta">{w.soort[r.item.soort]}{r.item.medewerkerId && naamVan.get(r.item.medewerkerId) ? ` · ${naamVan.get(r.item.medewerkerId)}` : ''}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )
+            })()}
           </section>
         ))}
       </div>

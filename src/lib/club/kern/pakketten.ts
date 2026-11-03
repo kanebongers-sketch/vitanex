@@ -77,6 +77,8 @@ export const ONDERDEEL_PAKKET: Readonly<Record<string, PakketSleutel | null>> = 
   afspraken: 'afspraken',
   personeel: 'team',
   taken: 'team',
+  // Prikbord: mededelingen en werkwijzen voor het team (migratie 489). Notities blijft kern.
+  prikbord: 'team',
   leads: 'groei',
   opvolgen: 'groei',
   challenges: 'groei',
@@ -131,6 +133,8 @@ export const API_PAKKET: Readonly<Record<string, PakketSleutel | null>> = {
   afspraken: 'afspraken',
   personeel: 'team',
   taken: 'team',
+  // Prikbord (migratie 489): bij Team en vloer.
+  prikbord: 'team',
   leads: 'groei',
   automatisering: 'groei',
   challenges: 'groei',

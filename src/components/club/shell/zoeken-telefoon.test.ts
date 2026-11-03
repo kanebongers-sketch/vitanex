@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { MENU } from '@/lib/aiyourgym/taal/woorden/club/menu'
 import { OPEN_ZOEKEN, openClubZoeken } from './ClubZoeken'
 
-// Zoeken op telefoon en tablet: het menupaneel (Meer) opent hetzelfde venster als Ctrl K.
+// Zoeken op telefoon en tablet: het vergrootglas in de kop opent hetzelfde venster als Ctrl K.
 
 describe('zoeken op de telefoon', () => {
   afterEach(() => vi.unstubAllGlobals())
@@ -18,10 +18,7 @@ describe('zoeken op de telefoon', () => {
     expect(gehoord).toHaveBeenCalledTimes(1)
   })
 
-  it('het menupaneel heeft een zoekknop die het venster opent, met tekst in NL en EN', () => {
-    const bron = fs.readFileSync(path.join(__dirname, 'MenuPaneel.tsx'), 'utf8')
-    expect(bron).toContain('openClubZoeken()')
-    expect(bron).toContain('club-menu-zoek')
+  it('de zoekknop heeft tekst in NL en EN', () => {
     for (const taal of ['nl', 'en'] as const) {
       expect(MENU[taal].zoeken.knop.length).toBeGreaterThan(0)
       expect(MENU[taal].zoeken.knopLeden.length).toBeGreaterThan(0)

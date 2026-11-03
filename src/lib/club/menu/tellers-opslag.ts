@@ -11,6 +11,9 @@ import { alleenActief, haalAfvinkingen, haalTaken } from '@/lib/club/taken/opsla
 import { nogOpen, takenVanVandaag } from '@/lib/club/taken/voortgang'
 import { weekContext } from '@/lib/club/taken/week'
 import { weekParam, nlDelen } from '@/lib/club/rooster/tijd'
+import { haalOpenTelling } from '@/lib/club/prikbord/opslag'
+import { totaalOpen } from '@/lib/club/prikbord/model'
+import type { Kijker } from '@/lib/club/prikbord/typen'
 import { tellersVoor, welkeTellers, type TellerRechten, type TellerSoort, type Tellers } from './tellers'
 
 const CACHE_MS = 10_000
@@ -61,23 +64,33 @@ export interface TellerVraag {
   vestiging: Vestiging
   rechten: TellerRechten
   nu: Date
+  /** Wie er kijkt, voor de teller van het Prikbord (wat voor hem open staat). */
+  kijker?: Kijker
+}
+
+/** Open op het Prikbord voor deze persoon, of null (geen profiel, of een fout). */
+async function openPrikbord(admin: SupabaseClient, userId: string, kijker: Kijker | undefined, nu: Date): Promise<number | null> {
+  if (!kijker?.profielId) return null
+  const telling = await haalOpenTelling(admin, userId, kijker, nu)
+  return telling ? totaalOpen(telling) : null
 }
 
 /** De tellers voor deze persoon in deze vestiging; een soort die niet te lezen was, ontbreekt. */
-export async function haalTellers({ admin, userId, vestiging, rechten, nu }: TellerVraag): Promise<Tellers> {
+export async function haalTellers({ admin, userId, vestiging, rechten, nu, kijker }: TellerVraag): Promise<Tellers> {
   const mag = welkeTellers(rechten)
   if (mag.length === 0) return {}
-  const sleutel = `${userId}|${vestiging}|${Object.entries(rechten).map(([k, v]) => `${k}:${v ? 1 : 0}`).join(',')}`
+  const sleutel = `${userId}|${vestiging}|${kijker?.profielId ?? '-'}|${Object.entries(rechten).map(([k, v]) => `${k}:${v ? 1 : 0}`).join(',')}`
   const bewaard = cache.get(sleutel)
   if (bewaard && bewaard.tot > nu.getTime()) return bewaard.tellers
   const vandaag = nlDelen(nu).datum
   const zo = (s: TellerSoort) => mag.includes(s)
-  const [taken, opvolgen, leads] = await Promise.all([
+  const [taken, opvolgen, leads, prikbord] = await Promise.all([
     zo('taken') ? openTaken(admin, userId, vestiging, vandaag) : null,
     zo('opvolgen') ? teBellen(admin, userId, vestiging, vandaag, rechten) : null,
     zo('leads') ? aantal('nieuwe leads', leadsBasis(admin, userId, vestiging).eq('status', 'nieuw')) : null,
+    zo('prikbord') ? openPrikbord(admin, userId, kijker, nu) : null,
   ])
-  const tellers = tellersVoor({ taken, opvolgen, leads }, mag)
+  const tellers = tellersVoor({ taken, opvolgen, leads, prikbord }, mag)
   if (cache.size >= CACHE_MAX) cache.clear()
   cache.set(sleutel, { tot: nu.getTime() + CACHE_MS, tellers })
   return tellers

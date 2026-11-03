@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { CalendarRange, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { WeekCijfers } from '@/lib/club/rooster/raster'
 import { roosterHref, type RoosterStaat } from '@/lib/club/rooster/url'
 import { CijferStrook, CijferTegel } from '@/components/club/ontwerp/CijferTegel'
@@ -7,7 +7,8 @@ import { clubTekst } from '@/lib/aiyourgym/taal/server'
 import { ONTWERP } from '@/lib/aiyourgym/taal/woorden/club/ontwerp'
 import { ROOSTER } from '@/lib/aiyourgym/taal/woorden/club/rooster'
 
-// Kop van het rooster: de week, bladeren, en de vier cijfers die ertoe doen.
+// Kop van het rooster: de week, bladeren, de hoofdactie Vaste week bewerken
+// (de editor van het weekrooster), en de vier cijfers die ertoe doen.
 
 interface KopProps {
   vestigingNaam: string
@@ -17,9 +18,11 @@ interface KopProps {
   volgende: string
   isDezeWeek: boolean
   staat: RoosterStaat
+  /** De editor van de vaste week (Weekrooster); null als deze persoon daar niet mag komen. */
+  vasteWeekHref?: string | null
 }
 
-export async function RoosterKop({ vestigingNaam, weekNummer, weekLabel, vorige, volgende, isDezeWeek, staat }: KopProps) {
+export async function RoosterKop({ vestigingNaam, weekNummer, weekLabel, vorige, volgende, isDezeWeek, staat, vasteWeekHref = null }: KopProps) {
   const t = await clubTekst(ROOSTER)
   return (
     <header className="club-paginakop">
@@ -30,6 +33,12 @@ export async function RoosterKop({ vestigingNaam, weekNummer, weekLabel, vorige,
         </h1>
         <p>{weekLabel}</p>
       </div>
+      <div className="club-rooster-kopacties">
+      {vasteWeekHref && (
+        <Link href={vasteWeekHref} className="club-knop club-knop--primair">
+          <CalendarRange aria-hidden size={16} /> {t.vasteWeek}
+        </Link>
+      )}
       <nav className="club-rooster-bladeren" aria-label={t.weekKiezen}>
         <Link href={roosterHref(staat, { week: vorige, les: null })} className="club-knop club-knop--klein" aria-label={t.vorigeWeek} scroll={false}>
           <ChevronLeft aria-hidden size={16} />
@@ -46,6 +55,7 @@ export async function RoosterKop({ vestigingNaam, weekNummer, weekLabel, vorige,
           <ChevronRight aria-hidden size={16} />
         </Link>
       </nav>
+      </div>
     </header>
   )
 }

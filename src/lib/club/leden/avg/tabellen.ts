@@ -90,4 +90,8 @@ export const LID_TABELLEN: Readonly<Record<string, LidTabel>> = {
   club_profielfotos: { export: 'profielfoto', afhandeling: 'verwijderd', viaCascade: true },
   // Reden van opzeggen of stoppen (migratie 482). Na de termijn van oud-leden los van het lid.
   club_lid_opzeggingen: { export: 'opzeggingen', afhandeling: 'anoniem', reden: 'De reden blijft als anonieme telling voor de cijfers over behoud; toelichting en wie gaan weg.' },
+  // Uitvoering van een werkwijze op het Prikbord (migratie 489): het lid is optioneel. lid_id is
+  // "on delete set null": zodra club_lid_definitief_verwijderen het lid verwijdert, gaat de
+  // uitvoering los van het lid (geen eigen regel in de functie nodig). Na 24 maanden weg (club_prikbord_opruimen).
+  club_werkwijze_uitvoeringen: { export: 'werkwijzeUitvoeringen', afhandeling: 'anoniem', viaCascade: true, reden: 'De uitvoering (bijvoorbeeld een ongeval) blijft voor de sportschool zonder lid; de notitie bevat geen medische details en gaat na 24 maanden weg.' },
 }

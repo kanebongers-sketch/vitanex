@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Plus } from 'lucide-react'
+import { ChevronLeft, Plus, Salad } from 'lucide-react'
+import { magOnderdeel } from '@/lib/club/beheerders/rechten'
+import { onderdeelAfgenomen } from '@/lib/club/kern/pakketten'
 import { eisClubToegang, type ClubToegang } from '@/lib/club/toegang'
 import { clubPad, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
@@ -22,8 +24,10 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: (await clubTekst(VOEDING)).pagina.titel }
 }
 
-// Voeding voor de coaching. Tabblad Plannen (standaard): de plannen van leden
-// in deze vestiging en een zoekveld om een plan te maken. Tabblad Sjablonen:
+// Training · Voeding (ontwerp "Club in 10 minuten", 03-11-2026): de plannen
+// van leden in deze vestiging en een zoekveld om een plan te maken (hoofdactie
+// Plan maken). De sjablonen staan in Training · Bibliotheek, deel Voeding;
+// ?tab=sjablonen blijft hier als volledig scherm om ze te openen en te wijzigen:
 // links de sjablonen, rechts het gekozen sjabloon (?s=<id>) of het formulier
 // (?nieuw=1 of &wijzig=1).
 
@@ -53,7 +57,9 @@ async function PlannenTab({ t, vestiging, term }: { t: ClubToegang; vestiging: s
         )}
       </section>
       <div className="club-voeding-zij">
-        <LidZoek vestiging={vestiging} term={term} leden={leden} metPlan={metPlan} />
+        <div id="plan-maken" className="club-voeding-planmaken">
+          <LidZoek vestiging={vestiging} term={term} leden={leden} metPlan={metPlan} />
+        </div>
         {voedingRegels && <RegelsSchakelaar ledenOverschrijven={voedingRegels.ledenOverschrijven} />}
         <p className="club-voeding-disclaimer">{tv.disclaimer}</p>
       </div>
@@ -101,30 +107,35 @@ export default async function VoedingPagina({ searchParams }: { searchParams: Zo
   const tp = (await clubTekst(VOEDING)).pagina
   const tab = eerste(zoek.tab) === 'sjablonen' ? 'sjablonen' : 'plannen'
 
+  // De bibliotheek staat in Training; zonder recht op Training blijft de terugweg Voeding zelf.
+  const bibliotheek = magOnderdeel(t.onderdelen, 'schemas') && onderdeelAfgenomen(t.organisatie.afgenomen, 'schemas')
+    ? clubPad('/training', vestiging, { tab: 'voedingsjablonen' })
+    : clubPad('/voeding', vestiging)
+
   return (
     <>
       <section className="club-paginakop">
         <div>
-          <p className="club-boventitel">{tp.boventitel(naamVan(t.vestigingen, vestiging))}</p>
-          <h1>{tp.titel}</h1>
-          <p>{tp.intro}</p>
+          {tab === 'sjablonen' ? (
+            <Link href={bibliotheek} className="club-voeding-terug"><ChevronLeft size={15} aria-hidden /> {tp.naarBibliotheek}</Link>
+          ) : (
+            <p className="club-boventitel">{tp.boventitel(naamVan(t.vestigingen, vestiging))}</p>
+          )}
+          <h1>{tab === 'sjablonen' ? tp.sjablonen : tp.titel}</h1>
+          <p>{tab === 'sjablonen' ? tp.introSjablonen : tp.intro}</p>
         </div>
-        {tab === 'sjablonen' && (
-          <div className="club-acties">
+        <div className="club-acties">
+          {tab === 'sjablonen' ? (
             <Link href={clubPad('/voeding', vestiging, { tab: 'sjablonen', nieuw: '1' })} scroll={false} className="club-knop club-knop--primair">
               <Plus size={16} aria-hidden /> {tp.nieuwSjabloon}
             </Link>
-          </div>
-        )}
+          ) : (
+            <a href="#plan-maken" className="club-knop club-knop--primair">
+              <Salad size={16} aria-hidden /> {tp.planMaken}
+            </a>
+          )}
+        </div>
       </section>
-      <nav className="club-segment club-voeding-tabs" aria-label={tp.titel}>
-        <Link href={clubPad('/voeding', vestiging)} aria-current={tab === 'plannen' ? 'page' : undefined}>
-          {tp.plannen}
-        </Link>
-        <Link href={clubPad('/voeding', vestiging, { tab: 'sjablonen' })} aria-current={tab === 'sjablonen' ? 'page' : undefined}>
-          {tp.sjablonen}
-        </Link>
-      </nav>
       {tab === 'plannen' ? <PlannenTab t={t} vestiging={vestiging} term={eerste(zoek.q) ?? ''} /> : <SjablonenTab t={t} vestiging={vestiging} zoek={zoek} />}
     </>
   )

@@ -121,7 +121,7 @@ describe('rechten v1 naar v2', () => {
   })
 
   it('leesRolrechten: v2 wint van v1, kapot wordt de standaard', () => {
-    expect(leesRolrechten({ rechten: { trainer: ['leden'] }, rolrechten: { rollen: { trainer: { voeding: 'zien' } } } }).rollen.trainer).toEqual({ voeding: 'zien' })
+    expect(leesRolrechten({ rechten: { trainer: ['leden'] }, rolrechten: { rollen: { trainer: { voeding: 'zien' } } } }).rollen.trainer).toEqual({ voeding: 'zien', prikbord: 'zien' })
     expect(leesRolrechten({ rechten: { trainer: ['leden'] } }).rollen.trainer).toMatchObject({ leden: 'bewerken' })
     expect(leesRolrechten(null)).toEqual(R)
     expect(leesRolrechten({ rolrechten: 'kapot' })).toEqual(R)

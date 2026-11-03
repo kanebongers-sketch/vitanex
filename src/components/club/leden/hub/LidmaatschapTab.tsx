@@ -20,7 +20,7 @@ import { haalLaatsteOpzegging, type LaatsteOpzegging } from '@/lib/club/behoud/o
 import { formatDatum } from '@/lib/aiyourgym/taal/formaat'
 import { BEHOUD_DATA } from '@/lib/aiyourgym/taal/woorden/club/behoud-data'
 
-// Tabblad Lidmaatschap: vorm, start, pauze en stoppen (aan te passen), wat de
+// Tabblad Lidmaatschap, eerste sectie (#lidmaatschap): vorm, start, pauze en stoppen (aan te passen), wat de
 // vorm toelaat, en met de lidgeldschakelaars aan het blok "Lidmaatschap en
 // betalen" uit het bouwplan (3.3): de prijsplannen bij de vorm, en eerlijk dat
 // een contract koppelen er nog niet in zit (fase 7). Schakelaars uit: niets.
@@ -66,7 +66,7 @@ function PlanRij({ p, w, taal }: { p: PlanRegel; w: W['betalen']; taal: Taal }) 
 async function BetalenBlok({ t, vorm, vestiging, nu, w, taal }: { t: ClubToegang; vorm: Lidmaatschapsvorm | null; vestiging: Vestiging; nu: Date; w: W['betalen']; taal: Taal }) {
   const plannen = vorm ? await haalPlannenVoorVorm(t.admin, t.userId, vorm.id, nu) : []
   return (
-    <section className="club-kaart" aria-labelledby="betalen-kop">
+    <section className="club-kaart" id="betalen" aria-labelledby="betalen-kop">
       <div className="club-sectiekop">
         <h2 id="betalen-kop">{w.kop}</h2>
         <Link href={clubPad('/beheer/lidmaatschappen', vestiging)}>{w.plannenBeheren}</Link>
@@ -112,7 +112,7 @@ export async function LidmaatschapTab({ t, lid, vestiging, rechten, statusVast, 
   const vorm = vormVanLid(vormen ?? [], lid.abonnement)
   const magVormen = magOnderdeel(t.onderdelen, 'lidmaatschappen')
   return (
-    <div className="club-lidhub-tab club-lidhub-twee">
+    <div className="club-lidhub-twee" id="lidmaatschap">
       <section className="club-kaart" aria-labelledby="lidmaatschap-kop">
         <div className="club-sectiekop">
           <h2 id="lidmaatschap-kop">{w.lidmaatschap.kop}</h2>

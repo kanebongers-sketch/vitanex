@@ -33,7 +33,7 @@ export function LedenHoofdstuk({ c }: { c: CijferContext }) {
   const h = r.huidig.cijfers
   const deel = bestandsdeel(c)
   return (
-    <Hoofdstuk nummer="01" titel={t.hoofdstuk}>
+    <Hoofdstuk nummer="01" titel={t.hoofdstuk} exports={c.exports?.leden}>
       <CijferBlok
         id="blok-groei"
         className="club-k8"

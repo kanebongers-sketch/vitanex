@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { kaartRechten, type KaartRechtenInvoer } from './rechten'
+import { kaartActies, kaartRechten, zichtbareLidTabs, type KaartRechtenInvoer } from './rechten'
 
 const ALLES: KaartRechtenInvoer = { onderdelen: null, modulesUit: [], healthAan: false, lidgeldOpen: false }
 
@@ -64,5 +64,53 @@ describe('kaartRechten in leesmodus (rollen v2)', () => {
     expect(r.bewerk.training).toBe(true)
     expect(r.bewerk.leden).toBe(false)
     expect(r.bewerk.rooster).toBe(false)
+  })
+})
+
+describe('zichtbareLidTabs', () => {
+  it('met alles aan: drie tabbladen', () => {
+    expect(zichtbareLidTabs(kaartRechten(ALLES))).toEqual(['overzicht', 'training', 'lidmaatschap'])
+  })
+
+  it('een tabblad zonder blok valt weg: Training zonder schema, voeding, apps of challenges', () => {
+    const r = kaartRechten({ ...ALLES, onderdelen: ['leden', 'rooster'] })
+    expect(zichtbareLidTabs(r)).toEqual(['overzicht', 'lidmaatschap'])
+  })
+
+  it('challenges alleen houden Training open (challenges staan nu op Training)', () => {
+    const r = kaartRechten({ ...ALLES, onderdelen: ['leden', 'challenges'] })
+    expect(zichtbareLidTabs(r)).toContain('training')
+  })
+
+  it('Overzicht en Lidmaatschap (gegevens en privacy) staan er altijd', () => {
+    const r = kaartRechten({ ...ALLES, onderdelen: ['leden'], modulesUit: ['training', 'rooster', 'app'] })
+    expect(zichtbareLidTabs(r)).toEqual(['overzicht', 'lidmaatschap'])
+  })
+})
+
+describe('kaartActies', () => {
+  const r = kaartRechten(ALLES)
+
+  it('een hoofdactie per tabblad', () => {
+    expect(kaartActies(r, 'overzicht', true).hoofd).toBe('notitie')
+    expect(kaartActies(r, 'training', true).hoofd).toBe('schema')
+    expect(kaartActies(r, 'training', false).hoofd).toBe('intake')
+    expect(kaartActies(r, 'lidmaatschap', true).hoofd).toBe('lidmaatschap')
+  })
+
+  it('de hoofdactie staat nooit ook onder Meer acties', () => {
+    for (const tab of ['overzicht', 'training', 'lidmaatschap'] as const) {
+      const a = kaartActies(r, tab, false)
+      expect(a.meer).not.toContain(a.hoofd)
+    }
+    expect(kaartActies(r, 'overzicht', true).meer).toEqual(['inchecken', 'lesBoeken', 'afspraak', 'intake', 'schema'])
+  })
+
+  it('alleen wat deze persoon mag; in leesmodus geen hoofdactie', () => {
+    const lees = kaartRechten({ ...ALLES, bewerkbaar: () => false })
+    expect(kaartActies(lees, 'overzicht', true)).toEqual({ hoofd: null, meer: ['inchecken'] })
+    expect(kaartActies(lees, 'training', true).hoofd).toBeNull()
+    const zonderCheckin = kaartRechten({ ...ALLES, modulesUit: ['checkin'], bewerkbaar: () => false })
+    expect(kaartActies(zonderCheckin, 'lidmaatschap', true)).toEqual({ hoofd: null, meer: [] })
   })
 })

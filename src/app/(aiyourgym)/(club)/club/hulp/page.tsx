@@ -9,6 +9,8 @@ import { MeldFormulier } from '@/components/club/hulp/MeldFormulier'
 import { MeldingKaart } from '@/components/club/hulp/MeldingKaart'
 import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
 import { HULP } from '@/lib/aiyourgym/taal/woorden/club/hulp'
+import { NieuwKort } from '@/components/club/shell/NieuwKort'
+import { kijkerSleutel } from '@/components/club/shell/kop-hulp'
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await clubTekst(HULP)).pagina.titel }
@@ -17,7 +19,9 @@ export const dynamic = 'force-dynamic'
 
 // Het helpcentrum: korte handleidingen per onderdeel (alleen van wat aan staat
 // en wat je mag openen), een vraag of probleem melden en je eigen meldingen met
-// het antwoord. Er gaat geen mail naar buiten.
+// het antwoord. Er gaat geen mail naar buiten. Bovenaan Wat is nieuw (de
+// updates van AI Your Gym), want Hulp en Wat is nieuw zitten samen achter het
+// vraagteken rechtsboven (ontwerp "Club in 10 minuten").
 
 export default async function HulpPagina() {
   const t = await eisClubToegang()
@@ -42,6 +46,8 @@ export default async function HulpPagina() {
       </header>
 
       <div className="club-hulp">
+        <NieuwKort persoon={kijkerSleutel(t)} alleHref="/club/nieuw" />
+
         <HulpArtikelen artikelen={artikelen} />
 
         <section className="club-hulp-melden" id="melden" aria-labelledby="hulp-melden">

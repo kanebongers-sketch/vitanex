@@ -32,7 +32,7 @@ describe('welke tellers iemand krijgt', () => {
     // Een trainer zonder Taken en Leads: niets.
     expect(welkeTellers(tellerRechten(zieVoor([], ['vandaag', 'leden', 'schemas'])))).toEqual([])
     // Groei niet afgenomen: geen leads (en opvolgen alleen als Opvolgen er is).
-    expect(welkeTellers(tellerRechten(zieVoor(['pakket:groei'], null)))).toEqual(['taken'])
+    expect(welkeTellers(tellerRechten(zieVoor(['pakket:groei'], null)))).toEqual(['taken', 'prikbord'])
     // Takenmodule uit: geen takenteller.
     expect(welkeTellers(tellerRechten(zieVoor(['taken'], null)))).not.toContain('taken')
   })

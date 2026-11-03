@@ -11,7 +11,10 @@
 // rechten (sleutel = onderdeel uit ONDERDEEL_SLEUTELS); een test bewaakt dat
 // elk pad bestaat en bij dat onderdeel hoort. Wat een sportschool niet afneemt
 // of uit heeft gezet (module) staat er niet. De voorvertoning van de ledenapp
-// staat niet hier maar onderaan in de hulpbalk (src/components/club/shell/hulpbalk.ts).
+// staat bij Leden · Ledenapp.
+// Ontwerp "Club in 10 minuten" (03-11-2026): bovenaan het centrum staan twee
+// losse links, de Startwizard en Koppelingen (instelLosseLinks); Medewerkers
+// is nooit meer een eigen regel naast Team (zonder Team staat hij onder Rechten).
 
 import type { Module } from './organisatie'
 import { pakketZichtbaar, zichtbaar, type PakketSleutel, type Verborgen } from './pakketten'
@@ -78,6 +81,8 @@ export interface InstelPagina {
    * gewoon een eigen regel.
    */
   onder?: InstelId
+  /** Mag iemand `onder` niet zien, dan staat de kleine link hier onder (zelfde categorie). */
+  onderAnders?: InstelId
   /** Een tweede plek die bij deze regel hoort (Abonnement bij Pakketten), als kleine link en alleen als iemand hem mag zien. */
   ookNaar?: InstelId
   /** Geen regel in een categorie maar een losse link bovenaan (de startwizard). */
@@ -100,9 +105,10 @@ export const INSTEL_PAGINAS: readonly InstelPagina[] = [
   { id: 'sluiting', titel: P.sluiting.titel, uitleg: P.sluiting.uitleg, groep: 'vestigingen', pad: '/beheer/sluiting', sleutel: 'sluiting', onder: 'regels', trefwoorden: 'feestdag kerst dicht' },
   // Team en rechten. Een plek voor het team (31-10-2026): Team (rollen v2) is de regel;
   // Medewerkers (nieuwe medewerker, inloggen, uitnodiging opnieuw) blijft als kleine link
-  // eronder, want Team verwijst daarheen voor "nieuw". Zonder v2 is Medewerkers een eigen regel.
+  // eronder, want Team verwijst daarheen voor "nieuw". Zonder v2 staat hij onder Rechten
+  // (ontwerp 03-11-2026: geen eigen regel meer); mag iemand geen van beide zien, dan wel.
   { id: 'team', titel: P.team.titel, uitleg: P.team.uitleg, groep: 'team', pad: '/beheer/team', sleutel: 'beheer', v2Sleutel: 'team', rollenV2: 'alleen', trefwoorden: 'rollen eigenaar clubmanager trainer instructeur roosteraar administratie personeel uitnodigen' },
-  { id: 'medewerkers', titel: P.medewerkers.titel, uitleg: P.medewerkers.uitleg, groep: 'team', pad: '/instellingen/medewerkers', sleutel: 'instellingen', perVestiging: true, onder: 'team', trefwoorden: 'personeel trainer instructeur team inloggen uitnodigen wachtwoord' },
+  { id: 'medewerkers', titel: P.medewerkers.titel, uitleg: P.medewerkers.uitleg, groep: 'team', pad: '/instellingen/medewerkers', sleutel: 'instellingen', perVestiging: true, onder: 'team', onderAnders: 'rechten', trefwoorden: 'personeel trainer instructeur team inloggen uitnodigen wachtwoord' },
   { id: 'beheerders', titel: P.beheerders.titel, uitleg: P.beheerders.uitleg, groep: 'team', pad: '/huisstijl#beheerders-kop', sleutel: 'huisstijl', alleenEigenaar: true, rollenV2: 'niet', trefwoorden: 'eigenaar clubmanager inloggen uitnodigen wachtwoord' },
   { id: 'rechten', titel: P.rechten.titel, uitleg: P.rechten.uitleg, groep: 'team', pad: '/beheer/rechten', sleutel: 'beheer', alleenEigenaar: true, v2Sleutel: 'rollen', trefwoorden: 'toegang rollen autorisatie niveaus startpagina' },
   // Groepslessen (zalen horen bij het rooster: staat dat uit, dan zijn ze er ook niet)
@@ -188,6 +194,8 @@ export interface InstelRij {
   pagina: InstelPagina
   /** Pagina's die onder deze regel staan (onder) en de tweede plek (ookNaar). */
   links: InstelPagina[]
+  /** Alleen de pagina's die onder deze regel horen (onder of onderAnders), zonder ookNaar. */
+  kinderen: InstelPagina[]
 }
 
 export interface InstelCategorie {
@@ -208,17 +216,37 @@ export function isInstelGroep(x: unknown): x is InstelGroep {
 export function instelIndeling(k: InstelKijker): InstelCategorie[] {
   const zichtbaar = zichtbareInstelPaginas(k)
   const ziet = new Map(zichtbaar.map((p) => [p.id, p]))
-  const isLink = (p: InstelPagina) => Boolean(p.onder && ziet.get(p.onder)?.groep === p.groep)
+  /** De regel waar deze pagina als kleine link onder staat: onder, anders onderAnders, in dezelfde categorie. */
+  const ouder = (p: InstelPagina): InstelId | null => [p.onder, p.onderAnders].find((id) => id !== undefined && ziet.get(id)?.groep === p.groep) ?? null
   return INSTEL_GROEPEN.map((g) => ({
     sleutel: g.sleutel,
     rijen: zichtbaar
-      .filter((p) => p.groep === g.sleutel && !p.losseLink && !isLink(p))
+      .filter((p) => p.groep === g.sleutel && !p.losseLink && ouder(p) === null)
       .map((pagina) => {
-        const onder = zichtbaar.filter((p) => p.onder === pagina.id && isLink(p))
+        const kinderen = zichtbaar.filter((p) => ouder(p) === pagina.id)
         const ook = pagina.ookNaar ? ziet.get(pagina.ookNaar) : undefined
-        return { pagina, links: ook ? [...onder, ook] : onder }
+        return { pagina, links: ook ? [...kinderen, ook] : kinderen, kinderen }
       }),
   })).filter((c) => c.rijen.length > 0)
+}
+
+// ── Losse links bovenaan het centrum ─────────────────────────────────────────
+
+/** De losse links bovenaan het instellingencentrum, in vaste volgorde. */
+export const INSTEL_LOSSE_LINKS = ['start', 'koppelingen'] as const
+export type InstelLosseLink = (typeof INSTEL_LOSSE_LINKS)[number]
+
+/** Koppelingen: geen instel-pagina met een eigen recht, maar een overzicht met de stand (kern/koppelingen.ts). */
+export const KOPPELINGEN_PAD = '/koppelingen'
+
+/**
+ * Welke losse links deze persoon bovenaan het centrum ziet: de startwizard als
+ * hij die mag, Koppelingen als hij minstens een koppeling mag zien
+ * (`heeftKoppelingen` = zichtbareKoppelingen(k).length > 0, kern/koppelingen.ts).
+ */
+export function instelLosseLinks(k: InstelKijker, heeftKoppelingen: boolean): InstelLosseLink[] {
+  const start = zichtbareInstelPaginas(k).some((p) => p.losseLink && p.id === 'start')
+  return INSTEL_LOSSE_LINKS.filter((id) => (id === 'start' ? start : heeftKoppelingen))
 }
 
 // ── Teksten en links ─────────────────────────────────────────────────────────

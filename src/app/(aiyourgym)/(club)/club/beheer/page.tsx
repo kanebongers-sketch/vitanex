@@ -11,7 +11,9 @@ import {
   instelGroepUitleg,
   instelHref,
   instelIndeling,
+  instelLosseLinks,
   instelPagina,
+  KOPPELINGEN_PAD,
   instelPaginaInTaal,
   zichtbareInstelPaginas,
   type InstelKijker,
@@ -32,7 +34,10 @@ import { AANTAL_STAPPEN } from '@/lib/club/start/stappen'
 import { CentrumKop } from '@/components/club/instelcentrum/CentrumKop'
 import { NogTeDoen } from '@/components/club/instelcentrum/NogTeDoen'
 import { InstelCentrum } from '@/components/club/instelcentrum/InstelCentrum'
-import type { CentrumCategorie, CentrumRegel, CentrumStart } from '@/components/club/instelcentrum/typen'
+import type { CentrumCategorie, CentrumKoppelingen, CentrumRegel, CentrumStart } from '@/components/club/instelcentrum/typen'
+import { zichtbareKoppelingen } from '@/lib/club/kern/koppelingen'
+import { haalAllesTonen } from '@/lib/club/kern/alles-tonen'
+import { kanBewerken } from '@/lib/club/rollen/wie'
 import '@/components/club/beheer/beheer.css'
 import '@/components/club/instelcentrum/instelcentrum.css'
 
@@ -45,6 +50,8 @@ export async function generateMetadata(): Promise<Metadata> {
 // daaronder acht categorieen (src/lib/club/kern/instel-paginas.ts). Per regel
 // een stand alleen als die iets zegt: een aantal, of "Nog doen". Iedereen ziet
 // alleen wat hij mag en wat aan staat; de stand wordt alleen gelezen voor die regels.
+// Ontwerp 03-11-2026: Startwizard en Koppelingen als losse links bovenaan, en
+// bij Pakketten en onderdelen de schakelaar "Alles tonen, ook wat nog leeg is".
 
 /** Het aantal rijen van deze sportschool in een tabel; null bij een fout (gelogd). */
 async function tel(t: ClubToegang, tabel: string): Promise<number | null> {
@@ -116,8 +123,14 @@ async function startLink(t: ClubToegang, kijker: InstelKijker, taal: Taal): Prom
   return { href: instelHref(p, null), stand: !start.ok ? null : v?.afgerondOp ? s.afgerond : v ? s.bijStap(v.stap, AANTAL_STAPPEN) : null }
 }
 
+/** Koppelingen als losse link, alleen met minstens een koppeling die iemand mag zien. */
+function koppelingenLink(kijker: InstelKijker, vestiging: string | null): CentrumKoppelingen | null {
+  if (!instelLosseLinks(kijker, zichtbareKoppelingen(kijker).length > 0).includes('koppelingen')) return null
+  return { href: instelHref({ pad: KOPPELINGEN_PAD, perVestiging: true }, vestiging) }
+}
+
 /** De categorieen met hun regels, in de taal en met de vestiging in de links. */
-function categorieen(kijker: InstelKijker, stand: Record<string, Stand>, vestiging: string | null, taal: Taal): CentrumCategorie[] {
+function categorieen(kijker: InstelKijker, stand: Record<string, Stand>, vestiging: string | null, taal: Taal, allesTonen: boolean | null): CentrumCategorie[] {
   const nietBeschikbaar = BEHEER[taal].algemeen.nietBeschikbaar
   const regel = (bron: InstelPagina, links: InstelPagina[]): CentrumRegel => {
     const p = instelPaginaInTaal(bron, taal)
@@ -130,6 +143,7 @@ function categorieen(kijker: InstelKijker, stand: Record<string, Stand>, vestigi
       let: beschikbaar && Boolean(stand[p.id]?.let),
       href: beschikbaar ? instelHref(p, vestiging) : null,
       links: links.filter((l) => !(l.perVestiging && !vestiging)).map((l) => ({ id: l.id, titel: instelPaginaInTaal(l, taal).titel, href: instelHref(l, vestiging) })),
+      ...(p.id === 'onderdelen' && allesTonen !== null ? { allesTonen: { aan: allesTonen } } : {}),
     }
   }
   return instelIndeling(kijker).map((c) => {
@@ -145,8 +159,10 @@ export default async function InstellingenCentrum({ searchParams }: { searchPara
   const v = kiesUit(t.vestigingen, (await searchParams).v)
   const zichtbaar = zichtbareInstelPaginas(kijker)
   const ziet = (id: string) => zichtbaar.some((p) => p.id === id)
-  const [stand, start] = await Promise.all([standen(t, ziet, taal), startLink(t, kijker, taal)])
-  const lijst = categorieen(kijker, stand, v, taal)
+  // "Alles tonen" alleen voor wie Pakketten en onderdelen ziet en mag bewerken (zelfde eisen als de API).
+  const magAllesTonen = ziet('onderdelen') && magOnderdeel(t.onderdelen, 'huisstijl') && magOnderdeel(t.onderdelen, 'beheer') && kanBewerken(t, 'huisstijl')
+  const [stand, start, allesTonen] = await Promise.all([standen(t, ziet, taal), startLink(t, kijker, taal), als(magAllesTonen, () => haalAllesTonen(t.admin, t.organisatie.id))])
+  const lijst = categorieen(kijker, stand, v, taal, allesTonen)
 
   // Nog te doen: alleen de punten die deze persoon ziet en die al gelezen konden worden.
   const teDoenPunten = TE_DOEN_IDS.filter((id) => ziet(id) && !stand[id]?.onbekend)
@@ -165,7 +181,7 @@ export default async function InstellingenCentrum({ searchParams }: { searchPara
         magNieuw={t.isPlatformEigenaar}
       />
       {overzicht && <NogTeDoen overzicht={overzicht} href={hrefTeDoen} />}
-      <InstelCentrum categorieen={lijst} start={start} />
+      <InstelCentrum categorieen={lijst} start={start} koppelingen={koppelingenLink(kijker, v)} />
     </div>
   )
 }

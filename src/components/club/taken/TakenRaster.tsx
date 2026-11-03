@@ -17,6 +17,8 @@ interface RasterProps {
   lijst: Takenlijst
   taken: Taak[]
   dagen: string[]
+  /** Link naar de werkwijze bij deze lijst op het Prikbord ("Hoe doe je dit"), of niets. */
+  uitlegHref?: string | null
 }
 
 export function Teller({ teller }: { teller: WeekTeller }) {
@@ -86,7 +88,7 @@ function Rij({ taak, dagen }: { taak: Taak; dagen: string[] }) {
   )
 }
 
-export function TakenRaster({ lijst, taken, dagen }: RasterProps) {
+export function TakenRaster({ lijst, taken, dagen, uitlegHref = null }: RasterProps) {
   const { vandaag } = useAfvinken()
   const taal = useTaal()
   const t = useTekst(TAKEN).raster
@@ -95,6 +97,11 @@ export function TakenRaster({ lijst, taken, dagen }: RasterProps) {
     <section className="club-taken-lijst" aria-labelledby={kopId}>
       <h2 id={kopId} className="club-taken-lijstnaam">
         {lijst.naam}
+        {uitlegHref ? (
+          <a className="club-taken-uitleg" href={uitlegHref}>
+            {t.hoeDoeJeDit}
+          </a>
+        ) : null}
       </h2>
       <div className="club-taken-tabelwrap">
         <table className="club-taken-raster" data-een-dag={dagen.length === 1 || undefined}>

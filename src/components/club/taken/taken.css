@@ -188,3 +188,6 @@
   .club-taken-notitiedag-kop, .club-taken-notitiedag-kop span, .club-taken-notitie-wie { color: black; }
   .club-taken-notities li { background: white; padding: 0; }
 }
+
+/* Link "Hoe doe je dit" bij een takenlijst. */
+.club-app .club-taken-uitleg { margin-left: 10px; font-family: inherit; font-size: 13px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--brand-tekst, var(--brand)); text-decoration: underline; text-underline-offset: 3px; }

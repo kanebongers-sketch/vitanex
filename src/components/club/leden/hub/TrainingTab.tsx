@@ -25,13 +25,14 @@ import { VoedingOpKaart } from '@/components/club/voeding/VoedingOpKaart'
 import { DagboekOpKaart } from '@/components/club/voeding/dagboek/DagboekOpKaart'
 import { MetingenUitApps } from '@/components/club/health/MetingenUitApps'
 import { SchemaMaken } from './SchemaMaken'
+import { Challenges } from './KomtEraan'
 import { LidSchemaOvernemen } from '@/components/club/training/LidSchemaOvernemen'
 import { kiesActief } from '@/lib/club/training/lid-schemas/regels'
 import { LID_SCHEMAS } from '@/lib/aiyourgym/taal/woorden/club/lid-schemas'
 import '@/components/club/training/training.css'
 
-// Tabblad Training: intake starten of bekijken, schema maken of aanpassen, alle
-// schema's en intakes van het lid, en de voortgang en metingen. Alles wat hier
+// Tabblad Training: intakes, schema maken of aanpassen, alle schema's van het
+// lid, voeding, voortgang en metingen, en de challenges waar het lid aan meedoet. Alles wat hier
 // begint, gaat met ?van=lid naar het bestaande scherm en komt daarna terug.
 
 interface TrainingTabProps {
@@ -71,6 +72,25 @@ async function SchemasEnIntakes({ t, lid, vestiging, medewerkers, maakOpen, bewe
   return (
     <>
       {schemas === null || intakes === null ? <p className="club-melding club-melding--fout" role="alert">{w.fout}</p> : null}
+      <section className="club-lidhub-blok" id="intake" aria-labelledby="intakes-kop">
+        <div className="club-lidhub-blokkop">
+          <h2 id="intakes-kop" className="club-training-tussenkop">{w.intakes}</h2>
+          {bewerken && (
+            <Link className="club-knop club-knop--klein" href={intakeHref}>
+              <ClipboardPlus aria-hidden size={15} /> {laatste ? w.nieuweIntake : w.intakeStarten}
+            </Link>
+          )}
+        </div>
+        {intakes && intakes.length > 0 ? (
+          <div className="club-training-stapel">
+            <MetingVerloop intakes={intakes} />
+            <IntakeLijst intakes={intakes} trainers={trainers} editorHref={editorHref} lidHref={lidHref} toonLid={false} />
+          </div>
+        ) : (
+          <p className="club-hint">{w.geenIntake(lid.voornaam)}</p>
+        )}
+      </section>
+
       <section className="club-kaart club-kaart--accent club-lidhub-huidig" aria-labelledby="huidig-kop">
         <div className="club-sectiekop">
           <h2 id="huidig-kop">{w.huidig}</h2>
@@ -106,9 +126,6 @@ async function SchemasEnIntakes({ t, lid, vestiging, medewerkers, maakOpen, bewe
             beginOpen={maakOpen}
             primair={!huidig}
           />
-          <Link className="club-knop" href={intakeHref}>
-            <ClipboardPlus aria-hidden size={16} /> {laatste ? w.nieuweIntake : w.intakeStarten}
-          </Link>
         </div>}
       </section>
 
@@ -117,18 +134,6 @@ async function SchemasEnIntakes({ t, lid, vestiging, medewerkers, maakOpen, bewe
         {schemas && schemas.length > 0
           ? <SchemaLijst schemas={schemas} log={log} trainers={trainers} editorHref={editorHref} toonLid={false} />
           : <p className="club-hint">{w.geenGeschiedenis}</p>}
-      </section>
-
-      <section className="club-lidhub-blok" aria-labelledby="intakes-kop">
-        <h2 id="intakes-kop" className="club-training-tussenkop">{w.intakes}</h2>
-        {intakes && intakes.length > 0 ? (
-          <div className="club-training-stapel">
-            <MetingVerloop intakes={intakes} />
-            <IntakeLijst intakes={intakes} trainers={trainers} editorHref={editorHref} lidHref={lidHref} toonLid={false} />
-          </div>
-        ) : (
-          <p className="club-hint">{w.geenIntake(lid.voornaam)}</p>
-        )}
       </section>
     </>
   )
@@ -148,6 +153,14 @@ export async function TrainingTab(props: TrainingTabProps) {
           <SchemasEnIntakes t={t} lid={lid} vestiging={vestiging} medewerkers={medewerkers} maakOpen={props.maakOpen} bewerken={rechten.bewerk.training} />
         </Suspense>
       )}
+      {rechten.voeding && (
+        <section className="club-lidhub-blok" id="voeding" aria-label={w.voeding}>
+          <VoedingOpKaart lidId={lid.id} vestiging={vestiging} plan={voeding} />
+          <Suspense fallback={null}>
+            <DagboekOpKaart admin={t.admin} userId={t.userId} lidId={lid.id} vandaag={dagSleutelNl(nu)} plan={voeding} />
+          </Suspense>
+        </section>
+      )}
       <section className="club-lidhub-blok" id="voortgang" aria-label={w.metingen}>
         <Voortgangskaart begin={voortgang} medewerkers={medewerkers.map((m) => ({ id: m.id, naam: m.naam }))} vandaag={dagSleutelNl(nu)} nu={nu.toISOString()} />
         {rechten.apps && (
@@ -155,13 +168,12 @@ export async function TrainingTab(props: TrainingTabProps) {
             <MetingenUitApps t={t} lidId={lid.id} naam={volledigeNaam(lid)} vestiging={lid.vestiging} />
           </Suspense>
         )}
-        {rechten.voeding && <VoedingOpKaart lidId={lid.id} vestiging={vestiging} plan={voeding} />}
-        {rechten.voeding && (
-          <Suspense fallback={null}>
-            <DagboekOpKaart admin={t.admin} userId={t.userId} lidId={lid.id} vandaag={dagSleutelNl(nu)} plan={voeding} />
-          </Suspense>
-        )}
       </section>
+      {rechten.challenges && (
+        <Suspense fallback={null}>
+          <Challenges t={t} lid={lid} vestiging={vestiging} nu={nu} />
+        </Suspense>
+      )}
     </div>
   )
 }

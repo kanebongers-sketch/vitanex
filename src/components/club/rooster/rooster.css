@@ -192,3 +192,4 @@
 
 /* Instructeur met profielfoto in het lespaneel. */
 .club-rooster-paneel-instructeur { display: flex; align-items: center; gap: 8px; }
+.club-rooster-kopacties { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }

@@ -1,0 +1,117 @@
+/* ── Prikbord: mededelingen, werkwijzen en notities voor het team ─────────────
+   Alleen de tokens van Club (huisstijl van de sportschool). Open items krijgen
+   een rand in de merkkleur; beweging alleen met transform en opacity. */
+
+.club-app .pb { display: grid; gap: 32px; }
+.club-app .pb-blok { display: grid; gap: 12px; min-width: 0; }
+.club-app .pb-lijst { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.club-app .pb-acties { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.club-app .pb-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.club-app .pb-smal { max-width: 280px; }
+
+/* Een mededeling of werkwijze als kaart. */
+.club-app :is(.pb-mededeling, .pb-werkwijze) {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--club-radius);
+  background: var(--bg-card);
+  transition: border-color 160ms var(--ease), transform 160ms var(--ease);
+}
+.club-app .pb-mededeling[data-open] { border-color: color-mix(in srgb, var(--brand) 45%, var(--line)); }
+.club-app .pb-mededeling[data-open]::before {
+  content: '';
+  position: absolute;
+  inset: 12px auto 12px 0;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--brand);
+}
+.club-app .pb-werkwijze[data-open] { border-color: var(--line-strong); }
+.club-app .pb-mededeling-kop { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 12px; }
+.club-app .pb-mededeling-kop h3 { margin: 0; font-family: var(--ff-kop); font-size: 18px; font-weight: 700; letter-spacing: 0.02em; line-height: 1.25; }
+.club-app .pb-inhoud { margin: 0; white-space: pre-wrap; line-height: 1.55; color: var(--text-2); max-width: 72ch; }
+.club-app .pb-meta { margin: 0; font-size: 13px; color: var(--text-3); }
+.club-app .pb-wat-anders { margin: 0; font-size: 14px; color: var(--text-2); }
+.club-app .pb-telling summary { cursor: pointer; width: fit-content; font-size: 13px; font-weight: 600; color: var(--text-2); }
+.club-app .pb-telling summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 4px; }
+
+/* Keuze voor wie: knoppen die aan of uit staan. */
+.club-app .pb-doelgroep { display: grid; gap: 12px; }
+.club-app .pb-keuzes { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.club-app .pb-keuzes legend { width: 100%; margin-bottom: 6px; padding: 0; }
+.club-app .pb-keuze {
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: background-color 140ms var(--ease), color 140ms var(--ease), border-color 140ms var(--ease);
+}
+.club-app .pb-keuze:hover { border-color: var(--text-4); color: var(--text-1); }
+.club-app .pb-keuze[aria-pressed='true'] { background: var(--brand-soft); border-color: transparent; color: var(--club-merk-inkt); font-weight: 600; }
+.club-app .pb-keuze:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+/* Formulieren. */
+.club-app .pb-formulier { display: grid; gap: 14px; }
+.club-app .pb-vink { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; line-height: 1.45; }
+.club-app .pb-vink input { flex: none; width: 20px; height: 20px; margin-top: 1px; accent-color: var(--brand); }
+.club-app .pb-vink > span { display: grid; gap: 2px; }
+.club-app .pb-waarschuwing { font-size: 13px; font-weight: 600; color: var(--club-let-op-inkt); }
+
+/* Stappen: lezen, afvinken en bewerken. */
+.club-app :is(.pb-stappen, .pb-afvinken) { margin: 4px 0 0; padding: 0 0 0 22px; display: grid; gap: 10px; }
+.club-app .pb-stappen li { display: grid; gap: 2px; padding-left: 4px; }
+.club-app .pb-stappen li::marker, .club-app .pb-afvinken li::marker { font-family: var(--ff-kop); font-weight: 700; color: var(--text-3); }
+.club-app .pb-afvinken { list-style: none; padding: 0; }
+.club-app .pb-afvinken li { padding: 10px 12px; border-radius: var(--club-radius-klein); background: var(--club-vlak); }
+.club-app .pb-afvinken li:has(input:checked) b { color: var(--text-3); text-decoration: line-through; text-decoration-thickness: 1px; }
+.club-app .pb-uitvoeren { display: grid; gap: 12px; padding-top: 6px; border-top: 1px solid var(--line); }
+.club-app .pb-stappen-edit { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.club-app .pb-stap-edit { display: grid; gap: 6px; padding: 12px; border: 1px solid var(--line); border-radius: var(--club-radius-klein); }
+@media (min-width: 900px) {
+  .club-app .pb-stap-edit { grid-template-columns: 70px minmax(0, 1fr) minmax(0, 1fr) auto; align-items: center; }
+}
+.club-app .pb-stap-knoppen { display: flex; gap: 2px; }
+
+/* Voorbeelden kiezen. */
+.club-app .pb-kiezer { display: grid; gap: 14px; }
+.club-app .pb-kiezer h3 { margin: 0 0 4px; font-family: var(--ff-kop); font-size: 18px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.club-app .pb-voorbeelden { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.club-app .pb-voorbeeld { display: grid; gap: 8px; align-content: start; padding: 14px; border: 1px solid var(--line); border-radius: var(--club-radius-klein); background: var(--bg-card); }
+.club-app .pb-voorbeeld .club-hint { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.club-app .pb-voorbeeld .club-knop { justify-self: start; }
+
+/* Laatste uitvoeringen (leiding). */
+.club-app .pb-uitvoeringen { display: grid; gap: 4px; font-size: 13px; color: var(--text-2); }
+.club-app .pb-uitvoeringen ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+
+/* De regel bovenaan Vandaag. */
+.club-app .pb-regel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--club-radius);
+  border: 1px solid color-mix(in srgb, var(--brand) 45%, var(--line));
+  background: var(--brand-soft);
+  color: var(--club-merk-inkt);
+  text-decoration: none;
+  font-weight: 600;
+  transition: transform 140ms var(--ease), border-color 140ms var(--ease);
+}
+.club-app .pb-regel:hover { border-color: var(--brand); }
+.club-app .pb-regel:active { transform: translateY(1px); }
+.club-app .pb-regel:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-app .pb-regel-tekst { flex: 1; min-width: 0; }
+.club-app .pb-regel-open { font-family: var(--ff-kop); font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+@media (prefers-reduced-motion: reduce) {
+  .club-app :is(.pb-mededeling, .pb-werkwijze, .pb-regel, .pb-keuze) { transition: none; }
+}

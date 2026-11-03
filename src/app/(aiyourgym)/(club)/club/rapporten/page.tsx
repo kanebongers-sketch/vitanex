@@ -4,7 +4,8 @@ import type { ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit } from '@/lib/club/kern/vestigingen'
 import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
 import { dagSleutel } from '@/lib/club/cijfers/tijd'
-import { isAlles, keuzeZoek, maandKeuzes, rapportKeuze } from '@/lib/club/rapporten/keuze'
+import { isAlles, maandKeuzes, rapportKeuze } from '@/lib/club/rapporten/keuze'
+import { exportHref } from '@/lib/club/rapporten/exports'
 import { haalRapportVoorbeeld } from '@/lib/club/rapporten/haal'
 import { RapportKeuzes } from '@/components/club/rapporten/RapportKeuzes'
 import { RapportVoorbeeld } from '@/components/club/rapporten/RapportVoorbeeld'
@@ -32,7 +33,8 @@ export default async function ClubRapporten({ searchParams }: { searchParams: Zo
   const keuze = rapportKeuze(zoek, t.vestigingen, balk, vandaag)
   const alle = isAlles(keuze, t.vestigingen)
   const uitkomst = await haalRapportVoorbeeld(t.admin, t.userId, t.vestigingen, keuze)
-  const csvHref = `/api/club/rapporten/csv?${keuzeZoek(keuze, alle).toString()}`
+  // Dezelfde link als de knoppen Exporteren op Cijfers (rapporten/exports.ts).
+  const csvHref = exportHref(keuze, alle)
 
   return (
     <>

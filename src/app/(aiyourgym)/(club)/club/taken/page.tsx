@@ -11,6 +11,7 @@ import { dagLang } from '@/lib/club/taken/weergave'
 import { AutoVerversen, PrintKnop } from '@/components/club/taken/Hulpjes'
 import { TakenKop } from '@/components/club/taken/TakenKop'
 import { TakenDag } from '@/components/club/taken/TakenDag'
+import { uitlegBijTaken } from '@/lib/club/prikbord/taken-uitleg'
 import '@/components/club/taken/taken.css'
 import { clubTekst, getTaal } from '@/lib/aiyourgym/taal/server'
 import { TAKEN } from '@/lib/aiyourgym/taal/woorden/club/taken'
@@ -37,7 +38,7 @@ export default async function TakenDagPagina({ searchParams }: { searchParams: Z
   if (!vestiging) return <GeenVestigingen />
   const vandaag = nlDelen(new Date()).datum
   const dag = kiesDag(params.dag, vandaag)
-  const taal = await getTaal()
+  const [taal, uitleg] = await Promise.all([getTaal(), uitlegBijTaken(t)])
   const tp = TAKEN[taal].pagina
   const naam = dagLang(dag, taal)
   const dagHref = (d: string) => clubPad('/taken', vestiging, d === vandaag ? undefined : { dag: d })
@@ -65,7 +66,7 @@ export default async function TakenDagPagina({ searchParams }: { searchParams: Z
         </nav>
         <PrintKnop />
       </TakenKop>
-      <TakenDag admin={t.admin} userId={t.userId} vestiging={vestiging} dag={dag} vandaag={vandaag} ik={ikAlsAfvinker(t)} />
+      <TakenDag admin={t.admin} userId={t.userId} vestiging={vestiging} dag={dag} vandaag={vandaag} ik={ikAlsAfvinker(t)} uitleg={uitleg} />
     </div>
   )
 }

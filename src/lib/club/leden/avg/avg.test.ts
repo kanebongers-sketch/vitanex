@@ -53,6 +53,7 @@ function leeg(): ExportRuw {
     voedingFavorieten: [],
     profielfoto: [],
     opzeggingen: [],
+    werkwijzeUitvoeringen: [],
   }
 }
 

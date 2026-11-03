@@ -1,13 +1,23 @@
 import { woordenboek } from '../../woordenboek'
 
-// De schil van Club: menu (groepen en onderdelen), de volledige schermen achter
-// een onderdeel, de hulpbalk onderaan, het zoekvenster (Ctrl K), de onderbalk
-// op de telefoon en de voet. De lijsten in src/components/club/shell/onderdelen.ts
-// en hulpbalk-items.ts lezen hun Nederlandse namen hieruit (bron); componenten
-// tonen de tekst in de gekozen taal via onderdeelInTaal() en hulpItemInTaal().
+// De schil van Club: de vijf plekken en hun schermen (onderdelen), de volledige
+// schermen achter een onderdeel, Hulp en je naam in de kop, het zoekvenster
+// (Ctrl K), de onderbalk op de telefoon en de voet. De lijsten in
+// src/components/club/shell/onderdelen.ts en kop-hulp.ts lezen hun Nederlandse
+// namen hieruit (bron); componenten tonen de tekst in de gekozen taal via
+// plekInTaal(), onderdeelInTaal() en kopHulpInTaal().
+// `groepen` en `hulpbalk` zijn de oude indeling: alleen nog voor de
+// websiteschermen (mockups) en de oude zoekwoorden, niet meer in Club zelf.
 
 export const MENU = woordenboek({
   nl: {
+    plekken: {
+      vandaag: { label: 'Vandaag', uitleg: 'Wat er nu in de club moet gebeuren' },
+      leden: { label: 'Leden', uitleg: 'Leden, leads en de ledenapp' },
+      rooster: { label: 'Rooster', uitleg: 'Alles met een tijd: lessen, afspraken en diensten' },
+      training: { label: 'Training', uitleg: "Schema's, voeding en de bibliotheek" },
+      beheer: { label: 'Beheer', uitleg: 'Hoe het gaat en hoe het is ingesteld' },
+    },
     groepen: {
       werkvloer: { label: 'Werkvloer', uitleg: 'Wat er vandaag in de club gebeurt' },
       leden: { label: 'Leden', uitleg: 'Leden, leads en de ledenapp' },
@@ -26,18 +36,19 @@ export const MENU = woordenboek({
       berichten: { label: 'Berichten', uitleg: 'Nieuws en acties op Home in de ledenapp' },
       community: { label: 'Community', uitleg: 'Groepen, berichten en meldingen van leden' },
       challenges: { label: 'Challenges', uitleg: 'Doelen, voortgang en badges voor leden' },
-      rooster: { label: 'Groepslessen', uitleg: 'Lesrooster, reserveringen en wachtlijst' },
+      rooster: { label: 'Lessen', uitleg: 'Groepslessen, reserveringen en wachtlijst' },
       afspraken: { label: 'Afspraken', uitleg: 'Intakes, personal training en metingen per trainer' },
-      personeel: { label: 'Personeel', uitleg: 'Diensten en uren van het fitnesspersoneel' },
+      personeel: { label: 'Diensten', uitleg: 'Diensten en uren van het fitnesspersoneel' },
       agenda: { label: 'Agenda', uitleg: 'Overleg, intakes en afspraken per week' },
-      schemas: { label: 'Training', uitleg: "Intakes, schema's en oefeningen" },
+      schemas: { label: "Schema's", uitleg: "Intakes, schema's en oefeningen" },
       voeding: { label: 'Voeding', uitleg: 'Dagdoelen, adviezen en sjablonen per lid' },
       cijfers: { label: 'Cijfers', uitleg: 'Groei, bezoek, bezetting en behoud per maand' },
       rapporten: { label: 'Rapporten', uitleg: 'Exports per maand naar Excel: leden, bezoek, lessen, leads en uren' },
       beheer: { label: 'Instellingen', uitleg: 'Alles van je sportschool instellen, op een plek' },
       hulp: { label: 'Hulp', uitleg: 'Handleidingen en een vraag of probleem melden' },
       instellingen: { label: 'Vestigingen, rooster en team', uitleg: 'Regels, openingstijden, zalen, lestypen, weekrooster en medewerkers' },
-      app: { label: 'Ledenapp bekijken', uitleg: 'Zo ziet een lid de app op zijn telefoon' },
+      app: { label: 'Ledenapp', uitleg: 'Zo ziet een lid de app, met de poster en de uitnodiging' },
+      prikbord: { label: 'Prikbord', uitleg: 'Mededelingen, werkwijzen en notities voor het team' },
       start: { label: 'Startwizard', uitleg: 'Je sportschool stap voor stap inrichten' },
       huisstijl: { label: 'Huisstijl', uitleg: 'Logo, kleuren en onderdelen van je sportschool' },
       bedrijf: { label: 'Bedrijf en huisregels', uitleg: 'KvK, btw, contact en de teksten voor je leden' },
@@ -61,8 +72,8 @@ export const MENU = woordenboek({
     },
     kop: {
       naarVandaag: (naam: string) => `${naam}, naar Vandaag`,
-      groepen: 'Groepen',
-      onderdelenVan: (groep: string) => `Onderdelen van ${groep}`,
+      plekken: 'Plekken',
+      schermenVan: (plek: string) => `Schermen van ${plek}`,
       waarJeBent: 'Waar je bent',
       testomgeving: 'Testomgeving',
       testomgevingUitleg: 'Alleen zichtbaar voor de platform-eigenaar tot de presentatie',
@@ -72,17 +83,17 @@ export const MENU = woordenboek({
       pilot: '(pilot)',
     },
     onderbalk: {
-      label: 'Snel naar',
-      meer: 'Meer',
-      sluiten: 'Sluiten',
+      label: 'De plekken van Club',
     },
-    menuPaneel: {
-      label: 'Alle onderdelen',
+    naamMenu: {
+      open: (naam: string) => `${naam}: vestiging, taal en uitloggen`,
+      label: 'Jouw menu',
       sluiten: 'Menu sluiten',
-      hulp: 'Instellingen en hulp',
+      taal: 'Taal',
+      platform: 'Master account',
     },
     hulp: {
-      label: 'Instellingen en hulp',
+      label: 'Hulp en wat is nieuw',
       ongelezen: (aantal: number) => (aantal === 1 ? '1 update die je nog niet zag' : `${aantal} updates die je nog niet zag`),
     },
     zoeken: {
@@ -98,8 +109,7 @@ export const MENU = woordenboek({
       geenLid: 'Geen lid met deze naam of dit nummer in deze vestiging.',
       nietsGevonden: (vraag: string) => `Niets gevonden voor "${vraag}". Probeer een ander woord, of kijk bij Hulp.`,
       resultaten: 'Resultaten',
-      plekOnderaan: 'Onderaan',
-      plekVandaag: 'Werkvloer · Vandaag',
+      plekKop: 'Rechtsboven',
       plekInstellingen: 'Instellingen',
       plekLid: 'Lid',
       plekLeden: 'Leden',
@@ -122,6 +132,9 @@ export const MENU = woordenboek({
       titel: 'Wat is nieuw',
       intro: (aantal: number) => `Wat er in Club is bijgekomen en nu werkt, met de datum waarop het live ging. ${aantal} updates tot nu toe.`,
       label: 'Nieuw',
+      kort: 'Nieuw in Club',
+      kortUitleg: 'De laatste updates van AI Your Gym. Mededelingen van je eigen club staan op het Prikbord.',
+      alles: 'Alles wat nieuw is',
       onderwerp: {
         beheer: 'Beheer',
         coaching: 'Coaching',
@@ -134,6 +147,7 @@ export const MENU = woordenboek({
       taken: (n: number) => (n === 1 ? '1 open taak vandaag' : `${n} open taken vandaag`),
       opvolgen: (n: number) => (n === 1 ? '1 lid of lead om te bellen' : `${n} leden of leads om te bellen`),
       leads: (n: number) => (n === 1 ? '1 nieuwe lead' : `${n} nieuwe leads`),
+      prikbord: (n: number) => (n === 1 ? '1 open punt op het Prikbord' : `${n} open punten op het Prikbord`),
     },
     aanDeSlag: {
       label: 'Aan de slag',
@@ -155,6 +169,13 @@ export const MENU = woordenboek({
     },
   },
   en: {
+    plekken: {
+      vandaag: { label: 'Today', uitleg: 'What needs to happen in the club right now' },
+      leden: { label: 'Members', uitleg: 'Members, leads and the member app' },
+      rooster: { label: 'Schedule', uitleg: 'Everything with a time: classes, appointments and shifts' },
+      training: { label: 'Training', uitleg: 'Programmes, nutrition and the library' },
+      beheer: { label: 'Management', uitleg: 'How it is going and how it is set up' },
+    },
     groepen: {
       werkvloer: { label: 'Gym floor', uitleg: 'What is happening in the club today' },
       leden: { label: 'Members', uitleg: 'Members, leads and the member app' },
@@ -173,18 +194,19 @@ export const MENU = woordenboek({
       berichten: { label: 'Messages', uitleg: 'News and offers on Home in the member app' },
       community: { label: 'Community', uitleg: 'Groups, posts and reports from members' },
       challenges: { label: 'Challenges', uitleg: 'Goals, progress and badges for members' },
-      rooster: { label: 'Group classes', uitleg: 'Class timetable, bookings and waiting list' },
+      rooster: { label: 'Classes', uitleg: 'Group classes, bookings and waiting list' },
       afspraken: { label: 'Appointments', uitleg: 'Intakes, personal training and measurements per trainer' },
-      personeel: { label: 'Staff', uitleg: 'Shifts and hours of the gym floor staff' },
+      personeel: { label: 'Shifts', uitleg: 'Shifts and hours of the gym floor staff' },
       agenda: { label: 'Calendar', uitleg: 'Meetings, intakes and appointments per week' },
-      schemas: { label: 'Training', uitleg: 'Intakes, programmes and exercises' },
+      schemas: { label: 'Programmes', uitleg: 'Intakes, programmes and exercises' },
       voeding: { label: 'Nutrition', uitleg: 'Daily targets, advice and templates per member' },
       cijfers: { label: 'Metrics', uitleg: 'Growth, visits, occupancy and retention per month' },
       rapporten: { label: 'Reports', uitleg: 'Monthly exports to Excel: members, visits, classes, leads and hours' },
       beheer: { label: 'Settings', uitleg: 'Set up everything for your gym, in one place' },
       hulp: { label: 'Help', uitleg: 'Guides, and report a question or problem' },
       instellingen: { label: 'Locations, timetable and team', uitleg: 'Rules, opening hours, studios, class types, weekly timetable and staff' },
-      app: { label: 'View member app', uitleg: 'How a member sees the app on their phone' },
+      app: { label: 'Member app', uitleg: 'How a member sees the app, with the poster and the invitation' },
+      prikbord: { label: 'Notice board', uitleg: 'Announcements, procedures and notes for the team' },
       start: { label: 'Setup wizard', uitleg: 'Set up your gym step by step' },
       huisstijl: { label: 'Branding', uitleg: 'Logo, colours and features of your gym' },
       bedrijf: { label: 'Business and house rules', uitleg: 'Company number, VAT, contact details and the texts for your members' },
@@ -208,8 +230,8 @@ export const MENU = woordenboek({
     },
     kop: {
       naarVandaag: (naam: string) => `${naam}, go to Today`,
-      groepen: 'Groups',
-      onderdelenVan: (groep: string) => `Sections of ${groep}`,
+      plekken: 'Places',
+      schermenVan: (plek: string) => `Screens of ${plek}`,
       waarJeBent: 'Where you are',
       testomgeving: 'Test environment',
       testomgevingUitleg: 'Only visible to the platform owner until the launch',
@@ -219,17 +241,17 @@ export const MENU = woordenboek({
       pilot: '(pilot)',
     },
     onderbalk: {
-      label: 'Quick access',
-      meer: 'More',
-      sluiten: 'Close',
+      label: 'The places of Club',
     },
-    menuPaneel: {
-      label: 'All sections',
+    naamMenu: {
+      open: (naam: string) => `${naam}: location, language and log out`,
+      label: 'Your menu',
       sluiten: 'Close menu',
-      hulp: 'Settings and help',
+      taal: 'Language',
+      platform: 'Master account',
     },
     hulp: {
-      label: 'Settings and help',
+      label: "Help and what's new",
       ongelezen: (aantal: number) => (aantal === 1 ? '1 update you have not seen yet' : `${aantal} updates you have not seen yet`),
     },
     zoeken: {
@@ -245,8 +267,7 @@ export const MENU = woordenboek({
       geenLid: 'No member with this name or number at this location.',
       nietsGevonden: (vraag: string) => `Nothing found for "${vraag}". Try another word, or have a look at Help.`,
       resultaten: 'Results',
-      plekOnderaan: 'At the bottom',
-      plekVandaag: 'Gym floor · Today',
+      plekKop: 'Top right',
       plekInstellingen: 'Settings',
       plekLid: 'Member',
       plekLeden: 'Members',
@@ -269,6 +290,9 @@ export const MENU = woordenboek({
       titel: "What's new",
       intro: (aantal: number) => `What has been added to Club and works today, with the date it went live. ${aantal} updates so far.`,
       label: 'New',
+      kort: 'New in Club',
+      kortUitleg: 'The latest updates from AI Your Gym. Announcements from your own club are on the Notice board.',
+      alles: "Everything that's new",
       onderwerp: {
         beheer: 'Management',
         coaching: 'Coaching',
@@ -281,6 +305,7 @@ export const MENU = woordenboek({
       taken: (n: number) => (n === 1 ? '1 open task today' : `${n} open tasks today`),
       opvolgen: (n: number) => (n === 1 ? '1 member or lead to call' : `${n} members or leads to call`),
       leads: (n: number) => (n === 1 ? '1 new lead' : `${n} new leads`),
+      prikbord: (n: number) => (n === 1 ? '1 open item on the Notice board' : `${n} open items on the Notice board`),
     },
     aanDeSlag: {
       label: 'Get started',
@@ -306,5 +331,6 @@ export const MENU = woordenboek({
 export type MenuTekst = typeof MENU.nl
 export type OnderdeelSleutelTekst = keyof MenuTekst['onderdelen']
 export type GroepSleutelTekst = keyof MenuTekst['groepen']
+export type PlekSleutelTekst = keyof MenuTekst['plekken']
 export type SchermSleutelTekst = keyof MenuTekst['schermen']
 export type HulpSleutelTekst = keyof MenuTekst['hulpbalk']

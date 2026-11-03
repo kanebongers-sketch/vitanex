@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Upload } from 'lucide-react'
+import { ChevronDown, Link2, Printer, Upload } from 'lucide-react'
 import { eisModule } from '@/lib/club/toegang'
 import { clubPad, type Vestiging, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
@@ -25,6 +25,8 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: (await clubTekst(LEDEN)).pagina.titel }
 }
 
+// Leden · Leden (ontwerp 03-11-2026): de ledenlijst met hoofdactie Lid
+// toevoegen; inlezen, aanmeldlinks en de poster staan onder Meer.
 export default async function LedenPagina({ searchParams }: { searchParams: ZoekParams }) {
   const t = await eisModule('leden')
   const ruw = await searchParams
@@ -84,17 +86,20 @@ function LedenKop({ vestiging, naam, totaal, vestigingen, taal, knoppen }: Leden
       <div>
         <p className="club-boventitel">{naam}</p>
         <h1>{p.titel}</h1>
-        <p>
-          {totaal === null ? p.ledenlijst : p.inVestiging(totaal)}. {p.uitleg}
-        </p>
+        <p>{totaal === null ? p.ledenlijst : p.inVestiging(totaal)}.</p>
       </div>
       {knoppen && (
         <div className="club-leden-kopknoppen">
           <NieuweLedenKnoppen {...knoppen} />
           <UitnodigApp vestigingen={vestigingen.map((v) => ({ sleutel: v.sleutel, naam: v.naam }))} huidig={vestiging} posterHref={clubPad('/leden/app-poster', vestiging)} />
-          <Link href={clubPad('/leden/importeren', vestiging)} className="club-knop">
-            <Upload size={16} aria-hidden /> {p.inlezen}
-          </Link>
+          <details className="club-leden-meer">
+            <summary className="club-knop" aria-label={p.meerLabel}>{p.meer} <ChevronDown size={15} aria-hidden /></summary>
+            <div className="club-leden-meermenu">
+              <Link href={clubPad('/leden/importeren', vestiging)}><Upload size={15} aria-hidden /> {p.inlezen}</Link>
+              <Link href={clubPad('/leden/aanmeldlinks', vestiging)}><Link2 size={15} aria-hidden /> {p.aanmeldlinks}</Link>
+              <Link href={clubPad('/leden/app-poster', vestiging)}><Printer size={15} aria-hidden /> {p.poster}</Link>
+            </div>
+          </details>
         </div>
       )}
     </header>

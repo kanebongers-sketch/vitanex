@@ -189,7 +189,10 @@ export const VOEDING = woordenboek({
     pagina: {
       titel: 'Voeding',
       boventitel: (vestiging: string) => `${vestiging} · coaching`,
-      intro: 'Een dagdoel per lid, met adviezen en een voorbeelddag. De rekenhulp geeft een startpunt; jij en het lid stellen bij. Geen dieet en geen medisch advies.',
+      intro: 'Een dagdoel per lid, met adviezen en een voorbeelddag.',
+      introSjablonen: 'Voedingssjablonen uit de bibliotheek, om te hergebruiken.',
+      planMaken: 'Plan maken',
+      naarBibliotheek: 'Terug naar de bibliotheek',
       nieuwSjabloon: 'Nieuw sjabloon',
       plannen: 'Plannen',
       sjablonen: 'Sjablonen',
@@ -398,7 +401,10 @@ export const VOEDING = woordenboek({
     pagina: {
       titel: 'Nutrition',
       boventitel: (vestiging: string) => `${vestiging} · coaching`,
-      intro: 'A daily target per member, with advice and an example day. The calculator gives a starting point; you and the member adjust. No diet and no medical advice.',
+      intro: 'A daily target per member, with advice and an example day.',
+      introSjablonen: 'Nutrition templates from the library, to reuse.',
+      planMaken: 'Create plan',
+      naarBibliotheek: 'Back to the library',
       nieuwSjabloon: 'New template',
       plannen: 'Plans',
       sjablonen: 'Templates',

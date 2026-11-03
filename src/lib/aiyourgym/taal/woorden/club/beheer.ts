@@ -29,6 +29,13 @@ export const BEHEER = woordenboek({
       nogTeDoen: 'Nog te doen',
       klaar: (klaar: number, van: number) => `${klaar} van ${van} klaar`,
       startwizard: 'Startwizard',
+      koppelingen: 'Koppelingen',
+      losseLinks: 'Snel naar',
+      allesTonen: {
+        label: 'Alles tonen, ook wat nog leeg is',
+        uitleg: 'Uit: Taken, Leads, Diensten en Prikbord verschijnen pas als ze gebruikt worden.',
+        fout: 'Opslaan lukte niet. Probeer het opnieuw.',
+      },
       acties: {
         huisstijl: { titel: 'Logo uploaden', uitleg: 'Je logo staat in Club, de ledenapp en mails.' },
         adres: { titel: 'Webadres kiezen', uitleg: 'Hier loggen medewerkers en leden in.' },
@@ -146,6 +153,13 @@ export const BEHEER = woordenboek({
       nogTeDoen: 'Still to do',
       klaar: (klaar: number, van: number) => `${klaar} of ${van} done`,
       startwizard: 'Setup wizard',
+      koppelingen: 'Integrations',
+      losseLinks: 'Go to',
+      allesTonen: {
+        label: 'Show everything, including what is still empty',
+        uitleg: 'Off: Tasks, Leads, Shifts and Noticeboard appear once they are used.',
+        fout: 'Saving did not work. Please try again.',
+      },
       acties: {
         huisstijl: { titel: 'Upload your logo', uitleg: 'Your logo appears in Club, the member app and emails.' },
         adres: { titel: 'Choose a web address', uitleg: 'Where staff and members log in.' },
@@ -224,6 +238,7 @@ export const BEHEER = woordenboek({
         { onderwerp: 'Staff shifts and hours', termijn: '7 years', uitleg: 'Statutory tax retention.' },
         { onderwerp: 'Sales in the member app', termijn: 'Kept', uitleg: 'Statutory tax retention. When a member is deleted, they remain without a name.' },
         { onderwerp: 'Support requests to AI Your Gym', termijn: '24 months', uitleg: 'Deleted after the last change.' },
+        { onderwerp: 'Team announcements and procedures carried out (Noticeboard)', termijn: '24 months', uitleg: 'Deleted after that, including who read and confirmed what. The procedures themselves stay.' },
         { onderwerp: 'Profile photos of members and staff', termijn: 'Up to 30 days after the end date', uitleg: 'For a former member gone 30 days after the end date; removed immediately on a deletion request, when staff leave or when removed.' },
         { onderwerp: 'Training programmes, logged workouts, sets, measurements, intakes and nutrition plans', termijn: 'As long as someone is a member', uitleg: 'Gone as soon as the member is deleted.' },
       ],

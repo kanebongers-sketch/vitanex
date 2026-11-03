@@ -22,7 +22,7 @@ export function LessenHoofdstuk({ c }: { c: CijferContext }) {
   const wl = r.wachtlijst
   const h = r.huidig.cijfers
   return (
-    <Hoofdstuk nummer="03" titel={t.hoofdstuk}>
+    <Hoofdstuk nummer="03" titel={t.hoofdstuk} exports={c.exports?.lessen}>
       <CijferBlok
         id="blok-lestype"
         className="club-k6"

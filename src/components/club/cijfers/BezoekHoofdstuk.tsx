@@ -97,7 +97,7 @@ export function BezoekHoofdstuk({ c }: { c: CijferContext }) {
   const piek = r.piek
   const piekTekst = piek ? t.piekTekst(weekdagNaam(piek.weekdag, c.taal), piek.uur) : t.geenBezoek
   return (
-    <Hoofdstuk nummer="02" titel={t.hoofdstuk}>
+    <Hoofdstuk nummer="02" titel={t.hoofdstuk} exports={c.exports?.bezoek}>
       <PerDag c={c} />
       <PerMaand c={c} />
       <CijferBlok

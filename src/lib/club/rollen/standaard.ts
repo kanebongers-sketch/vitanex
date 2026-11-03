@@ -32,14 +32,16 @@ export const STANDAARD_RECHTEN: Readonly<Record<Rol, NiveauKaart>> = {
   // Werkvloer, leden, coaching en afspraken.
   trainer: kaart({
     bewerken: ['vandaag', 'checkin', 'taken', 'opvolgen', 'notities', 'leden', 'leads', 'berichten', 'schemas', 'voeding', 'afspraken'],
-    zien: ['challenges', 'community', 'app', 'hulp'],
+    zien: ['challenges', 'community', 'app', 'hulp', 'prikbord'],
   }),
-  // Het groepslesrooster bewerken; Vandaag en Notities zien.
-  instructeur: kaart({ bewerken: ['rooster'], zien: ['vandaag', 'notities', 'hulp'] }),
+  // Het groepslesrooster bewerken; Vandaag, Notities en het Prikbord zien.
+  instructeur: kaart({ bewerken: ['rooster'], zien: ['vandaag', 'notities', 'hulp', 'prikbord'] }),
   // Keuze Kane: de roosteraar plant het personeelsrooster en het groepslesrooster.
-  roosteraar: kaart({ beheren: ['personeel', 'rooster'], bewerken: ['afspraken'], zien: ['hulp'] }),
+  roosteraar: kaart({ beheren: ['personeel', 'rooster'], bewerken: ['afspraken'], zien: ['hulp', 'prikbord'] }),
   // Uren beheren en rapporten; het personeelsrooster zien om bij de uren te komen.
-  administratie: kaart({ beheren: ['uren'], zien: ['personeel', 'rapporten', 'hulp'] }),
+  administratie: kaart({ beheren: ['uren'], zien: ['personeel', 'rapporten', 'hulp', 'prikbord'] }),
+  // Prikbord (migratie 489): iedereen ziet het (lezen, bevestigen, uitvoeren);
+  // eigenaar en clubmanager beheren (mededelingen plaatsen, werkwijzen en versies).
 }
 
 /** De startpagina per rol (besluit Kane 29-10-2026). */

@@ -1,13 +1,19 @@
 import { woordenboek } from '../../woordenboek'
 
-// De agenda van een vestiging in Club: overleg, intakes, onderhoud en andere
-// afspraken per week (niet de afspraken met trainers, die staan in AFSPRAKEN).
+// De Agenda van een vestiging in Club (ontwerp 03-11-2026): een scherm met
+// filters Alles, Met leden (de afspraken met trainers, teksten in AFSPRAKEN) en
+// Team (overleg, intakes, onderhoud en andere afspraken van de vestiging).
 
 export const AGENDA = woordenboek({
   nl: {
     titel: 'Agenda',
     boventitel: (vestiging: string, week: number) => `${vestiging} · week ${week}`,
-    intro: 'Overleg, intakes, onderhoud en andere afspraken van de vestiging, per week.',
+    intro: 'Alles met een tijd: afspraken met leden en de agenda van het team.',
+    filters: { label: 'Wat je ziet', alles: 'Alles', leden: 'Met leden', team: 'Team' },
+    soortenAfspraken: 'Soorten afspraken',
+    terugNaarAgenda: 'Terug naar de agenda',
+    metLid: (type: string, lid: string) => `${type} met ${lid}`,
+    afspraakLabel: 'Afspraak met een lid',
     weekKiezen: 'Week kiezen',
     vorigeWeek: 'Vorige week',
     volgendeWeek: 'Volgende week',
@@ -47,7 +53,12 @@ export const AGENDA = woordenboek({
   en: {
     titel: 'Calendar',
     boventitel: (vestiging: string, week: number) => `${vestiging} · week ${week}`,
-    intro: 'Meetings, intakes, maintenance and other appointments at the location, per week.',
+    intro: 'Everything with a time: appointments with members and the team calendar.',
+    filters: { label: 'What you see', alles: 'All', leden: 'With members', team: 'Team' },
+    soortenAfspraken: 'Appointment types',
+    terugNaarAgenda: 'Back to the calendar',
+    metLid: (type: string, lid: string) => `${type} with ${lid}`,
+    afspraakLabel: 'Appointment with a member',
     weekKiezen: 'Choose a week',
     vorigeWeek: 'Previous week',
     volgendeWeek: 'Next week',

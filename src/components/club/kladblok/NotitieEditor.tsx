@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Archive, ArchiveRestore, Check, ChevronLeft, ListChecks, Pencil, Pin, PinOff, Trash2 } from 'lucide-react'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { useVestigingNaam } from '@/components/club/shell/VestigingenContext'
@@ -26,9 +26,11 @@ interface Props {
   onWijziging: (n: KladNotitie) => void
   onWeg: (id: string) => void
   onSluit: () => void
+  /** Een extra actie in de werkbalk (op het Prikbord: "Maak er een werkwijze van"). */
+  actie?: ReactNode
 }
 
-export function NotitieEditor({ notitie, vestiging, onWijziging, onWeg, onSluit }: Props) {
+export function NotitieEditor({ notitie, vestiging, onWijziging, onWeg, onSluit, actie }: Props) {
   const vestigingNaam = useVestigingNaam(vestiging)
   const taal = useTaal()
   const tekst = useTekst(NOTITIES)
@@ -175,6 +177,7 @@ export function NotitieEditor({ notitie, vestiging, onWijziging, onWeg, onSluit 
         </button>
         {vinken.totaal > 0 ? <span className="club-hint">{t.vanAfgevinkt(vinken.klaar, vinken.totaal)}</span> : null}
         {bewerken ? <span className="club-hint kb-uitleg">{t.opmaak}</span> : null}
+        {actie}
       </div>
       {bewerken ? (
         <>

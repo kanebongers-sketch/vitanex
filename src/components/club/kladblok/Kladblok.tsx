@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { Archive, Plus, Search } from 'lucide-react'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { MAPPEN, leesKladAntwoord, pastKlad, sorteerKlad, voorproef, type KladMap, type KladNotitie } from '@/lib/club/kladblok/model'
@@ -19,6 +19,8 @@ interface Props {
   vestiging: Vestiging
   begin: KladNotitie[]
   startId: string | null
+  /** Een extra actie per notitie (het Prikbord geeft hier "Maak er een werkwijze van"). */
+  notitieActie?: (n: KladNotitie) => ReactNode
 }
 
 /** " · 2/5 afgevinkt" als de notitie afvinkpunten heeft, anders leeg. */
@@ -34,7 +36,7 @@ function zetUrl(id: string | null) {
   window.history.replaceState(null, '', url)
 }
 
-export function Kladblok({ vestiging, begin, startId }: Props) {
+export function Kladblok({ vestiging, begin, startId, notitieActie }: Props) {
   const [notities, setNotities] = useState<KladNotitie[]>(begin)
   const [openId, setOpenId] = useState<string | null>(startId && begin.some((n) => n.id === startId) ? startId : null)
   const [zoek, setZoek] = useState('')
@@ -125,7 +127,7 @@ export function Kladblok({ vestiging, begin, startId }: Props) {
       </aside>
       <section className="kb-editor" aria-label={t.notitie}>
         {open ? (
-          <NotitieEditor key={open.id} notitie={open} vestiging={vestiging} onWijziging={vervang} onWeg={weg} onSluit={() => kies(null)} />
+          <NotitieEditor key={open.id} notitie={open} vestiging={vestiging} onWijziging={vervang} onWeg={weg} onSluit={() => kies(null)} actie={notitieActie?.(open)} />
         ) : (
           <p className="club-leeg kb-niets">{t.kies}</p>
         )}

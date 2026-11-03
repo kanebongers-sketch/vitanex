@@ -4,12 +4,12 @@
 // onderdeel niet mag (een clubmanager zonder recht, een trainer), ziet het blok
 // niet; de API's controleren hetzelfde nog een keer (rechten.ts, magApi).
 // De kern van het lid (bezoek, status, lidmaatschap, notities, gegevens, AVG)
-// hoort bij Leden: wie de kaart mag openen, ziet die altijd, en daarom ook
-// alle tabbladen (alleen de blokken erin verschillen per rol).
+// hoort bij Leden: wie de kaart mag openen, ziet die altijd: Overzicht en
+// Lidmaatschap staan er dus altijd, Training alleen met een blok erin.
 
 import { magOnderdeel } from '@/lib/club/beheerders/rechten'
 import type { Module } from '@/lib/club/kern/organisatie'
-import { LID_TABS, type LidTab } from './tabs'
+import { KAART_TABS, type KaartTab } from './tabs'
 import { pakketZichtbaar, zichtbaar, type Verborgen } from '@/lib/club/kern/pakketten'
 
 export interface KaartRechtenInvoer {
@@ -105,18 +105,54 @@ export function kaartRechten(invoer: KaartRechtenInvoer): KaartRechten {
 
 /**
  * De tabbladen van de ledenkaart die er voor deze sportschool en deze persoon
- * zijn: Training alleen met iets van Training en coaching, Lidmaatschap alleen
- * met Ledenadministratie, Planning alleen met Groepslessen of Afspraken.
- * Overzicht, Contact en Privacy horen bij de kern.
+ * zijn (EENVOUD-10-MINUTEN.md, hoofdstuk 4). Een tabblad zonder blok valt weg:
+ * Training alleen met iets van Training en coaching (schema's, voeding,
+ * metingen uit apps) of challenges. Overzicht (bezoek, notities) en
+ * Lidmaatschap (gegevens en privacy) horen bij de kern en staan er altijd.
  */
-export function zichtbareLidTabs(r: KaartRechten): LidTab[] {
-  const tab: Record<LidTab, boolean> = {
+export function zichtbareLidTabs(r: KaartRechten): KaartTab[] {
+  const tab: Record<KaartTab, boolean> = {
     overzicht: true,
-    training: r.training || r.voeding || r.apps,
-    lidmaatschap: r.lidmaatschap || r.betalen,
-    planning: r.rooster || r.afspraken,
-    contact: true,
-    privacy: true,
+    training: r.training || r.voeding || r.apps || r.challenges,
+    lidmaatschap: true,
   }
-  return LID_TABS.filter((t) => tab[t])
+  return KAART_TABS.filter((t) => tab[t])
+}
+
+/** Een actie die je vanaf de ledenkaart start. */
+export type KaartActie = 'inchecken' | 'lesBoeken' | 'afspraak' | 'intake' | 'schema' | 'notitie' | 'lidmaatschap'
+
+/** Volgorde van Meer acties in de kop. */
+export const MEER_VOLGORDE: readonly KaartActie[] = ['inchecken', 'lesBoeken', 'afspraak', 'intake', 'schema', 'notitie']
+
+export interface KaartActies {
+  /** De hoofdactie van dit tabblad (rechts in de kop, op de telefoon onderaan), of null. */
+  hoofd: KaartActie | null
+  /** De rest, onder Meer acties. Nooit de hoofdactie, nooit iets zonder recht. */
+  meer: KaartActie[]
+}
+
+function hoofdVoor(r: KaartRechten, tab: KaartTab, heeftIntake: boolean): KaartActie | null {
+  if (tab === 'overzicht') return r.bewerk.leden ? 'notitie' : null
+  if (tab === 'training') return r.bewerk.training ? (heeftIntake ? 'schema' : 'intake') : null
+  return r.bewerk.leden && r.lidmaatschap ? 'lidmaatschap' : null
+}
+
+/**
+ * Een hoofdactie per tabblad en de rest onder Meer acties
+ * (Overzicht: Notitie toevoegen; Training: Schema maken, zonder intake Intake
+ * starten; Lidmaatschap: Lidmaatschap wijzigen). Alleen wat deze persoon mag.
+ */
+export function kaartActies(r: KaartRechten, tab: KaartTab, heeftIntake: boolean): KaartActies {
+  const mag: Record<KaartActie, boolean> = {
+    inchecken: r.checkin,
+    lesBoeken: r.bewerk.rooster,
+    afspraak: r.bewerk.afspraken,
+    intake: r.bewerk.training,
+    schema: r.bewerk.training,
+    notitie: r.bewerk.leden,
+    lidmaatschap: r.bewerk.leden && r.lidmaatschap,
+  }
+  const hoofd = hoofdVoor(r, tab, heeftIntake)
+  return { hoofd, meer: MEER_VOLGORDE.filter((a) => mag[a] && a !== hoofd) }
 }

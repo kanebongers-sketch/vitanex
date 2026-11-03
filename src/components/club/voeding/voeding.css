@@ -182,3 +182,7 @@
 .club-voeding-plankaart-tekst strong { font-family: var(--ff-kop); font-size: 24px; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .club-voeding-plankaart-knop { flex: none; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line-strong); font-size: 14px; font-weight: 600; color: var(--brand-tekst, var(--brand)); }
 .club-voeding-plankaart[open] .club-voeding-plankaart-knop { background: var(--brand-soft); }
+/* Voeding: de terugweg naar de bibliotheek en het anker van Plan maken. */
+.club-app .club-voeding-terug { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-2); text-decoration: none; }
+.club-app .club-voeding-terug:hover { color: var(--text-1); }
+.club-app .club-voeding-planmaken { scroll-margin-top: 96px; }

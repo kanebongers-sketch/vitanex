@@ -32,7 +32,9 @@ import { haalDagboekApp } from '@/lib/club/voeding/dagboek/app'
 import { aiFuncties } from '@/lib/club/voeding/dagboek/ai/schakelaar'
 import { dagSleutelNl } from '@/lib/club/kern/datum'
 import { VOEDING_DAGBOEK } from '@/lib/aiyourgym/taal/woorden/club/voeding-dagboek'
-import { SluitingenBinnenkort } from '@/components/club/sluiting/SluitingenBinnenkort'
+import { SluitingMelding } from '@/components/club/sluiting/SluitingMelding'
+import { haalKomendeAfwijkingen } from '@/lib/club/sluiting/lezen'
+import { homeVolgorde } from '@/lib/club/app/home'
 import { LedenappSchil } from '@/components/club/ledenlogin/LedenappSchil'
 import { LedenappScherm } from '@/components/club/ledenlogin/LedenappScherm'
 import { UitlogKnoppen } from '@/components/club/ledenlogin/UitlogKnoppen'
@@ -71,7 +73,8 @@ import { IntakeKaart } from '@/components/club/aanmelden/IntakeKaart'
 // slank LidVoorApp, nooit het volledige Lid.
 // ?tab=meldingen opent de meldingen (via de bel in de kop, niet in de onderbalk):
 // de lijst en meldingen op je telefoon aan of uit, op een plek. Een plek per
-// ding: kopen via het blok op Home, de community via Profiel, meldingen via de bel.
+// ding: kopen en de community via Profiel, meldingen via de bel. Home toont
+// hoogstens een kaart "te doen" (homeVolgorde, EENVOUD-10-MINUTEN.md hoofdstuk 5).
 
 export const dynamic = 'force-dynamic'
 
@@ -95,7 +98,7 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
   const scherm = kiesScherm(zoek.tab, tabsUit)
   const tab = scherm.sectie
   const toonMeldingen = eerste(zoek.tab) === 'meldingen'
-  // ?tab=kopen: betalen in de ledenapp (via het blok op Home, niet in de onderbalk).
+  // ?tab=kopen: betalen in de ledenapp (via het blok op Profiel, niet in de onderbalk).
   const toonKopen = !toonMeldingen && eerste(zoek.tab) === 'kopen'
   const apart = toonMeldingen || toonKopen
   const appLid = lidVoorApp(lid)
@@ -131,7 +134,8 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
   const dagboek = !apart && tab === 'voeding' ? await haalDagboekApp(admin, userId, lid.id, { vandaag: dagSleutelNl(nu), plan: voeding?.staat === 'plan' ? voeding.plan : null, ai: aiFuncties() }) : null
   const ongelezen = (meldingen ?? []).filter((m) => !m.gelezen).length
   // Betalen in de ledenapp (null = uit bij deze sportschool of CLUB_BETALEN_ACTIEF uit).
-  const kopen = toonKopen || (!apart && (tab === 'home' || tab === 'lessen')) ? await haalKopenVoorLid(admin, userId, lid, nu) : null
+  // Kopen staat op Profiel (EENVOUD-10-MINUTEN.md, hoofdstuk 5); Lessen gebruikt het saldo van de strippenkaart.
+  const kopen = toonKopen || (!apart && (tab === 'profiel' || tab === 'lessen')) ? await haalKopenVoorLid(admin, userId, lid, nu) : null
   const metVoor = (pad: string) => (l.voorvertoning ? `${pad}?voor=${encodeURIComponent(lid.id)}` : pad)
   const kopenTerug = eerste(zoek.betaald) === '1' ? 'betaald' : eerste(zoek.geannuleerd) === '1' ? 'geannuleerd' : null
   // Web push: alleen met CLUB_PUSH_ACTIEF=1 en kloppende sleutels, anders geen knop.
@@ -148,6 +152,18 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
   const intakeOpen = !apart && tab === 'home' && pakketZichtbaar(org.uit, 'training') ? (await haalLaatsteIntake(admin, userId, lid.id)) === null : false
   const intakePad = l.voorvertoning ? `/mijn/intake?lid=${encodeURIComponent(lid.id)}` : '/mijn/intake'
   const fotoBron = { waar: 'lid' as const, voor: l.voorvertoning ? lid.id : null }
+  // Home: hoogstens een kaart "te doen" (homeVolgorde): intake, sluiting, eerste keer, meldingen.
+  const opHome = !apart && tab === 'home'
+  const sluitingen = opHome ? await haalKomendeAfwijkingen(admin, userId, lid.vestiging) : null
+  const welkomKaarten = (['lessen', 'schema', 'profiel'] as const).flatMap((doel, i) => ((tabsUit as readonly string[]).includes(doel) ? [] : [{ ...WELKOM[taal].leden[i], href: tabPad(doel) }]))
+  const teDoen = opHome
+    ? homeVolgorde({
+        intakeOpen,
+        sluitingBinnenkort: (sluitingen?.lijst.length ?? 0) > 0,
+        uitlegOpen: !uitlegGezien && welkomKaarten.length > 0,
+        meldingenVragen: Boolean(pushSleutel) && data.lessen.some((les) => les.mijn !== null),
+      })
+    : null
 
   return (
     <LedenappSchil organisatie={org}>
@@ -199,23 +215,26 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
             ))}
           {!apart && tab === 'home' && (
             <HomeTab lid={appLid} data={data} nu={nu} tabPad={tabPad} instellingen={{ ...appInstellingen, tabsUit: tabsUit as typeof appInstellingen.tabsUit, qr: appInstellingen.qr && qrCheckinAan(org.instellingen.checkin) && !org.uit.includes('checkin') }} berichten={berichten ?? []} coach={coach} fotoBron={fotoBron}>
+              {teDoen === 'intake' && <IntakeKaart href={intakePad} taal={taal} />}
+              {teDoen === 'sluiting' && sluitingen && (
+                <div className="club-mijn-blok">
+                  <SluitingMelding lijst={sluitingen.lijst} vandaag={sluitingen.vandaag} variant="app" taal={taal} />
+                </div>
+              )}
               {/* Eerste keer: drie korte kaarten (Lessen, Schema, Profiel); een tabblad dat uit staat valt weg. */}
-              {intakeOpen && <IntakeKaart href={intakePad} taal={taal} />}
-              {!uitlegGezien && <WelkomKaarten
-                sleutel={ledenWelkomSleutel(lid.id)}
-                opslaan={l.voorvertoning ? null : { url: '/api/club/lid/uitleg', code: uitlegCode('leden') }}
-                kaarten={(['lessen', 'schema', 'profiel'] as const).flatMap((doel, i) => ((tabsUit as readonly string[]).includes(doel) ? [] : [{ ...WELKOM[taal].leden[i], href: tabPad(doel) }]))}
-              />}
-              <div className="club-mijn-blok">
-                <SluitingenBinnenkort admin={admin} userId={userId} vestiging={lid.vestiging} variant="app" />
-              </div>
+              {teDoen === 'uitleg' && (
+                <WelkomKaarten
+                  sleutel={ledenWelkomSleutel(lid.id)}
+                  opslaan={l.voorvertoning ? null : { url: '/api/club/lid/uitleg', code: uitlegCode('leden') }}
+                  kaarten={welkomKaarten}
+                />
+              )}
               {/* Zachte vraag om meldingen, pas na de eerste boeking. */}
-              {data.lessen.some((les) => les.mijn !== null) && (
+              {teDoen === 'meldingen' && (
                 <div className="club-mijn-blok club-push-blok">
                   <PushMeldingen sleutel={pushSleutel} merk={pushMerk} variant="home" voorvertoning={l.voorvertoning} />
                 </div>
               )}
-              {kopen && kopen !== 'fout' && <KopenBlok href={tabPad('kopen')} strippen={kopen.strippen} />}
             </HomeTab>
           )}
           {!apart && (scherm.balk === 'boeken' || scherm.balk === 'schema') && <SectieKiezer scherm={scherm} tabsUit={tabsUit} tabPad={tabPad} />}
@@ -250,31 +269,38 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
             </div>
           )}
           {!apart && tab === 'profiel' && (
-            <>
-              <ProfielTab
-                lid={appLid}
-                vestigingNaam={vestigingNaam}
-                teksten={bedrijf?.teksten ?? null}
-                sportschool={org.naam}
-                hulp={contact ? <HulpSportschool contact={contact} /> : null}
-                pilotNoot={false}
-                foto={{ waar: 'lid', voor: l.voorvertoning ? lid.id : null, bewerkbaar: !l.voorvertoning, door: fotoInfo?.bron === 'sportschool' ? fotoInfo.toegevoegdDoor : null }}
-              />
-              {pakketZichtbaar(l.organisatie.uit, 'groei') && <CommunityProfielBlok admin={admin} userId={userId} lidId={lid.id} voorvertoning={l.voorvertoning} />}
-              <KoppelingenProfielLink voorvertoningLid={l.voorvertoning ? lid.id : null} />
-              {l.account && !l.account.wachtwoordHash && (
-                <section className="club-mijn-blok" aria-labelledby="mijn-wachtwoord">
-                  <h3 id="mijn-wachtwoord">{t.profiel.wachtwoordKop}</h3>
-                  <p className="club-mijn-veld-hint">{t.profiel.wachtwoordUitleg}</p>
-                  <WachtwoordFormulier code={null} standaardEmail={l.account.email ?? normaalEmail(lid.email)} naam={volledigeNaam(lid)} knop={t.profiel.wachtwoordKnop} />
-                </section>
-              )}
-              {!l.voorvertoning && (
-                <div className="club-mijn-blok">
-                  <UitlogKnoppen />
-                </div>
-              )}
-            </>
+            <ProfielTab
+              lid={appLid}
+              vestigingNaam={vestigingNaam}
+              teksten={bedrijf?.teksten ?? null}
+              sportschool={org.naam}
+              kopen={kopen && kopen !== 'fout' ? <KopenBlok href={tabPad('kopen')} strippen={kopen.strippen} /> : null}
+              extra={
+                <>
+                  {pakketZichtbaar(l.organisatie.uit, 'groei') && <CommunityProfielBlok admin={admin} userId={userId} lidId={lid.id} voorvertoning={l.voorvertoning} />}
+                  <KoppelingenProfielLink voorvertoningLid={l.voorvertoning ? lid.id : null} />
+                </>
+              }
+              hulp={contact ? <HulpSportschool contact={contact} /> : null}
+              account={
+                <>
+                  {l.account && !l.account.wachtwoordHash && (
+                    <section className="club-mijn-blok" aria-labelledby="mijn-wachtwoord">
+                      <h3 id="mijn-wachtwoord">{t.profiel.wachtwoordKop}</h3>
+                      <p className="club-mijn-veld-hint">{t.profiel.wachtwoordUitleg}</p>
+                      <WachtwoordFormulier code={null} standaardEmail={l.account.email ?? normaalEmail(lid.email)} naam={volledigeNaam(lid)} knop={t.profiel.wachtwoordKnop} />
+                    </section>
+                  )}
+                  {!l.voorvertoning && (
+                    <div className="club-mijn-blok">
+                      <UitlogKnoppen />
+                    </div>
+                  )}
+                </>
+              }
+              pilotNoot={false}
+              foto={{ waar: 'lid', voor: l.voorvertoning ? lid.id : null, bewerkbaar: !l.voorvertoning, door: fotoInfo?.bron === 'sportschool' ? fotoInfo.toegevoegdDoor : null }}
+            />
           )}
         </LedenappScherm>
         {!l.voorvertoning && <InstalleerHulp naam={org.naam} />}

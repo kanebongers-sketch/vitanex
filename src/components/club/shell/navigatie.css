@@ -112,19 +112,122 @@ a.club-ads-link:hover .club-ads-pijl { transform: translateX(2px); }
 }
 
 /* ── Zoeken op telefoon en tablet ───────────────────────────────────────────
-   Het vergrootglas in de kop krimpt nooit weg, en bovenaan Meer staat een groot
-   zoekveld dat hetzelfde venster opent als Ctrl K. */
+   Het vergrootglas in de kop krimpt nooit weg: op de telefoon is het de weg
+   naar elk lid en elk scherm. */
 .club-balk-rechts .club-zoekknop { flex: none; }
 @media (max-width: 999px) {
   .club-balk-rechts .club-zoekknop { color: var(--text-1); border-color: color-mix(in srgb, var(--brand) 35%, var(--line-strong)); }
 }
-.club-menu-zoek {
-  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 0 14px;
-  border: 1px solid var(--line-strong); border-radius: 999px; background: var(--club-vlak);
-  color: var(--text-2); font: inherit; font-size: 15px; text-align: left; cursor: pointer;
+
+/* ── Vijf plekken (ontwerp "Club in 10 minuten", 03-11-2026) ─────────────────
+   Een navigatie in plaats van twee: de plekken bovenin (pc) of onderin
+   (telefoon), rechts in de kop alleen zoeken, het vraagteken en je naam. */
+
+/* Rij 2 op Hulp en Wat is nieuw: waar je bent, zonder knoppen. */
+.club-nav-uitleg { color: var(--text-3); font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+
+/* De plekken op de pc: iets meer lucht dan de oude groepen, het zijn er altijd hoogstens vijf. */
+@media (min-width: 1000px) {
+  .club-plekken a { padding: 0 16px; }
+}
+
+/* ── Het vraagteken: Hulp met Wat is nieuw ──────────────────────────────── */
+.club-kophulp {
+  position: relative; flex: none; display: inline-grid; place-items: center;
+  width: var(--club-tik); height: var(--club-tik); border-radius: 999px;
+  border: 1px solid var(--line-strong); color: var(--text-2); text-decoration: none;
   transition: color 160ms var(--ease), background-color 160ms var(--ease), border-color 160ms var(--ease);
 }
-.club-menu-zoek:hover { color: var(--text-1); background: var(--club-vlak-hover); border-color: var(--text-4); }
-.club-menu-zoek:active { transform: scale(0.99); }
-.club-menu-zoek:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
-@media (min-width: 1000px) { .club-menu-zoek { display: none; } }
+.club-kophulp:hover { color: var(--text-1); background: var(--club-vlak-hover); border-color: var(--text-4); }
+.club-kophulp:active { transform: scale(0.96); }
+.club-kophulp:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-kophulp[aria-current='page'] { color: var(--brand-tekst, var(--brand)); border-color: color-mix(in srgb, var(--brand) 55%, var(--line-strong)); background: var(--brand-soft, transparent); }
+.club-kophulp .club-kophulp-teller { position: absolute; top: -4px; right: -6px; box-shadow: 0 0 0 2px var(--bg-app); }
+
+/* ── Je naam rechtsboven ────────────────────────────────────────────────── */
+.club-naam { position: relative; display: inline-flex; flex: none; }
+.club-naam-knop {
+  display: inline-flex; align-items: center; gap: 10px; min-height: var(--club-tik); padding: 3px 10px 3px 3px;
+  border: 1px solid var(--line-strong); border-radius: 999px; background: transparent; color: var(--text-1);
+  font: inherit; cursor: pointer; text-align: left;
+  transition: background-color 160ms var(--ease), border-color 160ms var(--ease);
+}
+.club-naam-knop:hover { background: var(--club-vlak-hover); border-color: var(--text-4); }
+.club-naam-knop:active { transform: scale(0.98); }
+.club-naam-knop:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.club-naam-knop[aria-expanded='true'] { border-color: color-mix(in srgb, var(--brand) 55%, var(--line-strong)); background: var(--club-vlak); }
+.club-naam-rond {
+  flex: none; display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 999px;
+  background: var(--brand-soft, color-mix(in srgb, var(--brand) 16%, transparent)); color: var(--brand-tekst, var(--brand));
+  font-family: var(--ff-kop); font-size: 13px; font-weight: 700; letter-spacing: 0.06em; line-height: 1;
+}
+.club-naam-rond--groot { width: 44px; height: 44px; font-size: 15px; }
+.club-naam-tekst { display: grid; min-width: 0; line-height: 1.15; }
+.club-naam-wie { font-size: 13.5px; font-weight: 600; max-width: 16ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.club-naam-waar { font-family: var(--ff-kop); font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); max-width: 16ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.club-naam-pijl { color: var(--text-3); transition: transform 180ms var(--ease); }
+.club-naam-knop[aria-expanded='true'] .club-naam-pijl { transform: rotate(180deg); }
+/* Telefoon en smalle tablet: alleen het rondje met je initialen. */
+@media (max-width: 1099px) {
+  .club-naam-knop { padding: 3px; border-color: transparent; }
+  .club-naam-tekst, .club-naam-pijl { display: none; }
+}
+
+/* ── Het paneel onder je naam ───────────────────────────────────────────── */
+.club-naammenu-scherm { position: fixed; inset: 0; z-index: 70; animation: club-vervaag 160ms var(--ease); }
+.club-naammenu {
+  position: absolute; top: calc(env(safe-area-inset-top) + 56px); right: var(--ff-rand); width: min(340px, calc(100vw - 24px));
+  max-height: calc(100dvh - 72px); overflow-y: auto; overscroll-behavior: contain;
+  display: grid; gap: 4px; padding: 8px;
+  border: 1px solid var(--line-strong); border-radius: var(--club-radius); background: var(--bg-card);
+  box-shadow: var(--club-schaduw); transform-origin: top right; animation: club-naammenu-in 200ms var(--ease) both;
+}
+@keyframes club-naammenu-in { from { opacity: 0; transform: translateY(-6px) scale(0.98); } to { opacity: 1; transform: none; } }
+.club-naammenu-kop { display: flex; align-items: center; gap: 12px; padding: 8px 4px 12px 8px; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
+.club-naammenu-wie { display: grid; gap: 2px; min-width: 0; flex: 1; }
+.club-naammenu-wie strong { font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.club-naammenu-wie span { font-size: 12.5px; color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.club-naammenu-sluit { min-width: var(--club-tik); min-height: var(--club-tik); padding: 0; }
+.club-naammenu-rij { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; padding: 4px 8px; }
+.club-naammenu-rij .club-vestiging { width: 100%; }
+.club-naammenu-rij .club-vestiging select { flex: 1; min-width: 0; }
+.club-naammenu-taal > span { font-size: 13.5px; color: var(--text-2); }
+.club-naammenu-kane { padding: 8px; border-top: 1px solid var(--line); }
+.club-naammenu-kane p { margin: 4px 0 6px; font-family: var(--ff-kop); font-size: 12px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-3); }
+.club-naammenu-kane ul { list-style: none; margin: 0; padding: 0; display: grid; }
+.club-naammenu-kane a {
+  display: flex; align-items: center; min-height: var(--club-tik); padding: 0 8px; margin: 0 -8px; border-radius: var(--club-radius-klein);
+  color: var(--text-1); font-size: 14px; text-decoration: none; transition: background-color 140ms var(--ease);
+}
+.club-naammenu-kane a:hover { background: var(--club-vlak-hover); }
+.club-naammenu-kane a:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+.club-naammenu-uit { padding: 4px; border-top: 1px solid var(--line); }
+.club-naammenu-uit .club-terug { width: 100%; justify-content: flex-start; font-size: 14px; color: var(--text-2); }
+/* In de kop verbergt club.css de tekst van de uitlogknop op een smal scherm; in het paneel staat hij er altijd. */
+.club-naammenu .club-terug span { position: static; width: auto; height: auto; overflow: visible; clip: auto; }
+/* Telefoon en tablet staand: een paneel van onderen, boven de onderbalk. */
+@media (max-width: 999px) {
+  .club-naammenu-scherm { background: rgba(0, 0, 0, 0.55); bottom: calc(var(--club-onderbalk-h) + env(safe-area-inset-bottom)); }
+  .club-naammenu {
+    top: auto; bottom: 8px; left: 8px; right: 8px; width: auto; max-height: calc(100% - 16px);
+    transform-origin: bottom center; animation-name: club-naammenu-op;
+  }
+  .club-app:not(:has(.club-onderbalk)) .club-naammenu-scherm { bottom: 0; }
+}
+@keyframes club-naammenu-op { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+/* ── Onderbalk: vijf plekken, op een smalle telefoon iets compacter ─────── */
+@media (max-width: 379px) {
+  .club-onderbalk > a { letter-spacing: 0.02em; }
+}
+
+/* ── Wat is nieuw bovenaan Hulp ─────────────────────────────────────────── */
+.club-nieuw-kort { display: grid; gap: 12px; }
+.club-nieuw-kort-kop { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px 16px; }
+.club-nieuw-kort-kop p { margin: 4px 0 0; color: var(--text-3); font-size: 13.5px; max-width: var(--club-lees); }
+
+@media (prefers-reduced-motion: reduce) {
+  .club-naammenu, .club-naammenu-scherm { animation: none; }
+  .club-naam-pijl { transition: none; }
+}
+@media print { .club-naammenu-scherm { display: none !important; } }

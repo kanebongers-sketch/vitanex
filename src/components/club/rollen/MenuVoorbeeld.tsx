@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { groepenMet, groepInTaal, onderdeelInTaal, onderdelenVan } from '@/components/club/shell/onderdelen'
+import { onderdeelInTaal, plekInTaal, plekkenMet, schermenVan } from '@/components/club/shell/onderdelen'
 import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
 import { ROLLEN_TEKST } from '@/lib/aiyourgym/taal/woorden/club/rollen'
 import { niveausVoor, onderdelenVoor, startpagina } from '@/lib/club/rollen/model'
@@ -10,7 +10,8 @@ import type { Verborgen } from '@/lib/club/kern/pakketten'
 
 // "Bekijk menu als": het menu voor een rol, met de rechten zoals ze nu op het
 // scherm staan (ook voor het opslaan) en de onderdelen die de sportschool heeft.
-// Rekent met dezelfde functie als Club zelf (niveau, onderdelenVoor).
+// Rekent met dezelfde functies als Club zelf (niveau, onderdelenVoor, de vijf
+// plekken met hun schermen uit shell/onderdelen.ts).
 
 interface MenuVoorbeeldProps {
   rechten: Rolrechten
@@ -25,7 +26,10 @@ export function MenuVoorbeeld({ rechten, uit }: MenuVoorbeeldProps) {
     const niveaus = niveausVoor({ rollen: [rol], rechten, uit })
     const toegestaan = onderdelenVoor(niveaus)
     return {
-      groepen: groepenMet(uit, toegestaan).map((g) => ({ g: groepInTaal(g, taal), onderdelen: onderdelenVan(g.sleutel, uit, toegestaan).map((o) => onderdeelInTaal(o, taal)) })),
+      groepen: plekkenMet(uit, toegestaan, { instellingen: toegestaan === null || toegestaan.includes('beheer') }).map((p) => ({
+        g: plekInTaal(p, taal),
+        onderdelen: schermenVan(p.sleutel, uit, toegestaan, { instellingen: toegestaan === null || toegestaan.includes('beheer') }).map((o) => onderdeelInTaal(o, taal)),
+      })),
       start: startpagina([rol], rechten, niveaus),
     }
   }, [rol, rechten, uit, taal])

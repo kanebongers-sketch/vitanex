@@ -1,16 +1,25 @@
 // ─── Club: een icoon per onderdeel (PUUR, alleen de koppeling) ──────────────
 // Idee geleend van HubFit (besluit Kane 30-10-2026), op onze manier: een rustig
-// lucide-icoon bij elk onderdeel, overal hetzelfde: rij 2 in de kop, het
-// menupaneel op de telefoon, de onderbalk en het zoekvenster (Ctrl K). Een
-// icoon is altijd versiering naast de naam (aria-hidden), nooit de enige uitleg.
-// Een nieuw onderdeel krijgt hier een icoon; iconen.test.ts dwingt dat af.
+// lucide-icoon bij elke plek en elk onderdeel, overal hetzelfde: de plekken in
+// de onderbalk, de schermen in rij 2 en het zoekvenster (Ctrl K). Een icoon is
+// altijd versiering naast de naam (aria-hidden), nooit de enige uitleg. Een
+// nieuw onderdeel krijgt hier een icoon; iconen.test.ts dwingt dat af.
 
 import type { LucideIcon } from 'lucide-react'
 import {
-  Apple, Building2, Calendar, CalendarCheck, CalendarClock, CalendarDays, CalendarOff, ChartColumn, Dumbbell, FileSpreadsheet,
-  House, IdCard, LayoutGrid, LifeBuoy, ListChecks, Megaphone, MessagesSquare, Palette, PhoneCall, Plug, Rocket, ScanLine,
+  Apple, Building2, Calendar, CalendarCheck, CalendarClock, CalendarDays, CalendarOff, ChartColumn, Dumbbell, FileSpreadsheet, Gauge,
+  House, IdCard, LayoutGrid, LifeBuoy, ListChecks, Megaphone, MessagesSquare, Palette, PhoneCall, Pin, Plug, Rocket, ScanLine,
   Settings2, SlidersHorizontal, Smartphone, Sparkles, StickyNote, Trophy, UserPlus, UserRound, Users,
 } from 'lucide-react'
+
+/** Per plek (shell/onderdelen.ts, PLEKKEN): de onderbalk op de telefoon. */
+export const PLEK_ICOON: Readonly<Record<string, LucideIcon>> = {
+  vandaag: House,
+  leden: Users,
+  rooster: CalendarDays,
+  training: Dumbbell,
+  beheer: Gauge,
+}
 
 /** Per sleutel van een onderdeel (shell/onderdelen.ts). */
 export const ONDERDEEL_ICOON: Readonly<Record<string, LucideIcon>> = {
@@ -19,6 +28,7 @@ export const ONDERDEEL_ICOON: Readonly<Record<string, LucideIcon>> = {
   taken: ListChecks,
   opvolgen: PhoneCall,
   notities: StickyNote,
+  prikbord: Pin,
   leden: Users,
   leads: UserPlus,
   berichten: Megaphone,
@@ -43,7 +53,7 @@ export const ONDERDEEL_ICOON: Readonly<Record<string, LucideIcon>> = {
   sluiting: CalendarOff,
 }
 
-/** Per item van de hulpbalk (hulpbalk-items.ts). */
+/** Hulp en Wat is nieuw in de kop (kop-hulp.ts), plus Koppelingen in het zoekvenster. */
 export const HULP_ICOON: Readonly<Record<string, LucideIcon>> = {
   instellingen: Settings2,
   koppelingen: Plug,
@@ -56,6 +66,11 @@ export const HULP_ICOON: Readonly<Record<string, LucideIcon>> = {
 const ZOEK_ICOON: Readonly<Record<string, LucideIcon>> = {
   lid: UserRound,
   instelling: SlidersHorizontal,
+}
+
+/** Het icoon van een plek; onbekend: het rustige raster. */
+export function plekIcoon(sleutel: string): LucideIcon {
+  return PLEK_ICOON[sleutel] ?? LayoutGrid
 }
 
 /** Het icoon van een onderdeel; onbekend: het rustige raster (nooit niets). */

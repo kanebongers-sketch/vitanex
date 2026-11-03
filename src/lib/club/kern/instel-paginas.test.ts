@@ -1,11 +1,10 @@
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { ONDERDELEN, actiefOnderdeel, groepenMet, inMenu, menuOnderdeel, onderdelenVan } from '@/components/club/shell/onderdelen'
-import { HULPBALK, hulpItemOp } from '@/components/club/shell/hulpbalk-items'
+import { ONDERDELEN, actiefOnderdeel, inMenu } from '@/components/club/shell/onderdelen'
 import { ONDERDEEL_SLEUTELS } from './org-instellingen'
 import { NOOIT_VOOR_CLUBMANAGER } from '@/lib/club/beheerders/rechten'
-import { INSTEL_GROEPEN, INSTEL_PAGINAS, heeftInstellingen, instelCategorieHref, instelGroepUitleg, instelHref, instelIndeling, instelPagina, isInstelGroep, kaalInstelPad, zichtbareInstelPaginas, type InstelKijker } from './instel-paginas'
+import { INSTEL_GROEPEN, INSTEL_LOSSE_LINKS, INSTEL_PAGINAS, KOPPELINGEN_PAD, heeftInstellingen, instelLosseLinks, instelCategorieHref, instelGroepUitleg, instelHref, instelIndeling, instelPagina, isInstelGroep, kaalInstelPad, zichtbareInstelPaginas, type InstelKijker } from './instel-paginas'
 
 const APP = join(process.cwd(), 'src', 'app', '(aiyourgym)', '(club)', 'club')
 const ALLES: InstelKijker = { uit: [], toegestaan: null, medewerker: false, betalenAan: true, lidgeldAan: true }
@@ -31,16 +30,8 @@ describe('INSTEL_PAGINAS', () => {
     for (const g of INSTEL_GROEPEN) expect(INSTEL_PAGINAS.some((p) => p.groep === g.sleutel), g.sleutel).toBe(true)
   })
 
-  it('elk onderdeel buiten het menu is te vinden in het instellingencentrum of in de hulpbalk (secties staan op Vandaag)', () => {
-    for (const o of ONDERDELEN.filter((x) => !inMenu(x) && !x.sectie)) {
-      const ergens = INSTEL_PAGINAS.some((p) => p.sleutel === o.sleutel) || HULPBALK.some((i) => i.onderdeel === o.sleutel)
-      expect(ergens, o.sleutel).toBe(true)
-    }
-  })
-
-  it('niets dubbel: geen instel-pagina naar een pad uit de hulpbalk', () => {
-    const hulpPaden = HULPBALK.map((i) => i.pad)
-    for (const p of INSTEL_PAGINAS) expect(hulpPaden, p.id).not.toContain(kaalInstelPad(p.pad))
+  it('niets dubbel: geen instel-pagina naar Koppelingen (een losse link), Hulp of de Ledenapp (Leden · Ledenapp)', () => {
+    for (const p of INSTEL_PAGINAS) expect([KOPPELINGEN_PAD, '/hulp', '/nieuw', '/app'], p.id).not.toContain(kaalInstelPad(p.pad))
   })
 
   it('schrijfstijl: geen gedachtestreepjes en geen klemtoon-accenten', () => {
@@ -88,7 +79,7 @@ describe('zichtbareInstelPaginas', () => {
 describe('instelIndeling (besluit Kane 29-10-2026: overzichtelijker)', () => {
   /** Waar een pagina in het centrum staat: als regel of als kleine link, per categorie. */
   const plekken = (k: InstelKijker) =>
-    instelIndeling(k).flatMap((c) => c.rijen.flatMap((r) => [{ id: r.pagina.id, cat: c.sleutel }, ...r.links.filter((l) => l.onder === r.pagina.id).map((l) => ({ id: l.id, cat: c.sleutel }))]))
+    instelIndeling(k).flatMap((c) => c.rijen.flatMap((r) => [{ id: r.pagina.id, cat: c.sleutel }, ...r.kinderen.map((l) => ({ id: l.id, cat: c.sleutel }))]))
 
   it('zes tot acht categorieen, elk met een naam en een uitleg in beide talen', () => {
     expect(INSTEL_GROEPEN.length).toBeGreaterThanOrEqual(6)
@@ -112,11 +103,12 @@ describe('instelIndeling (besluit Kane 29-10-2026: overzichtelijker)', () => {
     expect(INSTEL_PAGINAS.filter((x) => x.losseLink).map((x) => x.id)).toEqual(['start'])
   })
 
-  it('onder en ookNaar wijzen naar een bestaande pagina; onder blijft in dezelfde categorie', () => {
+  it('onder, onderAnders en ookNaar wijzen naar een bestaande pagina; onder blijft in dezelfde categorie', () => {
     for (const p of INSTEL_PAGINAS) {
-      if (p.onder) {
-        expect(instelPagina(p.onder)?.groep, p.id).toBe(p.groep)
-        expect(instelPagina(p.onder)?.onder, `${p.id}: niet dubbel genest`).toBeUndefined()
+      for (const ouder of [p.onder, p.onderAnders]) {
+        if (!ouder) continue
+        expect(instelPagina(ouder)?.groep, p.id).toBe(p.groep)
+        expect(instelPagina(ouder)?.onder, `${p.id}: niet dubbel genest`).toBeUndefined()
       }
       if (p.ookNaar) expect(instelPagina(p.ookNaar), p.id).toBeDefined()
     }
@@ -162,6 +154,31 @@ describe('instelIndeling (besluit Kane 29-10-2026: overzichtelijker)', () => {
   })
 })
 
+describe('Medewerkers en losse links (ontwerp 03-11-2026)', () => {
+  const rijIds = (k: InstelKijker) => instelIndeling(k).flatMap((c) => c.rijen.map((r) => r.pagina.id))
+  const kinderenVan = (k: InstelKijker, id: string) => instelIndeling(k).flatMap((c) => c.rijen).find((r) => r.pagina.id === id)?.kinderen.map((p) => p.id)
+
+  it('Medewerkers is nooit een eigen regel naast Team of Rechten: met v2 onder Team, zonder v2 onder Rechten', () => {
+    expect(rijIds({ ...ALLES, rollenV2: true })).not.toContain('medewerkers')
+    expect(kinderenVan({ ...ALLES, rollenV2: true, eigenaar: true }, 'team')).toEqual(['medewerkers'])
+    expect(rijIds(ALLES)).not.toContain('medewerkers')
+    expect(kinderenVan(ALLES, 'rechten')).toEqual(['medewerkers'])
+  })
+
+  it('zonder Team en Rechten blijft Medewerkers bereikbaar als eigen regel', () => {
+    expect(rijIds({ ...ALLES, toegestaan: ['vandaag', 'instellingen'] })).toContain('medewerkers')
+  })
+
+  it('Koppelingen staat als losse link bovenaan, naast de Startwizard, alleen met minstens een koppeling', () => {
+    expect(INSTEL_LOSSE_LINKS).toEqual(['start', 'koppelingen'])
+    expect(instelLosseLinks({ ...ALLES, rollenV2: true, eigenaar: true }, true)).toEqual(['start', 'koppelingen'])
+    expect(instelLosseLinks({ ...ALLES, rollenV2: true, eigenaar: true }, false)).toEqual(['start'])
+    // Een clubmanager ziet de startwizard niet, wel Koppelingen als hij er een mag zien.
+    expect(instelLosseLinks({ ...ALLES, toegestaan: ['vandaag', 'instellingen'], rollenV2: true }, true)).toEqual(['koppelingen'])
+    expect(existsSync(join(APP, 'koppelingen', 'page.tsx'))).toBe(true)
+  })
+})
+
 describe('instelHref', () => {
   it('vestiging alleen waar de pagina per vestiging werkt, met behoud van ?tab en #anker', () => {
     expect(instelHref({ pad: '/instellingen/zalen', perVestiging: true }, 'budel')).toBe('/club/instellingen/zalen?v=budel')
@@ -172,27 +189,8 @@ describe('instelHref', () => {
 })
 
 describe('menu', () => {
-  it('Beheer in het menu: alleen Cijfers en Rapporten (Instellingen en Hulp staan in de hulpbalk)', () => {
-    expect(onderdelenVan('beheer').map((o) => o.label)).toEqual(['Cijfers', 'Rapporten'])
-  })
-
-  it('geen instel-pagina in de menubalk', () => {
-    const inBalk = groepenMet().flatMap((g) => onderdelenVan(g.sleutel)).map((o) => o.sleutel)
-    for (const s of ['huisstijl', 'bedrijf', 'sluiting', 'lidmaatschappen', 'start', 'instellingen', 'app', 'beheer', 'hulp']) expect(inBalk).not.toContain(s)
-    expect(new Set(inBalk).size).toBe(inBalk.length)
-  })
-
-  it('zonder Cijfers en Rapporten geen groep Beheer', () => {
-    expect(onderdelenVan('beheer', [], ['vandaag', 'cijfers']).map((o) => o.sleutel)).toEqual(['cijfers'])
-    expect(groepenMet([], ['vandaag', 'leden']).map((g) => g.sleutel)).not.toContain('beheer')
-  })
-
-  it('een instel-pagina licht geen groep op maar Instellingen in de hulpbalk', () => {
-    for (const pad of ['/club/instellingen/zalen', '/club/huisstijl', '/club/beheer/sluiting', '/club/beheer', '/club/start']) {
-      expect(menuOnderdeel(pad), pad).toBeNull()
-      expect(hulpItemOp(pad), pad).toBe('instellingen')
-    }
-    expect(menuOnderdeel('/club/rooster')?.sleutel).toBe('rooster')
-    expect(hulpItemOp('/club/rooster')).toBeNull()
+  it('geen losse instel-pagina in het menu: instellen gebeurt alleen in Beheer · Instellingen (het centrum zelf)', () => {
+    const inBalk = ONDERDELEN.filter((o) => inMenu(o) && !o.sectie).map((o) => o.sleutel)
+    for (const s of ['huisstijl', 'bedrijf', 'sluiting', 'lidmaatschappen', 'start', 'instellingen']) expect(inBalk).not.toContain(s)
   })
 })

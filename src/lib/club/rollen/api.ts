@@ -24,6 +24,16 @@ export function apiSleutelV2(pad: string): string | null {
   return apiOnderdeel(pad)
 }
 
+/**
+ * Schrijven met alleen zien: op het Prikbord is zien ook lezen, bevestigen en
+ * uitvoeren (een mededeling als gelezen markeren, een werkwijze afvinken).
+ */
+const ZIEN_SCHRIJFT: readonly string[] = ['/api/club/prikbord/gelezen', '/api/club/prikbord/uitvoeringen']
+
+function zienIsGenoeg(schoon: string): boolean {
+  return ZIEN_SCHRIJFT.some((p) => schoon === p || schoon.startsWith(`${p}/`))
+}
+
 /** Mag dit verzoek met deze niveaus? */
 export function magApiV2(niveaus: Readonly<Record<string, Niveau>>, pad: string, methode: string): boolean {
   const schoon = pad.split('?')[0]
@@ -33,5 +43,5 @@ export function magApiV2(niveaus: Readonly<Record<string, Niveau>>, pad: string,
   if (sleutel === null) return false
   if (sleutel === 'hulp') return true
   const leest = methode === 'GET' || methode === 'HEAD'
-  return minstens(niveaus[sleutel] ?? 'geen', leest ? 'zien' : 'bewerken')
+  return minstens(niveaus[sleutel] ?? 'geen', leest || zienIsGenoeg(schoon) ? 'zien' : 'bewerken')
 }

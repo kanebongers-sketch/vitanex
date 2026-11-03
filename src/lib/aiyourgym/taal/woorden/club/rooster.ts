@@ -19,6 +19,7 @@ export const ROOSTER = woordenboek({
     leegUitleg: 'Zet je vaste lessen in het weekrooster en maak ze daar aan voor de komende weken.',
     leegZonderInstellen: 'De roosteraar of clubmanager zet ze erin.',
     naarWeekrooster: 'Naar het weekrooster',
+    vasteWeek: 'Vaste week bewerken',
     tegels: {
       label: 'Deze week in cijfers',
       lessen: 'Lessen',
@@ -146,6 +147,7 @@ export const ROOSTER = woordenboek({
     leegUitleg: 'Add your regular classes to the weekly timetable and create them there for the coming weeks.',
     leegZonderInstellen: 'The scheduler or club manager adds them.',
     naarWeekrooster: 'Go to the weekly timetable',
+    vasteWeek: 'Edit the regular week',
     tegels: {
       label: 'This week in numbers',
       lessen: 'Classes',

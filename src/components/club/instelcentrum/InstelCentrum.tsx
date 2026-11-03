@@ -3,17 +3,20 @@
 import { useCallback, useEffect, useRef, type MouseEvent } from 'react'
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { ArrowLeft, Bell, Building2, CalendarDays, ChevronRight, Dumbbell, MapPin, Palette, Smartphone, Users, Wand2, type LucideIcon } from 'lucide-react'
+import { ArrowLeft, Bell, Building2, CalendarDays, ChevronRight, Dumbbell, MapPin, Palette, Plug, Smartphone, Users, Wand2, type LucideIcon } from 'lucide-react'
 import { useTekst } from '@/lib/aiyourgym/taal/client'
 import { BEHEER } from '@/lib/aiyourgym/taal/woorden/club/beheer'
 import { isInstelGroep, type InstelGroep } from '@/lib/club/kern/instel-paginas'
-import type { CentrumCategorie, CentrumRegel, CentrumStart } from './typen'
+import type { CentrumCategorie, CentrumKoppelingen, CentrumRegel, CentrumStart } from './typen'
+import { AllesTonen } from './AllesTonen'
 
 // Het instellingencentrum: links de categorieen, rechts de inhoud van de
 // gekozen categorie (zoals de instellingen van macOS of Linear). Op de telefoon
 // eerst de lijst, na een tik de inhoud met een weg terug. De categorie staat in
 // de url (?categorie=), zodat Ctrl K, een link of de terugknop meteen de juiste
 // opent. Elke categorie is een gewone link: zonder JavaScript werkt het ook.
+// Bovenaan de lijst staan de losse links: Startwizard en Koppelingen (ontwerp
+// 03-11-2026, geen negende categorie en geen hulpbalk meer).
 
 const ICOON: Record<InstelGroep, LucideIcon> = {
   merk: Palette,
@@ -33,6 +36,8 @@ interface InstelCentrumProps {
   categorieen: CentrumCategorie[]
   /** De startwizard als losse link, alleen voor de eigenaar. */
   start: CentrumStart | null
+  /** Koppelingen als losse link, alleen met minstens een koppeling die iemand mag zien. */
+  koppelingen: CentrumKoppelingen | null
 }
 
 /** De url van het centrum met deze categorie (of zonder), met behoud van ?v=. */
@@ -49,7 +54,7 @@ function gewoneKlik(e: MouseEvent<HTMLAnchorElement>): boolean {
   return !(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0)
 }
 
-export function InstelCentrum({ categorieen, start }: InstelCentrumProps) {
+export function InstelCentrum({ categorieen, start, koppelingen }: InstelCentrumProps) {
   const t = useTekst(BEHEER).centrum
   const zoek = useSearchParams()
   const pad = usePathname()
@@ -101,6 +106,27 @@ export function InstelCentrum({ categorieen, start }: InstelCentrumProps) {
   return (
     <div className="club-ic" data-open={gekozen ? 'true' : 'false'}>
       <nav className="club-ic-nav" aria-label={t.categorieen}>
+        {(start || koppelingen) && (
+          <ul role="list" className="club-ic-los" aria-label={t.losseLinks}>
+            {start && (
+              <li>
+                <Link href={start.href} className="club-ic-start">
+                  <Wand2 aria-hidden size={15} />
+                  <span>{t.startwizard}</span>
+                  {start.stand && <span className="club-ic-start-stand">{start.stand}</span>}
+                </Link>
+              </li>
+            )}
+            {koppelingen && (
+              <li>
+                <Link href={koppelingen.href} className="club-ic-start">
+                  <Plug aria-hidden size={15} />
+                  <span>{t.koppelingen}</span>
+                </Link>
+              </li>
+            )}
+          </ul>
+        )}
         <ul role="list">
           {categorieen.map((c) => {
             const Icoon = ICOON[c.sleutel]
@@ -120,13 +146,6 @@ export function InstelCentrum({ categorieen, start }: InstelCentrumProps) {
             )
           })}
         </ul>
-        {start && (
-          <Link href={start.href} className="club-ic-start">
-            <Wand2 aria-hidden size={15} />
-            <span>{t.startwizard}</span>
-            {start.stand && <span className="club-ic-start-stand">{start.stand}</span>}
-          </Link>
-        )}
       </nav>
 
       <section className="club-ic-paneel" aria-labelledby="club-ic-titel" key={actief.sleutel}>
@@ -165,6 +184,7 @@ function Rij({ regel: r, ookHier }: { regel: CentrumRegel; ookHier: string }) {
       ) : (
         <div className="club-ic-rij is-uit">{inhoud}</div>
       )}
+      {r.allesTonen && <AllesTonen aan={r.allesTonen.aan} />}
       {r.links.length > 0 && (
         <p className="club-ic-links">
           <span>{ookHier}</span>

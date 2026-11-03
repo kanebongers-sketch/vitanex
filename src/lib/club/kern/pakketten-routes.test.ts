@@ -18,9 +18,9 @@ import {
 import { MODULES, moduleAan, organisatieUitRij } from './organisatie'
 import { ONDERDEEL_SLEUTELS, orgInstellingenUitRij } from './org-instellingen'
 import { INSTEL_PAGINAS, instelPagina, zichtbareInstelPaginas, type InstelKijker } from './instel-paginas'
-import { ONDERDELEN, groepenMet, onderbalkOnderdelen, onderdelenVan, sectiesVoor } from '@/components/club/shell/onderdelen'
+import { ONDERDELEN, onderbalkPlekken, plekStart, plekkenMet, schermenVan, sectiesVoor } from '@/components/club/shell/onderdelen'
 import { zoekItems } from '@/components/club/shell/zoeken'
-import { HULPBALK, hulpbalkVoor } from '@/components/club/shell/hulpbalk-items'
+import { KOP_HULP } from '@/components/club/shell/kop-hulp'
 import { zichtbareArtikelen } from '@/lib/club/hulp/artikelen'
 import { kaartRechten, zichtbareLidTabs } from '@/lib/club/leden/hub/rechten'
 import { tabsUitVoor } from '@/lib/club/ledenlogin/tabs'
@@ -47,6 +47,8 @@ const VERWACHT: readonly [RegExp, PakketSleutel][] = [
   [/^\/afspraken(\/|$)/, 'afspraken'],
   [/^\/personeel(\/|$)/, 'team'],
   [/^\/taken(\/|$)/, 'team'],
+  // Prikbord: mededelingen en werkwijzen (migratie 489).
+  [/^\/prikbord(\/|$)/, 'team'],
   [/^\/leads(\/|$)/, 'groei'],
   [/^\/opvolgen(\/|$)/, 'groei'],
   [/^\/challenges(\/|$)/, 'groei'],
@@ -194,11 +196,11 @@ describe('elke route van een pakket bestaat niet zonder dat pakket', () => {
 /** Alles wat een eigenaar ziet met deze pakketten: menu, zoeken, hulpbalk, Vandaag, instellingen en hulp. */
 function alleLinks(uit: readonly Verborgen[]): string[] {
   const k = kijker(uit)
-  const menu = groepenMet(uit).flatMap((g) => onderdelenVan(g.sleutel, uit)).map((o) => o.pad)
-  const onder = onderbalkOnderdelen(uit).map((o) => o.pad)
+  const menu = plekkenMet(uit).flatMap((g) => schermenVan(g.sleutel, uit)).map((o) => o.pad)
+  const onder = onderbalkPlekken(uit).map((p) => plekStart(p.sleutel, uit)?.pad ?? '')
   const secties = sectiesVoor(uit).map((o) => `#${o.sectie}`)
   const zoeken = zoekItems(k, true).map((i) => i.pad)
-  const hulpbalk = hulpbalkVoor(k, true).map((s) => HULPBALK.find((h) => h.sleutel === s)?.pad ?? '')
+  const hulpbalk = KOP_HULP.map((h) => h.pad)
   const instel = zichtbareInstelPaginas(k).map((p) => p.pad)
   const artikelen = zichtbareArtikelen(uit, null).flatMap((a) => a.links.map((l) => l.pad))
   return [...menu, ...onder, ...secties, ...zoeken, ...hulpbalk, ...instel, ...artikelen]
@@ -230,10 +232,8 @@ describe('elk pakket met de basis (basis plus een add-on) heeft geen dode links'
         ]
         for (const [aan, nodig] of blok) if (aan) expect([p, 'administratie']).toContain(nodig)
         const tabs = zichtbareLidTabs(r)
-        expect(tabs).toEqual(expect.arrayContaining(['overzicht', 'contact', 'privacy']))
-        if (tabs.includes('training')) expect(p).toBe('training')
-        expect(tabs).toContain('lidmaatschap')
-        if (tabs.includes('planning')) expect(['lessen', 'afspraken']).toContain(p)
+        expect(tabs).toEqual(expect.arrayContaining(['overzicht', 'lidmaatschap']))
+        if (tabs.includes('training')) expect(['training', 'groei']).toContain(p)
       })
       it('de ledenapp toont alleen tabbladen waarvan de API er is', () => {
         const org = { uit, instellingen: orgInstellingenUitRij({}, ONDERDEEL_SLEUTELS) }

@@ -3,13 +3,14 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Verborgen } from '@/lib/club/kern/pakketten'
-import { onderdeelPad, onderdeelVoorToets } from './onderdelen'
+import { doelVoorToets } from './onderdelen'
 import { inInvoer } from './ClubZoeken'
 
-// Sneltoetsen op de pc: G en dan een letter opent een onderdeel (G dan L is
-// Leden, G dan C is de check-in bovenaan Vandaag). Alleen buiten invoervelden, zonder Ctrl, Alt of
-// Cmd, en alleen voor onderdelen die deze persoon in het menu heeft. De letters
-// staan in onderdelen.ts en zijn te zien in het zoekvenster (Ctrl K).
+// Sneltoetsen op de pc: G en dan een letter. V, L, R, T en B openen de vijf
+// plekken; de oude letters blijven werken en openen hun scherm (G K Taken, G E
+// Leads, G A Agenda, G I Instellingen, G H Hulp, G C de check-in op Vandaag).
+// Alleen buiten invoervelden, zonder Ctrl, Alt of Cmd, en alleen waar deze
+// persoon mag komen. De letters staan in onderdelen.ts en in het zoekvenster (Ctrl K).
 
 /** Hoe lang na G de tweede letter nog telt. */
 const WACHTTIJD_MS = 1200
@@ -35,10 +36,10 @@ export function useSneltoetsen({ uit, toegestaan, instellingen, href }: Sneltoet
       const letter = e.key.toLowerCase()
       if (sinds && Date.now() - sinds < WACHTTIJD_MS) {
         sinds = 0
-        const doel = onderdeelVoorToets(letter, uit, toegestaan, instellingen)
-        if (doel) {
+        const doel = doelVoorToets(letter, uit, toegestaan, instellingen)
+        if (doel !== null) {
           e.preventDefault()
-          router.push(href(onderdeelPad(doel)))
+          router.push(href(doel))
         }
         return
       }

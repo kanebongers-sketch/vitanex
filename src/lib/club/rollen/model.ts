@@ -81,7 +81,7 @@ export function startpagina(rollen: readonly Rol[], rechten: Rolrechten, niveaus
   const eerste = START_VOLGORDE.find((r) => rollen.includes(r))
   const sleutel = eerste ? rechten.start[eerste] : undefined
   if (sleutel && minstens(niveaus[sleutel] ?? 'geen', 'zien')) return startPad(sleutel)
-  const zichtbaarOnderdeel = ONDERDELEN.find((o) => (inMenu(o) || o.sleutel === 'vandaag') && minstens(niveaus[o.sleutel] ?? 'geen', 'zien'))
+  const zichtbaarOnderdeel = ONDERDELEN.find((o) => (inMenu(o) || Boolean(o.onder) || o.sleutel === 'vandaag') && minstens(niveaus[o.sleutel] ?? 'geen', 'zien'))
   return zichtbaarOnderdeel ? `/club${zichtbaarOnderdeel.pad}` : '/club/hulp'
 }
 
@@ -89,6 +89,21 @@ export function startpagina(rollen: readonly Rol[], rechten: Rolrechten, niveaus
 
 function object(v: unknown): Record<string, unknown> | null {
   return typeof v === 'object' && v !== null && !Array.isArray(v) ? (v as Record<string, unknown>) : null
+}
+
+/**
+ * Sleutels die later zijn bijgekomen. Een opgeslagen kaart van voor die tijd
+ * kent ze niet: dan geldt de standaard van de rol (anders verliest zelfs de
+ * eigenaar een nieuw onderdeel). Kiest de eigenaar daarna zelf geen, dan staat
+ * dat er expliciet in (schoneKaart bewaart geen voor deze sleutels).
+ */
+export const LATER_TOEGEVOEGD: readonly string[] = ['prikbord']
+
+/** Een opgeslagen kaart met de standaard voor de later toegevoegde sleutels die er niet in staan. */
+export function metLaterToegevoegd(rol: Rol, ruw: unknown): Record<string, unknown> {
+  const o = object(ruw) ?? {}
+  const extra = Object.fromEntries(LATER_TOEGEVOEGD.filter((s) => !(s in o)).map((s) => [s, STANDAARD_RECHTEN[rol][s] ?? 'geen']))
+  return { ...extra, ...o }
 }
 
 /** Een kaart opschonen: alleen bekende sleutels en niveaus, en de vergrendeling van de eigenaar. */
@@ -101,7 +116,7 @@ export function schoneKaart(rol: Rol, ruw: unknown): NiveauKaart {
       continue
     }
     const n = o[s]
-    if (isNiveau(n) && n !== 'geen') uit[s] = n
+    if (isNiveau(n) && (n !== 'geen' || LATER_TOEGEVOEGD.includes(s))) uit[s] = n
   }
   return uit
 }
@@ -109,7 +124,7 @@ export function schoneKaart(rol: Rol, ruw: unknown): NiveauKaart {
 /** Rechten v1 (per rol een lijst sleutels) naar v2: elke oude sleutel wordt bewerken, de nieuwe sleutels de standaard. */
 export function vanV1(v1: Record<string, unknown>): Rolrechten {
   const basis = standaardRolrechten()
-  const NIEUW = RECHT_SLEUTELS.filter((s) => !(ONDERDEEL_SLEUTELS as readonly string[]).includes(s))
+  const NIEUW = RECHT_SLEUTELS.filter((s) => !(ONDERDEEL_SLEUTELS as readonly string[]).includes(s) || LATER_TOEGEVOEGD.includes(s))
   const rollen = Object.fromEntries(
     ROLLEN.map((rol) => {
       const lijst = v1[rol]
@@ -137,7 +152,7 @@ export function leesRolrechten(instellingen: unknown): Rolrechten {
     const rollen = object(v2.rollen) ?? {}
     const start = object(v2.start) ?? {}
     return {
-      rollen: Object.fromEntries(ROLLEN.map((r) => [r, r in rollen ? schoneKaart(r, rollen[r]) : STANDAARD_RECHTEN[r]])) as Record<Rol, NiveauKaart>,
+      rollen: Object.fromEntries(ROLLEN.map((r) => [r, r in rollen ? schoneKaart(r, metLaterToegevoegd(r, rollen[r])) : STANDAARD_RECHTEN[r]])) as Record<Rol, NiveauKaart>,
       start: Object.fromEntries(ROLLEN.map((r) => [r, isStartSleutel(start[r]) ? start[r] : STANDAARD_START[r]])) as Record<Rol, string>,
     }
   }

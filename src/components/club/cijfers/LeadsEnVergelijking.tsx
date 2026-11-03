@@ -26,7 +26,7 @@ export function LeadsHoofdstuk({ c }: { c: CijferContext }) {
   const max = Math.max(0.0001, ...perBron.map((b) => b.conversie))
   const kern = t.kern(heel(totaal.leads, c.taal), totaal.leads > 0 ? procent(totaal.conversie, c.taal) : tk.algemeen.geenData)
   return (
-    <Hoofdstuk nummer="04" titel={t.hoofdstuk}>
+    <Hoofdstuk nummer="04" titel={t.hoofdstuk} exports={c.exports?.leads}>
       <CijferBlok
         id="blok-leads"
         className="club-cijfers-volle"

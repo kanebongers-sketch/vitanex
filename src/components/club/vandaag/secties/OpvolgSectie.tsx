@@ -10,11 +10,12 @@ import { Opvolglijst } from '@/components/club/automatisering/Opvolglijst'
 import { SectieKop, type SectieLink } from './SectieKop'
 import '@/components/club/automatisering/automatisering.css'
 
-// Wie je vandaag belt of aanspreekt, op Vandaag: links de opvolglijst van de
+// Bellen vandaag (ontwerp 03-11-2026; anker #opvolgen blijft): links de opvolglijst van de
 // leden (per regel, met Gedaan en Overslaan), rechts de leads die vandaag aan
 // de beurt zijn en wie er jarig is (children). De ronde van vandaag draait hier
 // alleen als die vandaag nog niet draaide, zodat Vandaag snel blijft. De
-// volledige lijst met "recent afgehandeld" blijft op /club/opvolgen.
+// volledige lijst staat bij Leden · Leads, tabblad Opvolgen (/club/opvolgen
+// stuurt daarheen). Zonder opvolglijst en zonder leads of jarigen: geen sectie.
 
 interface Props {
   admin: SupabaseClient
@@ -49,6 +50,7 @@ async function LedenOpvolgen({ admin, userId, vestiging, vestigingNaam, magBewer
 }
 
 export async function OpvolgSectie({ admin, userId, vestiging, vestigingNaam, magLeden, magBewerken = true, magRegels, children }: Props) {
+  if (!magLeden && !children) return null
   const w = (await clubTekst(VANDAAG_SECTIES)).opvolgen
   const links: SectieLink[] = [
     ...(magLeden ? [{ href: clubPad('/opvolgen', vestiging), label: w.lijst }] : []),

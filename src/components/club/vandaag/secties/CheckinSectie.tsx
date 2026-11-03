@@ -12,8 +12,8 @@ import '@/components/club/checkin/checkin.css'
 
 // Bovenaan Vandaag: snel inchecken (zoeken en de QR-camera) en wie er nu binnen
 // is. Het zoekveld staat meteen klaar; "Nu binnen" laadt los, zodat de balie
-// nooit op de lijst hoeft te wachten. De vaste balie (scanner, tablet) en het
-// zelf-check-in scherm blijven bereikbaar via de links in de kop.
+// nooit op de lijst hoeft te wachten. De vaste balie (scanner, tablet) opent met
+// de hoofdactie Inchecken bovenaan Vandaag; het zelf-check-in scherm via de kop.
 
 interface Props {
   admin: SupabaseClient
@@ -32,10 +32,7 @@ async function NuBinnenLader({ admin, userId, vestiging, magLeden }: Pick<Props,
 
 export async function CheckinSectie({ admin, userId, vestiging, methode, qrAan, magLeden }: Props) {
   const w = (await clubTekst(VANDAAG_SECTIES)).checkin
-  const links = [
-    { href: clubPad('/checkin', vestiging), label: w.balie },
-    ...(qrAan ? [{ href: clubPad('/checkin/kiosk', vestiging), label: w.kiosk }] : []),
-  ]
+  const links = qrAan ? [{ href: clubPad('/checkin/kiosk', vestiging), label: w.kiosk }] : []
   return (
     <section id="checkin" className="club-vandaag-sectie" aria-labelledby="vandaag-checkin">
       <SectieKop id="vandaag-checkin" titel={w.titel} sub={w.sub} links={links} />

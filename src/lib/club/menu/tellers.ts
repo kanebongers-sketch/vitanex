@@ -5,13 +5,16 @@
 // - opvolgen: open opvolging van leden plus leads die vandaag (of eerder) gebeld
 //   moeten worden. Opvolgen is een sectie op Vandaag, dus de teller staat bij Vandaag.
 // - leads: nieuwe leads (status nieuw) in de vestiging.
+// - prikbord: mededelingen voor deze persoon die nog gelezen of bevestigd
+//   moeten worden (ook een gewijzigde werkwijze). Staat op het Prikbord en dus
+//   ook op de plek Vandaag (migratie 489, src/lib/club/prikbord/).
 // Berichten heeft geen teller: berichten in Club gaan van de sportschool naar de
 // leden; er bestaat geen inbox met ongelezen berichten voor het team (eerlijk:
 // geen getal zonder bron). Bij 0 staat er niets.
 // Wie een teller ziet volgt dezelfde zichtbaarheid als het menu (isZichtbaar:
 // pakket afgenomen, onderdeel aan en het recht via de rol, ook met rollen v2).
 
-export const TELLER_SOORTEN = ['taken', 'opvolgen', 'leads'] as const
+export const TELLER_SOORTEN = ['taken', 'opvolgen', 'leads', 'prikbord'] as const
 export type TellerSoort = (typeof TELLER_SOORTEN)[number]
 
 export type Tellers = Readonly<Partial<Record<TellerSoort, number>>>
@@ -25,6 +28,7 @@ export const ONDERDEEL_TELLER: Readonly<Record<string, TellerSoort>> = {
   vandaag: 'opvolgen',
   opvolgen: 'opvolgen',
   leads: 'leads',
+  prikbord: 'prikbord',
 }
 
 /** Wat deze persoon per teller moet mogen zien (de onderdelen erachter). */
@@ -36,11 +40,13 @@ export interface TellerRechten {
   leads: boolean
   /** Vandaag, waar Opvolgen staat. */
   vandaag: boolean
+  /** Het Prikbord (mededelingen en werkwijzen); optioneel zodat oude aanroepen blijven werken. */
+  prikbord?: boolean
 }
 
 /** De rechten voor de tellers uit de zichtbaarheid van het menu. */
 export function tellerRechten(zie: (sleutel: string) => boolean): TellerRechten {
-  return { taken: zie('taken'), opvolgenLeden: zie('opvolgen'), leads: zie('leads'), vandaag: zie('vandaag') }
+  return { taken: zie('taken'), opvolgenLeden: zie('opvolgen'), leads: zie('leads'), vandaag: zie('vandaag'), prikbord: zie('prikbord') }
 }
 
 /** Welke tellers deze persoon krijgt; leeg = de balk vraagt niets op. */
@@ -49,6 +55,7 @@ export function welkeTellers(r: TellerRechten): TellerSoort[] {
   if (r.taken) uit.push('taken')
   if (r.vandaag && (r.opvolgenLeden || r.leads)) uit.push('opvolgen')
   if (r.leads) uit.push('leads')
+  if (r.prikbord) uit.push('prikbord')
   return uit
 }
 
