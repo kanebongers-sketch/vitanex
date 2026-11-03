@@ -194,7 +194,7 @@ export const PERSONEEL = woordenboek({
       uitleg: 'Toepassen vult aan wat er nog niet staat. Met vervangen gaan eerst de geplande diensten van die weken eruit; diensten met uren blijven altijd staan.',
     },
     print: {
-      titel: (week: string, van: string, tot: string) => `Personeelsrooster · ${week} · ${van} tot ${tot}`,
+      titel: (week: string, van: string, tot: string) => `Diensten · ${week} · ${van} tot ${tot}`,
       medewerker: 'Medewerker',
       open: 'Open',
       mededelingen: 'Mededelingen',
@@ -487,7 +487,7 @@ export const PERSONEEL = woordenboek({
       uitleg: 'Apply only adds what is not there yet. Replace first removes the planned shifts of those weeks; shifts with hours always stay.',
     },
     print: {
-      titel: (week: string, van: string, tot: string) => `Staff rota · ${week} · ${van} to ${tot}`,
+      titel: (week: string, van: string, tot: string) => `Shifts · ${week} · ${van} to ${tot}`,
       medewerker: 'Staff member',
       open: 'Open',
       mededelingen: 'Notices',

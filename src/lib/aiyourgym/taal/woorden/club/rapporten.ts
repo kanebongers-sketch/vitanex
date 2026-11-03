@@ -13,7 +13,7 @@ export const RAPPORTEN_TEKST = woordenboek({
   nl: {
     titel: 'Rapporten',
     laden: 'Rapport laden',
-    boventitel: 'Beheer · rapporten en exports',
+    boventitel: 'Beheer · Cijfers · alle exports',
     intro: 'Elk rapport beslaat een hele kalendermaand, van de 1e tot en met de laatste dag. Bekijk de eerste rijen en download het geheel als CSV voor Excel.',
     groepen: GROEP_LABEL,
     rapporten: {
@@ -58,7 +58,7 @@ export const RAPPORTEN_TEKST = woordenboek({
   en: {
     titel: 'Reports',
     laden: 'Loading report',
-    boventitel: 'Management · reports and exports',
+    boventitel: 'Management · Metrics · all exports',
     intro: 'Each report covers a whole calendar month, from the 1st to the last day. Look at the first rows and download the full report as a CSV for Excel.',
     groepen: {
       leden: 'Members and visits',
@@ -103,7 +103,7 @@ export const RAPPORTEN_TEKST = woordenboek({
       },
       uren: {
         titel: 'Worked and approved hours',
-        uitleg: 'For each staff member the hours from the staff rota: planned, worked, approved and processed.',
+        uitleg: 'For each staff member the hours from the shifts: planned, worked, approved and processed.',
         telling: 'Worked = actual time minus break, from the status Worked. Approved also includes what has already been processed. Sick leave and holiday at the planned time. Open shifts without a staff member are not counted.',
       },
       opvolging: {

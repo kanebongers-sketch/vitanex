@@ -11,7 +11,7 @@ import { instelCategoriePad, instelGroepLabel, instelGroepUitleg, instelHref, in
 import { zichtbareKoppelingen } from '@/lib/club/kern/koppelingen'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { MENU } from '@/lib/aiyourgym/taal/woorden/club/menu'
-import { GROEPEN, ONDERDELEN, PLEKKEN, groepInTaal, isZichtbaar, onderdeelInTaal, onderdeelPad, onderdeelVan, plekInTaal, plekStart, schermInTaal, sectiesVoor, toetsTekst, type Onderdeel } from './onderdelen'
+import { ONDERDELEN, PLEKKEN, isZichtbaar, onderdeelInTaal, onderdeelPad, onderdeelVan, plekInTaal, plekStart, schermInTaal, sectiesVoor, toetsTekst, type Onderdeel, type PlekSleutel } from './onderdelen'
 import { KOP_HULP, kopHulpInTaal } from './kop-hulp'
 
 export interface ZoekItem {
@@ -52,10 +52,21 @@ function plekVan(o: Onderdeel, taal: Taal): string {
   return boven ? `${plek} · ${onderdeelInTaal(boven, taal).label}` : plek
 }
 
-/** De oude groepsnaam in beide talen, als trefwoord. */
+/**
+ * De namen van de oude menugroepen (voor "Club in 10 minuten") per plek, in
+ * beide talen, als trefwoord: wie nog Werkvloer of Planning typt, vindt de plek.
+ */
+const OUDE_NAMEN: Readonly<Record<PlekSleutel, string>> = {
+  vandaag: 'werkvloer gym floor',
+  leden: '',
+  rooster: 'planning',
+  training: 'coaching',
+  beheer: '',
+}
+
+/** De oude groepsnaam van de plek van dit onderdeel, als trefwoord. */
 function oudeGroep(o: Onderdeel): string {
-  const g = GROEPEN.find((x) => x.sleutel === o.groep)
-  return g ? `${g.label} ${groepInTaal(g, 'en').label}` : ''
+  return OUDE_NAMEN[o.plek]
 }
 
 /** Een sectie op Vandaag (met anker) en de volledige schermen erachter. */

@@ -31,7 +31,7 @@ interface SchemaProps {
 export function SchemaScherm({ schema, uitgelicht, coaching, taal }: SchemaProps) {
   const t = DEMO_SCHERM[taal]
   return (
-    <Venster actief="Coaching">
+    <Venster actief="Training">
       <div className="aygm-rooster-kop">
         <div>
           <p className="aygm-boven">

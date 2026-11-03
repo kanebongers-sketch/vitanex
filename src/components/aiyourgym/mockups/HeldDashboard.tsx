@@ -91,7 +91,7 @@ export async function HeldDashboard() {
   const taal = await getSiteTaal()
   const t = DASHBOARD[taal]
   return (
-    <Venster actief="Werkvloer">
+    <Venster actief="Vandaag">
       <div className="aygm-rooster-kop">
         <div>
           <p className="aygm-boven">{t.vestiging(VOORBEELD_VESTIGING, formatDatum(VOORBEELD_DAG, taal, 'dag'))}</p>

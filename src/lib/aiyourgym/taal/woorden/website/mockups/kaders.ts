@@ -1,62 +1,51 @@
 // De kaders van de productbeelden (mockups/kaders.tsx, een clientcomponent): het
 // bijschrift, het menu van Club in het browservenster en de tabbladen van de ledenapp.
-// Het Nederlands komt uit Club zelf (src/components/club/shell), zodat het beeld het
-// echte menu laat zien; komt er in Club een onderdeel bij, dan faalt de woordenboektest
-// tot het Engels er ook staat. Tabbladen per Nederlandse naam (zo geven de schermen ze door).
+// De plekken en schermen komen uit Club zelf (src/components/club/shell en het
+// woordenboek van het menu, NL en EN), zodat het beeld altijd het echte menu laat
+// zien: vijf plekken bovenin, de schermen van de plek eronder, rechts zoeken en
+// het vraagteken voor Hulp. Tabbladen per Nederlandse naam (zo geven de schermen ze door).
 
-import { GROEPEN, ONDERDELEN, inOudMenu, type GroepSleutel } from '@/components/club/shell/onderdelen'
-import { HULPBALK, type HulpSleutel } from '@/components/club/shell/hulpbalk-items'
+import { ONDERDELEN, PLEKKEN, inMenu, type PlekSleutel } from '@/components/club/shell/onderdelen'
+import { MENU } from '@/lib/aiyourgym/taal/woorden/club/menu'
 import { woordenboek } from '../../../woordenboek'
 
-const groepen = Object.fromEntries(GROEPEN.map((g) => [g.sleutel, g.label])) as Record<GroepSleutel, string>
-const onderdelen: Record<string, string> = Object.fromEntries(ONDERDELEN.filter(inOudMenu).map((o) => [o.sleutel, o.label]))
-const hulpbalk = Object.fromEntries(HULPBALK.map((i) => [i.sleutel, i.label])) as Record<HulpSleutel, string>
+type Taal = 'nl' | 'en'
+
+function plekken(taal: Taal): Record<PlekSleutel, string> {
+  return Object.fromEntries(PLEKKEN.map((p) => [p.sleutel, MENU[taal].plekken[p.sleutel].label])) as Record<PlekSleutel, string>
+}
+
+function schermen(taal: Taal): Record<string, string> {
+  const namen: Readonly<Record<string, { label: string } | undefined>> = MENU[taal].onderdelen
+  return Object.fromEntries(ONDERDELEN.filter(inMenu).map((o) => [o.sleutel, namen[o.sleutel]?.label ?? o.label]))
+}
 
 export const KADERS = woordenboek({
   nl: {
     bijschrift: 'Schermvoorbeeld met voorbeeldgegevens',
-    groepen,
-    onderdelen,
-    hulpbalk,
+    plekken: plekken('nl'),
+    onderdelen: schermen('nl'),
+    zoeken: 'Zoeken',
+    hulp: 'Hulp',
     tabs: {
       Home: 'Home',
-      Lessen: 'Lessen',
-      Afspraken: 'Afspraken',
+      Boeken: 'Boeken',
       Schema: 'Schema',
       Voeding: 'Voeding',
-      Voortgang: 'Voortgang',
       Profiel: 'Profiel',
     },
   },
   en: {
     bijschrift: 'Example screen with sample data',
-    groepen: { werkvloer: 'Gym floor', leden: 'Members', planning: 'Planning', coaching: 'Coaching', beheer: 'Admin' },
-    onderdelen: {
-      vandaag: 'Today',
-      taken: 'Tasks',
-      notities: 'Notes',
-      leden: 'Members',
-      leads: 'Leads',
-      berichten: 'Messages',
-      community: 'Community',
-      challenges: 'Challenges',
-      rooster: 'Group classes',
-      afspraken: 'Appointments',
-      personeel: 'Staff',
-      agenda: 'Calendar',
-      schemas: 'Training',
-      voeding: 'Nutrition',
-      cijfers: 'Figures',
-      rapporten: 'Reports',
-    },
-    hulpbalk: { instellingen: 'Settings', koppelingen: 'Integrations', ledenapp: 'Member app', nieuw: 'What’s new', hulp: 'Help' },
+    plekken: plekken('en'),
+    onderdelen: schermen('en'),
+    zoeken: 'Search',
+    hulp: 'Help',
     tabs: {
       Home: 'Home',
-      Lessen: 'Classes',
-      Afspraken: 'Appointments',
+      Boeken: 'Book',
       Schema: 'Programme',
       Voeding: 'Nutrition',
-      Voortgang: 'Progress',
       Profiel: 'Profile',
     },
   },

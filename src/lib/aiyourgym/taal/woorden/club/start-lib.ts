@@ -66,7 +66,7 @@ export const START_LIB = woordenboek({
       team: { titel: 'Je team', uitleg: 'Je team staat erin en is uitgenodigd, of je werkt alleen. Ieder kiest zelf een wachtwoord en logt in met het eigen e-mailadres.' },
       leden: { titel: 'Ledenbestand', uitleg: 'Je leden staan erin, of je begint bewust zonder en ze komen via de app.' },
       checkin: { titel: 'Check-in aan de balie', uitleg: 'Open de check-in op de tablet of pc bij de ingang en scan een QR-code.' },
-      app: { titel: 'Ledenapp bekijken', uitleg: 'Zie de app zoals een lid hem op de telefoon ziet.' },
+      app: { titel: 'Bekijk als lid', uitleg: 'Zie de app zoals een lid hem op de telefoon ziet.' },
       sluiting: { titel: 'Feestdagen en sluiting', uitleg: 'Zet de dagen dat je dicht bent erin; het rooster houdt er rekening mee.' },
     },
     live: {
@@ -177,7 +177,7 @@ export const START_LIB = woordenboek({
       team: { titel: 'Your team', uitleg: 'Your team is added and invited, or you work alone. Everyone chooses their own password and logs in with their own email address.' },
       leden: { titel: 'Member list', uitleg: 'Your members are in, or you chose to start without them and they join through the app.' },
       checkin: { titel: 'Check-in at the front desk', uitleg: 'Open check-in on the tablet or PC at the entrance and scan a QR code.' },
-      app: { titel: 'View the member app', uitleg: 'See the app the way a member sees it on their phone.' },
+      app: { titel: 'View as member', uitleg: 'See the app the way a member sees it on their phone.' },
       sluiting: { titel: 'Public holidays and closures', uitleg: 'Add the days you are closed; the timetable takes them into account.' },
     },
     live: {

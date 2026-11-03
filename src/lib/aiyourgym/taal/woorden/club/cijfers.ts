@@ -39,7 +39,7 @@ export const CIJFERS = woordenboek({
       sub: (bereik: string, maand: string) => `${bereik}, ${maand}. CSV voor Excel.`,
       voorbeeld: 'Voorbeeld',
       voorbeeldVan: (rapport: string) => `Voorbeeld van ${rapport} bekijken`,
-      alleRapporten: 'Naar Rapporten',
+      alleRapporten: 'Alle exports openen',
     },
     algemeen: {
       geenData: 'geen data',
@@ -272,7 +272,7 @@ export const CIJFERS = woordenboek({
       sub: (bereik: string, maand: string) => `${bereik}, ${maand}. CSV for Excel.`,
       voorbeeld: 'Preview',
       voorbeeldVan: (rapport: string) => `Preview ${rapport}`,
-      alleRapporten: 'Go to Reports',
+      alleRapporten: 'Open all exports',
     },
     algemeen: {
       geenData: 'no data',

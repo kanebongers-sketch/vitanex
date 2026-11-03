@@ -33,7 +33,7 @@ const BEELD: Record<DoelgroepSleutel, { inhoud: ReactNode; bron?: ReactNode; sma
   keten: { inhoud: <PersoneelScherm /> },
   yoga: {
     inhoud: (
-      <Toestel tab="Lessen">
+      <Toestel tab="Boeken">
         <AppLessen />
       </Toestel>
     ),

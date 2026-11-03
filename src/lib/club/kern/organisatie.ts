@@ -18,7 +18,7 @@ export const MODULE_LABEL: Record<Module, { label: string; uitleg: string }> = {
   checkin: { label: 'Check-in', uitleg: 'Inchecken bij de balie met QR of zoeken.' },
   rooster: { label: 'Groepslessen', uitleg: 'Lesrooster, reserveren en wachtlijsten.' },
   afspraken: { label: 'Afspraken', uitleg: 'Intakes, personal training en metingen met trainers boeken.' },
-  personeel: { label: 'Personeelsrooster', uitleg: 'Diensten, beschikbaarheid en uren.' },
+  personeel: { label: 'Diensten', uitleg: 'Diensten, beschikbaarheid en uren.' },
   taken: { label: 'Taken en poetslijsten', uitleg: 'Dagelijkse taken, afsluitronde en poetsrooster.' },
   leads: { label: 'Leads', uitleg: 'Proeflessen en aanmeldingen opvolgen.' },
   training: { label: 'Training', uitleg: 'Intakes, schema\'s en de oefenbibliotheek.' },

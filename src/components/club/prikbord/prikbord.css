@@ -115,3 +115,19 @@
 @media (prefers-reduced-motion: reduce) {
   .club-app :is(.pb-mededeling, .pb-werkwijze, .pb-regel, .pb-keuze) { transition: none; }
 }
+
+/* Optioneel lid bij een uitvoering (nieuw lid, klacht, ongeval). */
+.club-app .pb-lid-kiezer { max-width: 420px; }
+.club-app .pb-lid-zoekveld { position: relative; display: flex; align-items: center; }
+.club-app .pb-lid-zoekveld > svg { position: absolute; left: 12px; color: var(--text-3); pointer-events: none; }
+.club-app .pb-lid-zoekveld > .club-invoer { padding-left: 34px; width: 100%; }
+.club-app .pb-lid-treffers { list-style: none; margin: 0; padding: 4px; display: grid; gap: 2px; border: 1px solid var(--line); border-radius: var(--club-radius-klein); }
+.club-app .pb-lid-treffers button {
+  width: 100%; display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+  padding: 8px 10px; border: 0; border-radius: var(--club-radius-klein); background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer;
+  transition: background-color 150ms ease;
+}
+.club-app .pb-lid-treffers button span { font-size: 13px; color: var(--text-3); }
+.club-app .pb-lid-treffers button:hover { background: var(--line); }
+.club-app .pb-lid-treffers button:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+.club-app .pb-lid-gekozen { display: inline-flex; align-items: center; gap: 8px; padding: 4px 4px 4px 12px; border: 1px solid var(--line); border-radius: var(--club-radius-klein); }

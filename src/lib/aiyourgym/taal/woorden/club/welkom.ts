@@ -1,9 +1,11 @@
 import { woordenboek } from '../../woordenboek'
 
 // De eerste-keer-uitleg in Club (opdracht Kane 30-10-2026): per rol hoogstens
-// drie korte kaarten, wegklikbaar. Elke kaart: een kop, een zin en een knop.
-// De adressen achter de knoppen staan in src/components/club/welkom/paden.ts,
-// in dezelfde volgorde.
+// drie korte kaarten, wegklikbaar. Elke kaart: een kop, een korte regel en een
+// knop. Sinds 03-11-2026 volgens de vijf plekken (docs/club/EENVOUD-10-MINUTEN.md):
+// Vandaag, Leden, Rooster, Training en Beheer; Hulp onder het vraagteken in de
+// kop; het Prikbord voor het team. De adressen achter de knoppen staan in
+// src/components/club/welkom/WelkomVoorRol.tsx (doelen), in dezelfde volgorde.
 
 export const WELKOM = woordenboek({
   nl: {
@@ -20,34 +22,34 @@ export const WELKOM = woordenboek({
     ],
     rollen: {
       manager: [
-        { kop: 'Vandaag is je startpunt', tekst: 'Lessen, wie er werkt, taken en wie je belt staan op een scherm.', knop: 'Naar Vandaag' },
-        { kop: 'Zoek alles met Ctrl K', tekst: 'Een lid, een pagina of een instelling: typ een paar letters.', knop: 'Naar Leden' },
-        { kop: 'Instellen op een plek', tekst: 'Team, rooster en regels staan onder Instellingen, onderaan het scherm.', knop: 'Naar Instellingen' },
+        { kop: 'Alles op vijf plekken', tekst: 'Vandaag, Leden, Rooster, Training en Beheer. Op je telefoon dezelfde vijf onderin.', knop: 'Naar Vandaag' },
+        { kop: 'Je team op het Prikbord', tekst: 'Plaats een mededeling of werkwijze en zie wie hem bevestigde.', knop: 'Naar Prikbord' },
+        { kop: 'Kwijt? Druk Ctrl K', tekst: 'Zoek een lid, scherm of instelling. Hulp staat onder het vraagteken rechtsboven.', knop: 'Naar Hulp' },
       ],
       trainer: [
-        { kop: 'Begin op Vandaag', tekst: 'Je lessen, je taken en wie je vandaag belt staan op een scherm.', knop: 'Naar Vandaag' },
-        { kop: 'Een lid inchecken', tekst: 'Scan de QR-code uit de app of typ een naam bij Check-in.', knop: 'Naar Check-in' },
-        { kop: 'Alles van een lid op de ledenkaart', tekst: 'Open een lid. Schema, intake en notities start je daar.', knop: 'Naar Leden' },
+        { kop: 'Begin op Vandaag', tekst: 'Bovenaan check je leden in. Daaronder je lessen, taken en wie je belt.', knop: 'Naar Check-in' },
+        { kop: 'Lees het Prikbord', tekst: 'Mededelingen en werkwijzen voor het team. Bevestig wat je gelezen hebt.', knop: 'Naar Prikbord' },
+        { kop: 'Alles van een lid op de ledenkaart', tekst: 'Notitie, intake en schema start je daar. Je afspraken staan in de Agenda.', knop: 'Naar Leden' },
       ],
       instructeur: [
-        { kop: 'Je lessen staan bij Groepslessen', tekst: 'Tik op Mijn lessen. Open een les om te zien wie er komt.', knop: 'Naar Groepslessen' },
-        { kop: 'Aanwezigheid afvinken', tekst: 'Vink in de les af wie er is. Wie al incheckte staat er al op.', knop: 'Naar Groepslessen' },
-        { kop: 'Lees de overdracht', tekst: 'Wat collega\'s doorgeven staat op Vandaag.', knop: 'Naar Vandaag' },
+        { kop: 'Je lessen staan bij Lessen', tekst: 'Kies Mijn lessen. Open een les om te zien wie er komt.', knop: 'Naar Mijn lessen' },
+        { kop: 'Aanwezigheid afvinken', tekst: 'Vink in de les af wie er is. Wie al incheckte staat er al op.', knop: 'Naar Lessen' },
+        { kop: 'Lees het Prikbord', tekst: 'Mededelingen, werkwijzen en de overdracht. Bevestig wat je gelezen hebt.', knop: 'Naar Prikbord' },
       ],
       roosteraar: [
-        { kop: 'Diensten plannen', tekst: 'Klik in het weekrooster op een uur. Gaten vallen vanzelf op.', knop: 'Naar Personeel' },
-        { kop: 'Snel een nieuwe week', tekst: 'Kopieer vorige week en pas alleen aan wat anders is.', knop: 'Naar Personeel' },
-        { kop: 'Groepslessen', tekst: 'Een les verzetten of een vervanger kiezen doe je bij Groepslessen.', knop: 'Naar Groepslessen' },
+        { kop: 'Diensten plannen', tekst: 'Klik in de week op een uur. Gaten vallen vanzelf op.', knop: 'Naar Diensten' },
+        { kop: 'Snel een nieuwe week', tekst: 'Kopieer vorige week en pas alleen aan wat anders is.', knop: 'Naar Diensten' },
+        { kop: 'Groepslessen bij Lessen', tekst: 'Een les verzetten of een vervanger kiezen doe je bij Lessen.', knop: 'Naar Lessen' },
       ],
       administratie: [
-        { kop: 'De uren per periode', tekst: 'Per medewerker: gepland, gewerkt en het contract naast elkaar.', knop: 'Naar Uren' },
-        { kop: 'Goedkeuren', tekst: 'Keur goed wat klopt. Afwijkingen open je en keur je apart goed.', knop: 'Naar Uren' },
-        { kop: 'Naar de salarisadministratie', tekst: 'Download de CSV en zet de uren op verwerkt. Dan liggen ze vast.', knop: 'Naar Uren' },
+        { kop: 'Uren goedkeuren', tekst: 'Per medewerker gepland, gewerkt en contract naast elkaar. Keur goed wat klopt.', knop: 'Naar Uren' },
+        { kop: 'Naar de salarisadministratie', tekst: 'Zet de uren op verwerkt en download de CSV. Andere exports staan bij Cijfers.', knop: 'Naar exports' },
+        { kop: 'Lees het Prikbord', tekst: 'Mededelingen en werkwijzen voor het team. Bevestig wat je gelezen hebt.', knop: 'Naar Prikbord' },
       ],
       eigenaar: [
-        { kop: 'Je cijfers', tekst: 'Groei, bezoek en behoud per maand op een scherm.', knop: 'Naar Cijfers' },
-        { kop: 'Team en rollen', tekst: 'Nodig je team uit en kies per rol wat ze zien.', knop: 'Naar Team' },
-        { kop: 'Je abonnement', tekst: 'Je pakketten en facturen staan bij Instellingen.', knop: 'Naar Abonnement' },
+        { kop: 'Alles op vijf plekken', tekst: 'Vandaag, Leden, Rooster, Training en Beheer. Op je telefoon dezelfde vijf onderin.', knop: 'Naar Vandaag' },
+        { kop: 'Je team op het Prikbord', tekst: 'Plaats een mededeling of werkwijze en zie wie hem bevestigde.', knop: 'Naar Prikbord' },
+        { kop: 'Cijfers en instellingen in Beheer', tekst: 'Cijfers per maand met exports. Team, rollen en abonnement bij Instellingen.', knop: 'Naar Instellingen' },
       ],
     },
   },
@@ -64,34 +66,34 @@ export const WELKOM = woordenboek({
     ],
     rollen: {
       manager: [
-        { kop: 'Today is where you start', tekst: 'Classes, who is working, tasks and who to call on one screen.', knop: 'Go to Today' },
-        { kop: 'Find anything with Ctrl K', tekst: 'A member, a page or a setting: type a few letters.', knop: 'Go to Members' },
-        { kop: 'Set up in one place', tekst: 'Team, schedule and rules live under Settings, at the bottom of the screen.', knop: 'Go to Settings' },
+        { kop: 'Everything in five places', tekst: 'Today, Members, Schedule, Training and Management. The same five at the bottom of your phone.', knop: 'Go to Today' },
+        { kop: 'Your team on the Notice board', tekst: 'Post an announcement or procedure and see who confirmed it.', knop: 'Go to Notice board' },
+        { kop: 'Lost? Press Ctrl K', tekst: 'Find a member, screen or setting. Help is under the question mark top right.', knop: 'Go to Help' },
       ],
       trainer: [
-        { kop: 'Start on Today', tekst: 'Your classes, your tasks and who to call today on one screen.', knop: 'Go to Today' },
-        { kop: 'Check in a member', tekst: 'Scan the QR code from the app or type a name at Check-in.', knop: 'Go to Check-in' },
-        { kop: 'Everything about a member on the member card', tekst: 'Open a member. Start a programme, intake or note from there.', knop: 'Go to Members' },
+        { kop: 'Start on Today', tekst: 'Check members in at the top. Below are your classes, tasks and who to call.', knop: 'Go to Check-in' },
+        { kop: 'Read the Notice board', tekst: 'Announcements and procedures for the team. Confirm what you have read.', knop: 'Go to Notice board' },
+        { kop: 'Everything about a member on the member card', tekst: 'Start a note, intake or programme there. Your appointments are in the Calendar.', knop: 'Go to Members' },
       ],
       instructeur: [
-        { kop: 'Your classes are under Group classes', tekst: 'Tap My classes. Open a class to see who is coming.', knop: 'Go to Group classes' },
-        { kop: 'Mark attendance', tekst: 'Tick off who is there in the class. Anyone who checked in is already marked.', knop: 'Go to Group classes' },
-        { kop: 'Read the handover', tekst: 'What colleagues pass on is on Today.', knop: 'Go to Today' },
+        { kop: 'Your classes are under Classes', tekst: 'Choose My classes. Open a class to see who is coming.', knop: 'Go to My classes' },
+        { kop: 'Mark attendance', tekst: 'Tick off who is there in the class. Anyone who checked in is already marked.', knop: 'Go to Classes' },
+        { kop: 'Read the Notice board', tekst: 'Announcements, procedures and the handover. Confirm what you have read.', knop: 'Go to Notice board' },
       ],
       roosteraar: [
-        { kop: 'Plan shifts', tekst: 'Click an hour in the week schedule. Gaps stand out on their own.', knop: 'Go to Staff' },
-        { kop: 'A new week, fast', tekst: 'Copy last week and only change what is different.', knop: 'Go to Staff' },
-        { kop: 'Group classes', tekst: 'Move a class or pick a substitute under Group classes.', knop: 'Go to Group classes' },
+        { kop: 'Plan shifts', tekst: 'Click an hour in the week. Gaps stand out on their own.', knop: 'Go to Shifts' },
+        { kop: 'A new week, fast', tekst: 'Copy last week and only change what is different.', knop: 'Go to Shifts' },
+        { kop: 'Group classes under Classes', tekst: 'Move a class or pick a substitute under Classes.', knop: 'Go to Classes' },
       ],
       administratie: [
-        { kop: 'Hours per period', tekst: 'Per staff member: planned, worked and contract side by side.', knop: 'Go to Hours' },
-        { kop: 'Approve', tekst: 'Approve what is right. Open differences and approve them one by one.', knop: 'Go to Hours' },
-        { kop: 'To payroll', tekst: 'Download the CSV and mark the hours as processed. Then they are locked.', knop: 'Go to Hours' },
+        { kop: 'Approve hours', tekst: 'Per staff member: planned, worked and contract side by side. Approve what is right.', knop: 'Go to Hours' },
+        { kop: 'To payroll', tekst: 'Mark the hours as processed and download the CSV. Other exports are under Metrics.', knop: 'Go to exports' },
+        { kop: 'Read the Notice board', tekst: 'Announcements and procedures for the team. Confirm what you have read.', knop: 'Go to Notice board' },
       ],
       eigenaar: [
-        { kop: 'Your metrics', tekst: 'Growth, visits and retention per month on one screen.', knop: 'Go to Metrics' },
-        { kop: 'Team and roles', tekst: 'Invite your team and choose what each role sees.', knop: 'Go to Team' },
-        { kop: 'Your subscription', tekst: 'Your packages and invoices are under Settings.', knop: 'Go to Subscription' },
+        { kop: 'Everything in five places', tekst: 'Today, Members, Schedule, Training and Management. The same five at the bottom of your phone.', knop: 'Go to Today' },
+        { kop: 'Your team on the Notice board', tekst: 'Post an announcement or procedure and see who confirmed it.', knop: 'Go to Notice board' },
+        { kop: 'Metrics and settings in Management', tekst: 'Monthly metrics with exports. Team, roles and subscription under Settings.', knop: 'Go to Settings' },
       ],
     },
   },

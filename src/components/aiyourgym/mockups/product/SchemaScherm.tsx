@@ -45,7 +45,7 @@ export async function SchemaScherm() {
   const aantal = blokken.reduce((s, b) => s + b.regels.length, 0)
   const uitgelicht = blokken.flatMap((b) => b.regels).find((r) => r.slug === UITGELICHT.slug) ?? blokken[0]?.regels[0]
   return (
-    <Venster actief="Coaching" hier="Training">
+    <Venster actief="Training" hier="Schema's">
       <div className="aygp aygs">
         <div className="aygp-paginakop">
           <div className="aygp-kop-lid">

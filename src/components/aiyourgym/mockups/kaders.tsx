@@ -1,10 +1,8 @@
 'use client'
 
 import type { CSSProperties, ReactNode } from 'react'
-import type { LucideIcon } from 'lucide-react'
-import { CalendarClock, CalendarDays, Dumbbell, House, LifeBuoy, Lock, Plug, Salad, Settings2, Smartphone, Sparkles, TrendingUp, UserRound } from 'lucide-react'
-import { GROEPEN as CLUB_GROEPEN, onderdelenVan } from '@/components/club/shell/onderdelen'
-import { HULPBALK, type HulpSleutel } from '@/components/club/shell/hulpbalk-items'
+import { CalendarDays, CircleHelp, Dumbbell, House, Lock, Salad, Search, UserRound } from 'lucide-react'
+import { PLEKKEN, schermenVan } from '@/components/club/shell/onderdelen'
 import { useTekst } from '@/lib/aiyourgym/taal/client'
 import { KADERS } from '@/lib/aiyourgym/taal/woorden/website/mockups/kaders'
 import { KernhalMerk } from './KernhalMerk'
@@ -15,7 +13,7 @@ import { VOORBEELD_ADRES } from './voorbeeld'
 // het een afbeelding met een beschrijving (role="img").
 // Een clientcomponent, omdat de kaders ook in clientcomponenten staan (zoals de
 // coachingdemo); de taal komt uit de context van de pagina (woordenboek KADERS).
-// Groepen, onderdelen en tabbladen worden doorgegeven met hun Nederlandse naam
+// Plekken, schermen en tabbladen worden doorgegeven met hun Nederlandse naam
 // uit Club en in de taal van de pagina getoond.
 
 
@@ -43,64 +41,57 @@ export function Figuur({ label, children, bijschrift, className, stijl }: Figuur
   )
 }
 
-// De groepen, het submenu en de hulpbalk komen uit Club zelf, zodat het
-// productbeeld altijd het echte menu laat zien.
-export type Groep = (typeof CLUB_GROEPEN)[number]['label']
+// De plekken en het submenu komen uit Club zelf, zodat het productbeeld altijd
+// het echte menu laat zien: vijf plekken bovenin, de schermen van de plek
+// eronder. Er is geen hulpbalk meer; zoeken en Hulp staan rechts in de kop.
+export type Plek = (typeof PLEKKEN)[number]['label']
 
 type Teksten = (typeof KADERS)['nl']
 
-const HULP_ICOON: Record<HulpSleutel, LucideIcon> = {
-  instellingen: Settings2,
-  koppelingen: Plug,
-  ledenapp: Smartphone,
-  nieuw: Sparkles,
-  hulp: LifeBuoy,
-}
-
-/** Een onderdeel van het menu in de taal van de pagina, met de naam uit Club als reserve. */
-function onderdeelNaam(t: Teksten, sleutel: string, label: string): string {
+/** Een scherm van het menu in de taal van de pagina, met de naam uit Club als reserve. */
+function schermNaam(t: Teksten, sleutel: string, label: string): string {
   const namen: Readonly<Record<string, string | undefined>> = t.onderdelen
   return namen[sleutel] ?? label
 }
 
-/** Rij 2 van Club: de groep waar je bent en haar onderdelen over de volle breedte, het actieve gevuld. */
-function Submenu({ groep, hier, t }: { groep: Groep; hier?: string; t: Teksten }) {
-  const g = CLUB_GROEPEN.find((x) => x.label === groep)
-  if (!g) return null
-  const items = onderdelenVan(g.sleutel)
+/** Rij 2 van Club: de plek waar je bent en haar schermen over de volle breedte, het actieve gevuld. */
+function Submenu({ plek, hier, t }: { plek: Plek; hier?: string; t: Teksten }) {
+  const p = PLEKKEN.find((x) => x.label === plek)
+  if (!p) return null
+  const items = schermenVan(p.sleutel)
   const actief = hier ?? items[0]?.label
   return (
     <div className="aygm-app-sub">
-      <span className="aygm-app-sub-groep">{t.groepen[g.sleutel]}</span>
+      <span className="aygm-app-sub-groep">{t.plekken[p.sleutel]}</span>
       {items.map((o) => (
         <span key={o.sleutel} data-actief={o.label === actief ? '' : undefined}>
-          {onderdeelNaam(t, o.sleutel, o.label)}
+          {schermNaam(t, o.sleutel, o.label)}
         </span>
       ))}
     </div>
   )
 }
 
-/** De hulpbalk onderaan elke pagina van Club. */
-function Hulpbalk({ t }: { t: Teksten }) {
+/** Rechts in de kop van Club: zoeken (Ctrl K) en het vraagteken voor Hulp. */
+function KopRechts({ t }: { t: Teksten }) {
   return (
-    <div className="aygm-hulpbalk">
-      {HULPBALK.map((i) => {
-        const Icoon = HULP_ICOON[i.sleutel]
-        return (
-          <span key={i.sleutel}>
-            <Icoon aria-hidden />
-            {t.hulpbalk[i.sleutel]}
-          </span>
-        )
-      })}
-    </div>
+    <span className="aygm-app-kop-rechts">
+      <span className="aygm-app-zoek">
+        <Search aria-hidden />
+        {t.zoeken}
+        <kbd>Ctrl K</kbd>
+      </span>
+      <span className="aygm-app-hulp" title={t.hulp}>
+        <CircleHelp aria-hidden />
+      </span>
+    </span>
   )
 }
 
 interface VensterProps {
-  actief: Groep
-  /** Het onderdeel waar je bent (Nederlandse naam uit het menu); standaard het eerste van de groep. */
+  /** De plek waar je bent (Nederlandse naam: Vandaag, Leden, Rooster, Training of Beheer). */
+  actief: Plek
+  /** Het scherm waar je bent (Nederlandse naam uit het menu); standaard het eerste van de plek. */
   hier?: string
   children: ReactNode
 }
@@ -124,27 +115,27 @@ export function Venster({ actief, hier, children }: VensterProps) {
       <div className="aygm-app-kop">
         <KernhalMerk className="aygm-app-merk" />
         <span className="aygm-app-groepen">
-          {CLUB_GROEPEN.map((g) => (
-            <span key={g.sleutel} data-actief={g.label === actief ? '' : undefined}>
-              {t.groepen[g.sleutel]}
+          {PLEKKEN.map((p) => (
+            <span key={p.sleutel} data-actief={p.label === actief ? '' : undefined}>
+              {t.plekken[p.sleutel]}
             </span>
           ))}
         </span>
+        <KopRechts t={t} />
       </div>
-      <Submenu groep={actief} hier={hier} t={t} />
+      <Submenu plek={actief} hier={hier} t={t} />
       <div className="aygm-app-inhoud">{children}</div>
-      <Hulpbalk t={t} />
     </div>
   )
 }
 
+// De vijf tabbladen van de onderbalk van de ledenapp (src/lib/club/app/tabs.ts):
+// Boeken is lessen plus afspraken, Schema is het schema plus de voortgang.
 const TABS = [
   { label: 'Home', Icoon: House },
-  { label: 'Lessen', Icoon: CalendarDays },
-  { label: 'Afspraken', Icoon: CalendarClock },
+  { label: 'Boeken', Icoon: CalendarDays },
   { label: 'Schema', Icoon: Dumbbell },
   { label: 'Voeding', Icoon: Salad },
-  { label: 'Voortgang', Icoon: TrendingUp },
   { label: 'Profiel', Icoon: UserRound },
 ] as const
 export type AppTab = (typeof TABS)[number]['label']

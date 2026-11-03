@@ -10,7 +10,7 @@ import type { Rol } from './typen'
 import { isEigenaar, isLeiding, type Wie } from './wie'
 
 /** Verhoog dit als de kaarten echt anders worden; dan ziet iedereen ze nog een keer. */
-export const WELKOM_VERSIE = 1
+export const WELKOM_VERSIE = 2
 
 export interface WelkomBron extends Wie {
   /** De rollen van een ingelogde medewerker (oud model); leeg voor beheerders. */

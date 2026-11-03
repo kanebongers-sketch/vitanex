@@ -28,7 +28,7 @@ export async function IntakeScherm() {
   const t = s.intake
   const vragen = PARQ_VRAGEN.slice(2, 5)
   return (
-    <Venster actief="Coaching">
+    <Venster actief="Training">
       <div className="ayg-ss-kop">
         <span>
           <b>{t.kop}</b>
@@ -101,7 +101,7 @@ export async function VoorstelScherm({ oefeningen }: { oefeningen: readonly Voor
   const t = s.voorstel
   const v = stelSchemaVoor(VOORBEELD_INTAKE, [])
   return (
-    <Venster actief="Coaching">
+    <Venster actief="Training">
       <div className="ayg-ss-kop">
         <span>
           <b>{t.naam}</b>
@@ -144,7 +144,7 @@ export async function EditorScherm({ oefeningen }: { oefeningen: readonly Voorbe
   const s = SCHEMA_SCHERMEN[await getSiteTaal()]
   const t = s.editor
   return (
-    <Venster actief="Coaching">
+    <Venster actief="Training">
       <div className="ayg-ss-kop">
         <span>
           <b>{t.naam}</b>

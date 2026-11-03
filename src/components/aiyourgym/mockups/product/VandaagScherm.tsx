@@ -39,7 +39,7 @@ export async function VandaagScherm() {
   const taal = await getSiteTaal()
   const t = PRODUCTSCHERMEN[taal].vandaag
   return (
-    <Venster actief="Werkvloer" hier="Vandaag">
+    <Venster actief="Vandaag" hier="Vandaag">
       <div className="aygp">
         <div className="aygp-paginakop">
           <div>

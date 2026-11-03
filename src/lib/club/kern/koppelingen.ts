@@ -32,7 +32,7 @@ export const KOPPELINGEN: readonly Koppeling[] = [
   { id: 'ledenapp', titel: 'Ledenapp', uitleg: 'Leden boeken lessen, plannen afspraken, volgen hun schema en checken in met hun telefoon.', instel: 'ledenapp', knop: 'Ledenapp instellen' },
   { id: 'meldingen', titel: 'Mail en meldingen', uitleg: 'Bevestigingen en herinneringen van lessen en afspraken, per mail en als melding op de telefoon.', instel: 'meldingen', knop: 'Meldingen instellen' },
   { id: 'importeren', titel: 'Ledenbestand inlezen', uitleg: 'Een export uit je huidige systeem of een spreadsheet als CSV inlezen. Je ziet eerst wat er verandert.', instel: 'importeren', knop: 'Bestand inlezen' },
-  { id: 'exports', titel: 'Exports', uitleg: 'Leden, bezoek, lessen, leads, afspraken en uren per kalendermaand als CSV voor je administratie.', onderdeel: { sleutel: 'rapporten', pad: '/rapporten' }, knop: 'Naar Rapporten' },
+  { id: 'exports', titel: 'Exports', uitleg: 'Leden, bezoek, lessen, leads, afspraken en uren per kalendermaand als CSV voor je administratie.', onderdeel: { sleutel: 'rapporten', pad: '/rapporten' }, knop: 'Naar de exports' },
 ]
 
 /** Een koppeling met titel, uitleg en knop in de gekozen taal. */

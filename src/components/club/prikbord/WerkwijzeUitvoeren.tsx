@@ -7,11 +7,14 @@ import { GRENZEN, type Werkwijze } from '@/lib/club/prikbord/typen'
 import { stuur } from '@/components/club/leden/stuur'
 import { useTekst } from '@/lib/aiyourgym/taal/client'
 import { PRIKBORD } from '@/lib/aiyourgym/taal/woorden/club/prikbord'
+import { heeftLidVeld, lidVoorUitvoering } from '@/lib/club/prikbord/lid-veld'
+import { LidKiezer, type GekozenLid } from './LidKiezer'
 
 // Een werkwijze uitvoeren: de stappen afvinken in de vestiging waar je bent,
 // met een notitie (vaste waarschuwing: geen medische details). Klaar legt
 // vast wie, wanneer, waar en welke stappen. Openen en sluiten vink je
-// dagelijks af in Taken; dit is voor wat niet elke dag gebeurt.
+// dagelijks af in Taken; dit is voor wat niet elke dag gebeurt. Bij nieuw
+// lid, klacht en ongeval kun je optioneel een lid kiezen (lid-veld.ts).
 
 interface Props {
   werkwijze: Werkwijze
@@ -28,6 +31,8 @@ export function WerkwijzeUitvoeren({ werkwijze, vestigingen, vestiging, onKlaar 
   const [vinkjes, setVinkjes] = useState<number[]>([])
   const [waar, setWaar] = useState(vestiging ?? vestigingen[0]?.sleutel ?? '')
   const [notitie, setNotitie] = useState('')
+  const [lid, setLid] = useState<GekozenLid | null>(null)
+  const metLid = heeftLidVeld(werkwijze.soort)
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
   const [klaar, setKlaar] = useState(false)
@@ -39,7 +44,7 @@ export function WerkwijzeUitvoeren({ werkwijze, vestigingen, vestiging, onKlaar 
     if (bezig) return
     setBezig(true)
     setFout(null)
-    const uit = await stuur('/api/club/prikbord/uitvoeringen', 'POST', { werkwijzeId: werkwijze.id, versie: werkwijze.versie, vestiging: waar, gestartOp, afgevinkt: vinkjes, notitie })
+    const uit = await stuur('/api/club/prikbord/uitvoeringen', 'POST', { werkwijzeId: werkwijze.id, versie: werkwijze.versie, vestiging: waar, gestartOp, afgevinkt: vinkjes, notitie, lidId: lidVoorUitvoering(werkwijze.soort, lid?.id ?? null) })
     setBezig(false)
     if (!uit.ok) return setFout(uit.fout)
     setKlaar(true)
@@ -86,6 +91,7 @@ export function WerkwijzeUitvoeren({ werkwijze, vestigingen, vestiging, onKlaar 
           </select>
         </label>
       ) : null}
+      {metLid && waar ? <LidKiezer vestiging={waar} gekozen={lid} onKies={setLid} /> : null}
       <label className="club-veld">
         <span>{t.notitie}</span>
         <textarea className="club-invoer" value={notitie} onChange={(e) => setNotitie(e.target.value)} maxLength={GRENZEN.notitie} rows={3} aria-describedby={`pb-waarschuwing-${werkwijze.id}`} />

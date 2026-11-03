@@ -29,15 +29,15 @@ describe('welkomRol', () => {
 
 describe('sleutels', () => {
   it('zijn per sportschool, persoon, rol en versie', () => {
-    expect(welkomSleutel('org', 'p1', 'trainer')).toBe('ayg-welkom:org:p1:trainer:v1')
-    expect(welkomSleutel('org', null, 'eigenaar')).toBe('ayg-welkom:org:beheer:eigenaar:v1')
-    expect(ledenWelkomSleutel('lid')).toBe('ayg-welkom-lid:lid:v1')
+    expect(welkomSleutel('org', 'p1', 'trainer')).toBe('ayg-welkom:org:p1:trainer:v2')
+    expect(welkomSleutel('org', null, 'eigenaar')).toBe('ayg-welkom:org:beheer:eigenaar:v2')
+    expect(ledenWelkomSleutel('lid')).toBe('ayg-welkom-lid:lid:v2')
   })
 })
 
 describe('weggeklikt per account', () => {
   it('maakt en controleert codes', () => {
-    expect(uitlegCode('trainer')).toBe('trainer:v1')
+    expect(uitlegCode('trainer')).toBe('trainer:v2')
     expect(isUitlegCode(uitlegCode('leden'))).toBe(true)
     expect(isUitlegCode('trainer')).toBe(false)
     expect(isUitlegCode('hacker:v1')).toBe(false)

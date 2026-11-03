@@ -66,7 +66,7 @@ export async function Producten() {
         beeldLabel={t.ledenapp.beeldLabel}
       >
         <div className="vp-telefoons">
-          <Toestel tab="Lessen" className="vp-telefoon-achter">
+          <Toestel tab="Boeken" className="vp-telefoon-achter">
             <AppLessen />
           </Toestel>
           <Toestel tab="Home" className="vp-telefoon-voor">

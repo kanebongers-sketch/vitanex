@@ -37,7 +37,7 @@ const LESSEN: readonly Les[] = [
 export async function RoosterScherm() {
   const t = ROOSTER[await getSiteTaal()]
   return (
-    <Venster actief="Planning">
+    <Venster actief="Rooster">
       <div className="aygm-rooster-kop">
         <div>
           <p className="aygm-boven">{t.boven}</p>

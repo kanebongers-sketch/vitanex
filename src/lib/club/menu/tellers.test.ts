@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ONDERDELEN, isZichtbaar, onderdelenVan } from '@/components/club/shell/onderdelen'
+import { ONDERDELEN, isZichtbaar, type PlekSleutel } from '@/components/club/shell/onderdelen'
 import { MENU } from '@/lib/aiyourgym/taal/woorden/club/menu'
 import {
   ONDERDEEL_TELLER, TELLER_SOORTEN, VERS_MS, groepTellers, leesTellers, moetVerversen, onderdeelTeller, schoonAantal, somVan,
@@ -68,17 +68,19 @@ describe('tellers in het menu', () => {
     expect(onderdeelTeller(undefined, { taken: 4 })).toBeNull()
   })
 
-  it('een groep telt elke soort een keer, alleen van de onderdelen die je ziet', () => {
+  it('een plek telt elke soort een keer, alleen van de onderdelen die je ziet', () => {
     const tellers = { taken: 2, opvolgen: 3, leads: 1 }
-    const werkvloer = onderdelenVan('werkvloer').map((o) => o.sleutel)
+    const opPlek = (plek: PlekSleutel, toegestaan: readonly string[] | null = null): string[] =>
+      ONDERDELEN.filter((o) => o.plek === plek && isZichtbaar(o, [], toegestaan)).map((o) => o.sleutel)
+    const werkvloer = opPlek('vandaag')
     expect(groepTellers(werkvloer, tellers)).toEqual([{ soort: 'opvolgen', aantal: 3 }, { soort: 'taken', aantal: 2 }])
     expect(somVan(groepTellers(werkvloer, tellers))).toBe(5)
     // Vandaag en de sectie Opvolgen samen: niet dubbel.
     expect(groepTellers(['vandaag', 'opvolgen'], tellers)).toEqual([{ soort: 'opvolgen', aantal: 3 }])
     // Een clubmanager zonder Taken: alleen wat hij ziet.
-    const zonderTaken = onderdelenVan('werkvloer', [], ['vandaag', 'notities']).map((o) => o.sleutel)
+    const zonderTaken = opPlek('vandaag', ['vandaag', 'notities'])
     expect(groepTellers(zonderTaken, tellers)).toEqual([{ soort: 'opvolgen', aantal: 3 }])
-    expect(groepTellers(onderdelenVan('planning').map((o) => o.sleutel), tellers)).toEqual([])
+    expect(groepTellers(opPlek('rooster'), tellers)).toEqual([])
   })
 
   it('het getal in beeld: 99+ boven het maximum, leeg bij 0', () => {

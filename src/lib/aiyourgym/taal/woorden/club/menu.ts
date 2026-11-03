@@ -6,8 +6,8 @@ import { woordenboek } from '../../woordenboek'
 // src/components/club/shell/onderdelen.ts en kop-hulp.ts lezen hun Nederlandse
 // namen hieruit (bron); componenten tonen de tekst in de gekozen taal via
 // plekInTaal(), onderdeelInTaal() en kopHulpInTaal().
-// `groepen` en `hulpbalk` zijn de oude indeling: alleen nog voor de
-// websiteschermen (mockups) en de oude zoekwoorden, niet meer in Club zelf.
+// `hulpbalk` heet nog zo uit de tijd van de hulpbalk: de namen van Hulp, Wat is
+// nieuw, Instellingen, Koppelingen en Ledenapp (kop-hulp.ts en de rechten).
 
 export const MENU = woordenboek({
   nl: {
@@ -17,13 +17,6 @@ export const MENU = woordenboek({
       rooster: { label: 'Rooster', uitleg: 'Alles met een tijd: lessen, afspraken en diensten' },
       training: { label: 'Training', uitleg: "Schema's, voeding en de bibliotheek" },
       beheer: { label: 'Beheer', uitleg: 'Hoe het gaat en hoe het is ingesteld' },
-    },
-    groepen: {
-      werkvloer: { label: 'Werkvloer', uitleg: 'Wat er vandaag in de club gebeurt' },
-      leden: { label: 'Leden', uitleg: 'Leden, leads en de ledenapp' },
-      planning: { label: 'Planning', uitleg: 'Groepslessen, personeel en taken' },
-      coaching: { label: 'Coaching', uitleg: "Intakes, schema's en oefeningen" },
-      beheer: { label: 'Beheer', uitleg: 'Cijfers en rapporten' },
     },
     onderdelen: {
       vandaag: { label: 'Vandaag', uitleg: 'Wat er nu speelt in je vestiging' },
@@ -176,13 +169,6 @@ export const MENU = woordenboek({
       training: { label: 'Training', uitleg: 'Programmes, nutrition and the library' },
       beheer: { label: 'Management', uitleg: 'How it is going and how it is set up' },
     },
-    groepen: {
-      werkvloer: { label: 'Gym floor', uitleg: 'What is happening in the club today' },
-      leden: { label: 'Members', uitleg: 'Members, leads and the member app' },
-      planning: { label: 'Planning', uitleg: 'Group classes, staff and tasks' },
-      coaching: { label: 'Coaching', uitleg: 'Intakes, programmes and exercises' },
-      beheer: { label: 'Management', uitleg: 'Metrics and reports' },
-    },
     onderdelen: {
       vandaag: { label: 'Today', uitleg: 'What is going on at your location right now' },
       checkin: { label: 'Check-in', uitleg: 'Check members in and see who is in now, at the top of Today' },
@@ -330,7 +316,6 @@ export const MENU = woordenboek({
 
 export type MenuTekst = typeof MENU.nl
 export type OnderdeelSleutelTekst = keyof MenuTekst['onderdelen']
-export type GroepSleutelTekst = keyof MenuTekst['groepen']
 export type PlekSleutelTekst = keyof MenuTekst['plekken']
 export type SchermSleutelTekst = keyof MenuTekst['schermen']
 export type HulpSleutelTekst = keyof MenuTekst['hulpbalk']

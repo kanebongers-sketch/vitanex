@@ -17,7 +17,7 @@ export const KOPPEL_TEKST = woordenboek({
       ledenapp: { titel: 'Ledenapp', uitleg: 'Leden boeken lessen, plannen afspraken, volgen hun schema en checken in met hun telefoon.', knop: 'Ledenapp instellen' },
       meldingen: { titel: 'Mail en meldingen', uitleg: 'Bevestigingen en herinneringen van lessen en afspraken, per mail en als melding op de telefoon.', knop: 'Meldingen instellen' },
       importeren: { titel: 'Ledenbestand inlezen', uitleg: 'Een export uit je huidige systeem of een spreadsheet als CSV inlezen. Je ziet eerst wat er verandert.', knop: 'Bestand inlezen' },
-      exports: { titel: 'Exports', uitleg: 'Leden, bezoek, lessen, leads, afspraken en uren per kalendermaand als CSV voor je administratie.', knop: 'Naar Rapporten' },
+      exports: { titel: 'Exports', uitleg: 'Leden, bezoek, lessen, leads, afspraken en uren per kalendermaand als CSV voor je administratie.', knop: 'Naar de exports' },
     },
     standLabel: {
       aan: 'Werkt',
@@ -62,7 +62,7 @@ export const KOPPEL_TEKST = woordenboek({
       ledenapp: { titel: 'Member app', uitleg: 'Members book classes, plan appointments, follow their programme and check in with their phone.', knop: 'Set up member app' },
       meldingen: { titel: 'Email and notifications', uitleg: 'Confirmations and reminders for classes and appointments, by email and as a notification on the phone.', knop: 'Set up notifications' },
       importeren: { titel: 'Import members', uitleg: 'Import an export from your current system or a spreadsheet as CSV. You see what changes first.', knop: 'Import file' },
-      exports: { titel: 'Exports', uitleg: 'Members, visits, classes, leads, appointments and hours per calendar month as CSV for your administration.', knop: 'Go to Reports' },
+      exports: { titel: 'Exports', uitleg: 'Members, visits, classes, leads, appointments and hours per calendar month as CSV for your administration.', knop: 'Go to the exports' },
     },
     standLabel: {
       aan: 'Working',

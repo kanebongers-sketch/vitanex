@@ -19,7 +19,7 @@ export async function BibliotheekScherm({ oefeningen, aantal }: Props & { aantal
   const t = SCHEMA_SCHERMEN[await getSiteTaal()].bibliotheek
   const [spieren, materiaal, niveau] = t.filters
   return (
-    <Venster actief="Coaching">
+    <Venster actief="Training">
       <div className="ayg-ss-kop">
         <span>
           <b>{t.oefeningen}</b>
@@ -52,7 +52,7 @@ export async function CoachtekstScherm({ oefening }: { oefening: VoorbeeldOefeni
   const t = SCHEMA_SCHERMEN[await getSiteTaal()].coachtekst
   const kern = oefening.coaching.kernpunten.slice(0, 3)
   return (
-    <Venster actief="Coaching">
+    <Venster actief="Training">
       <div className="ayg-ss-kop">
         <span>
           <b>{oefening.naam}</b>
@@ -127,7 +127,7 @@ export async function VoortgangToestel() {
   const max = Math.max(...WEKEN)
   return (
     <div className="aygm">
-      <Toestel tab="Voortgang">
+      <Toestel tab="Schema">
         <div className="ayg-ss-vg">
           <p className="ayg-cd-app-kop">{t.titel}</p>
           <span className="ayg-ss-vg-tegels">

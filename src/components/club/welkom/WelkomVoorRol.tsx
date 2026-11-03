@@ -8,9 +8,12 @@ import { clubTekst } from '@/lib/aiyourgym/taal/server'
 import { WELKOM } from '@/lib/aiyourgym/taal/woorden/club/welkom'
 import { WelkomKaarten, type WelkomKaart } from './WelkomKaarten'
 
-// De eerste-keer-uitleg per rol (opdracht Kane 30-10-2026). Staat op de
-// startpagina's van de rollen (Vandaag, Cijfers, Groepslessen, Personeel);
-// wie hem op een van die schermen wegklikt, ziet hem nergens meer.
+// De eerste-keer-uitleg per rol (opdracht Kane 30-10-2026, sinds 03-11-2026
+// volgens de vijf plekken). Staat op de startpagina's van de rollen
+// (rollen/standaard.ts): Vandaag (eigenaar, clubmanager, trainer), Rooster ·
+// Lessen (instructeur), Rooster · Diensten (roosteraar) en het tabblad Uren
+// (administratie), plus Cijfers. Wie hem op een van die schermen wegklikt,
+// ziet hem nergens meer.
 
 /** Het scherm waar de uitleg nu staat; een knop naar dit scherm zelf valt weg. */
 export type WelkomPagina = 'vandaag' | 'cijfers' | 'rooster' | 'personeel' | 'uren'
@@ -23,24 +26,31 @@ interface Doel {
 }
 
 const VANDAAG: Doel = { pagina: 'vandaag', pad: '' }
+const CHECKIN: Doel = { pagina: null, pad: '', anker: 'checkin' }
+const PRIKBORD: Doel = { pagina: null, pad: '/prikbord' }
+const LESSEN: Doel = { pagina: 'rooster', pad: '/rooster' }
+const DIENSTEN: Doel = { pagina: 'personeel', pad: '/personeel' }
 const UREN: Doel = { pagina: 'uren', pad: '/personeel', extra: { tab: 'uren' } }
+const EXPORTS: Doel = { pagina: null, pad: '/cijfers', anker: 'exports' }
+const HULP: Doel = { pagina: null, pad: '/hulp' }
+const INSTELLINGEN: Doel = { pagina: null, pad: '/beheer' }
 
 /** Waar de knoppen heen gaan, in de volgorde van de kaarten in WELKOM.rollen. */
 function doelen(rol: Rol, persoonId: string | null): readonly Doel[] {
   const mijnLessen: Doel = { pagina: null, pad: '/rooster', extra: persoonId ? { instructeur: persoonId } : undefined }
   switch (rol) {
     case 'manager':
-      return [VANDAAG, { pagina: null, pad: '/leden' }, { pagina: null, pad: '/beheer' }]
+      return [VANDAAG, PRIKBORD, HULP]
     case 'trainer':
-      return [VANDAAG, { pagina: null, pad: '', anker: 'checkin' }, { pagina: null, pad: '/leden' }]
+      return [CHECKIN, PRIKBORD, { pagina: null, pad: '/leden' }]
     case 'instructeur':
-      return [mijnLessen, { pagina: 'rooster', pad: '/rooster' }, VANDAAG]
+      return [mijnLessen, LESSEN, PRIKBORD]
     case 'roosteraar':
-      return [{ pagina: 'personeel', pad: '/personeel' }, { pagina: 'personeel', pad: '/personeel' }, { pagina: 'rooster', pad: '/rooster' }]
+      return [DIENSTEN, DIENSTEN, LESSEN]
     case 'administratie':
-      return [UREN, UREN, UREN]
+      return [UREN, EXPORTS, PRIKBORD]
     case 'eigenaar':
-      return [{ pagina: 'cijfers', pad: '/cijfers' }, { pagina: null, pad: '/beheer', extra: { categorie: 'team' } }, { pagina: null, pad: '/beheer/abonnement' }]
+      return [VANDAAG, PRIKBORD, INSTELLINGEN]
   }
 }
 

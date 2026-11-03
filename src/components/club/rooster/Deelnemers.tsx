@@ -19,7 +19,7 @@ function useNaamVan(): (d: Deelnemer) => string {
   return (d) => (d.lid ? `${d.lid.voornaam} ${d.lid.achternaam}`.trim() : d.reservering.lidId === null ? t.verwijderdLid : t.onbekendLid)
 }
 
-/** Vanuit het lid werken: de naam linkt naar de ledenkaart (tabblad Planning) voor wie Leden mag zien. */
+/** Vanuit het lid werken: de naam linkt naar de ledenkaart (Overzicht, Komt eraan) voor wie Leden mag zien. */
 interface LinkInfo {
   vestiging: string
   magLeden: boolean

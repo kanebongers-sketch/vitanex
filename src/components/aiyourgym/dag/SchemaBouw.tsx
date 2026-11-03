@@ -106,7 +106,7 @@ export function SchemaBouw({ oefeningen, kop, onder, id }: SchemaBouwProps) {
 
         <div className="dag-schema-toneel aygm" role="img" aria-label={t.beeldLabel} data-fase={stand.fase}>
           <div className="dag-schema-editor">
-            <Venster actief="Coaching">
+            <Venster actief="Training">
               <div className="dag-ed">
                 <div className="dag-ed-kop">
                   <b>{t.editor}</b>

@@ -1,111 +1,127 @@
-# Club en ledenapp door de ogen van een nieuwe werknemer | 30-10-2026
+# Club en ledenapp door de ogen van een nieuwe werknemer | 30-10-2026, bijgewerkt 03-11-2026
 
-Opdracht Kane: "Heel de app heeft veel functies maar het moet duidelijk blijven. Alles moet beknopter en overzichtelijker. Ik weet wel hoe alles werkt, maar hoe doet een werknemer dit?"
+Opdracht Kane (30-10-2026): "Heel de app heeft veel functies maar het moet duidelijk blijven. Alles moet beknopter en overzichtelijker. Ik weet wel hoe alles werkt, maar hoe doet een werknemer dit?"
 
-Werkwijze: de app doorgelopen met de code als bron (pagina's, componenten, woordenboeken, rechten per rol in `src/lib/club/rollen/standaard.ts`). Klikken zijn geteld vanaf het startscherm van de rol, inclusief de klik die de actie afrondt. Niet in de browser geklikt (geen dev-server); de tellingen zijn dus "gelezen uit de code".
+Sinds 03-11-2026 staat alles op vijf vaste plekken: **Vandaag, Leden, Rooster, Training en Beheer** (`EENVOUD-10-MINUTEN.md`, opbouw in `STRUCTUUR.md`). Op de pc bovenin, op de telefoon dezelfde vijf onderin. In de kop alleen zoeken (Ctrl K), **?** (Hulp met Wat is nieuw) en je naam (vestiging, taal, uitloggen). Het volledige uitlegscript (eigenaar 10 minuten, trainer 3 minuten, lid 2 minuten) staat in hoofdstuk 7 van `EENVOUD-10-MINUTEN.md`; hieronder per rol wat je ziet en waar het staat.
 
-Tekens: **K** = knelpunt, **A** = aangepast in deze ronde, **O** = staat nog open.
+Werkwijze: gelezen uit de code (pagina's, woordenboeken, rechten per rol in `src/lib/club/rollen/standaard.ts`, menu in `src/components/club/shell/onderdelen.ts`). Niet in de browser geklikt (geen dev-server).
 
-## 1. Trainer, eerste dienst
+Tekens: **A** = aangepast, **O** = staat nog open.
 
-Startpagina: Vandaag (`/club`). Rechten: werkvloer, leden, leads, schema's, voeding en afspraken bewerken.
+## Per rol: wat je ziet en waar het staat
 
-| Stap | Klikken | Wat er gebeurt | Twijfel |
-|---|---|---|---|
-| Inloggen | 3 (e-mail, wachtwoord, Inloggen) | Na inloggen naar de startpagina van de rol (`?start=1`) | Geen. De eenmalige link uit de uitnodiging zet het wachtwoord. |
-| Vandaag | 0 | Strook met taken en bezetting, check-in, cijfers, lessen, wie werkt, taken, opvolgen, leden met risico | **K** Lang scherm met tien blokken; een nieuweling weet niet waar te beginnen. **A** Eerste-keer-uitleg met drie kaarten (Vandaag, Check-in, Ledenkaart). |
-| Lid inchecken | 1 tot 2 (scannen, of naam typen en Enter) | Check-in staat bovenaan Vandaag | **K** Foutmeldingen over de camera waren lang en technisch. **A** Ingekort: "De camera is geblokkeerd. Sta hem toe via het slotje naast het adres." |
-| Taak afvinken | Was 3 (wie vinkt af kiezen, naam kiezen, vakje), nu 1 | Dag-tabel op Vandaag en bij Taken | **K** Een ingelogde medewerker moest eerst zichzelf kiezen bij "Wie vinkt af"; zonder keuze kwam een foutmelding. **A** De app vult de ingelogde medewerker zelf in (`ikAlsAfvinker`); wisselen kan nog. |
-| Schema voor een lid | 5 (Leden, lid, tab Training, Schema maken, startpunt kiezen) plus de editor, dan Activeren | Schema start op de ledenkaart en opent als concept | **K** Uitlegregels in de keuze en in de editor waren twee zinnen lang. **A** Teruggebracht tot een korte zin. **O** Zoeken op naam kan sneller met Ctrl K, maar dat is op de telefoon niet te zien. |
-| Notitie | 3 (Werkvloer, Notities, Nieuwe notitie) of via de ledenkaart (tab Contact en notities) | Twee plekken: algemene notities en notities bij een lid | **K** Introtekst somde alles op. **A** "Overdracht, afspraken, kennis en ideeen op een plek." De lege overdracht op Vandaag zegt nu wat je doet: "Geen overdracht. Schrijf er een bij Notities." |
+### Eigenaar en clubmanager
 
-Wat een nieuweling niet vindt: Ctrl K (geen zichtbare zoekknop op de telefoon, valt onder de navigatie-agent); het verschil tussen Opvolgen (op Vandaag) en Leads (eigen onderdeel).
+Startpagina: Vandaag. Plekken: alle vijf (de clubmanager zonder wat alleen de eigenaar mag: abonnement, betalen, rechten, adres, privacy).
 
-## 2. Groepslesinstructeur
-
-Startpagina: Groepslessen (`/club/rooster`). Rechten: rooster bewerken; Vandaag en Notities zien.
-
-| Stap | Klikken | Twijfel |
+| Wat | Waar | Klikken |
 |---|---|---|
-| Eigen lessen | Was 2 (filter Instructeur openen, eigen naam zoeken), nu 1 | **K** Het rooster toont alle lessen van alle instructeurs; er was geen "mijn lessen". **A** Snelknop **Mijn lessen** bij de filters (alleen voor wie zelf lesgeeft), staat in de URL en is weer uit te zetten. |
-| Deelnemers | 1 (les openen) | Paneel met deelnemers, proefleden en wachtlijst. Duidelijk. |
-| Aanwezigheid | 1 per deelnemer | "Vink af wie er is. Nog een keer klikken zet het terug." Duidelijk. Wie incheckte, staat al op aanwezig. **A** Lege wachtlijst is nu een regel in plaats van twee zinnen uitleg. |
+| Wat er nu gebeurt | Vandaag: check-in bovenaan, lessen, wie werkt, taken, Bellen vandaag | 0 |
+| Iets aan het team zeggen | Vandaag · Prikbord: mededeling plaatsen aan vestigingen en rollen, eventueel verplicht; je ziet wie bevestigde | 2 |
+| Werkwijzen (openen, sluiten, ongeval) | Vandaag · Prikbord, blok Werkwijzen | 1 vanaf het Prikbord |
+| Leden en de ledenkaart | Leden · Leden; kaart met Overzicht, Training, Lidmaatschap | 2 |
+| Leads en opvolgen | Leden · Leads, tabbladen Leads en Opvolgen | 2 |
+| Ledenapp bekijken | Leden · Ledenapp, Bekijk als lid | 2 |
+| Rooster | Rooster · Lessen, Agenda, Diensten | 2 |
+| Schema's en bibliotheek | Training · Schema's (tabblad Bibliotheek), Voeding | 2 |
+| Cijfers en exports | Beheer · Cijfers, Exporteren en Alle exports onderaan | 1 tot 2 |
+| Team, rollen, abonnement, koppelingen | Beheer · Instellingen (acht categorieen, Koppelingen als losse link bovenaan) | 2 tot 3 |
+| Hulp en Wat is nieuw | **?** rechtsboven | 1 |
 
-**O** Een leeg rooster verwijst naar Instellingen, Weekrooster; een instructeur mag daar niet komen. Beter: voor wie het rooster niet beheert alleen "Er staan deze week geen lessen."
+### Trainer
 
-## 3. Roosteraar
+Startpagina: Vandaag. Plekken: Vandaag, Leden, Rooster, Training.
 
-Startpagina: Personeel (`/club/personeel`). Rechten: personeel en rooster beheren, afspraken bewerken.
-
-| Stap | Klikken | Twijfel |
+| Wat | Waar | Klikken |
 |---|---|---|
-| Personeel openen | 0 | **K** Bug: een roosteraar met een medewerkerslogin kwam zonder gekozen tabblad bij "Mijn diensten" uit, niet bij het weekrooster dat hij moet plannen. **A** Wie personeel minstens mag bewerken (v2) opent nu op het weekrooster (`opentBijEigenDiensten`, getest). |
-| Dienst plannen | 3 (uur aanklikken, medewerker kiezen, Inplannen) | Duidelijk. Het formulier markeert wie kan en vrij is. |
-| Week vullen | 3 (Kopieer vorige week, Aanvullen of Vervangen, bevestigen) | **A** Uitleg over Aanvullen en Vervangen ingekort. |
-| Groepslesrooster | 2 (Planning, Groepslessen) | Duidelijk. |
+| Lid inchecken | Vandaag, bovenaan: scannen, of naam typen en Enter | 1 tot 2 |
+| Mededelingen lezen en bevestigen | De regel bovenaan Vandaag ("1 mededeling te bevestigen") opent het Prikbord | 2 |
+| Taak afvinken | Vandaag, sectie Taken (of Vandaag · Taken); de ingelogde medewerker staat er al als afvinker (`ikAlsAfvinker`) | 1 |
+| Wie bel ik vandaag | Vandaag, sectie Bellen vandaag; de volledige lijst bij Leden · Leads, Opvolgen | 0 |
+| Lid opzoeken | Vergrootglas of Ctrl K, naam typen | 2 plus typen |
+| Notitie bij een lid | Ledenkaart, Overzicht, hoofdactie Notitie toevoegen | 1 vanaf de kaart |
+| Schema voor een lid | Ledenkaart, Training, Schema maken (zonder intake: Intake starten); daarna terug naar het lid | 3 plus de editor |
+| Eigen afspraken | Rooster · Agenda | 2 |
 
-## 4. Administratie
+### Groepslesinstructeur
 
-Startpagina: Personeel, tab Uren (`/club/personeel?tab=uren`).
+Startpagina: Rooster · Lessen. Plekken: Vandaag (alleen lezen) en Rooster.
 
-| Stap | Klikken | Twijfel |
+| Wat | Waar | Klikken |
 |---|---|---|
-| Uren controleren | 0 tot 1 (periode kiezen) | **K** Voetnoot onder de tabel was een alinea. **A** "Gewerkt is zonder pauze. Avond is na 18:00. Open is gepland maar nog niet bevestigd." |
-| Goedkeuren | 2 (Alles goedkeuren, bevestigen) plus afwijkingen apart | **K** "tellen niet mee bij alles goedkeuren" was moeilijk. **A** "3 afwijkingen: open ze en keur ze apart goed." |
-| Exporteren | 1 (CSV voor salaris) en 2 (Markeer als verwerkt, bevestigen) | Duidelijk. **A** De eerste-keer-uitleg zegt dat verwerkt vastligt. |
+| Eigen lessen | Lessen, snelknop Mijn lessen (in de URL, weer uit te zetten) | 1 |
+| Deelnemers en wachtlijst | Les openen | 1 |
+| Aanwezigheid | In de les per deelnemer afvinken; wie incheckte staat er al op | 1 per deelnemer |
+| Mededelingen, werkwijzen, overdracht | Vandaag · Prikbord | 2 |
 
-## 5. Eigenaar
+Een leeg rooster zegt "Nog geen lessen in deze week. De roosteraar of clubmanager zet ze erin.", zonder knop naar Instellingen.
 
-Startpagina: Cijfers. Rechten: cijfers, rapporten, team, instellingen, abonnement; leden en leads alleen zien.
+### Roosteraar
 
-| Stap | Klikken | Twijfel |
+Startpagina: Rooster · Diensten. Plekken: Vandaag (Prikbord) en Rooster.
+
+| Wat | Waar | Klikken |
 |---|---|---|
-| Cijfers | 0 | Per kalendermaand, met uitleg bij elk cijfer. Duidelijk. |
-| Team en rollen | 2 (Instellingen in de hulpbalk, categorie Team en rechten) | **K** Team staat alleen in het instellingencentrum (besluit Kane), dus een eigenaar zoekt het in het menu. **A** De eerste-keer-uitleg heeft een knop "Naar Team" die de categorie meteen opent. |
-| Abonnement | 2 (Instellingen, Bedrijf en abonnement) | **A** Knop "Naar Abonnement" in de eerste-keer-uitleg. |
+| Dienst plannen | Diensten, weekrooster: uur aanklikken, medewerker kiezen, Inplannen | 3 |
+| Week vullen | Diensten, Kopieer vorige week, Aanvullen of Vervangen | 3 |
+| Groepslessen verzetten of vervanger | Rooster · Lessen | 1 |
+| Afspraken | Rooster · Agenda | 1 |
 
-## 6. Nieuw lid in de ledenapp
+Wie Diensten mag bewerken, opent op het weekrooster en niet op Mijn diensten (`opentBijEigenDiensten`, getest).
 
-| Stap | Klikken | Twijfel |
+### Administratie
+
+Startpagina: Rooster · Diensten, tabblad Uren. Plekken: Vandaag (Prikbord), Rooster en Beheer (alleen de exports).
+
+| Wat | Waar | Klikken |
 |---|---|---|
-| Activeren | 3 tot 4 (link of QR openen, wachtwoord kiezen, bevestigen) | **A** Uitleg bij het wachtwoord ingekort tot een zin. |
-| Les boeken | 2 (Lessen, les, Boek) | **K** De regels voor reserveren waren lange zinnen. **A** Korter ("Boek tot X dagen vooruit, hoogstens Y lessen tegelijk."). |
-| Schema volgen | 1 (Schema) en per set een tik | Zonder schema van de trainer start het lid zelf een schema (lege toestand met knop). Duidelijk. |
-| Voeding | 1 (Voeding) | Dagboek boven het plan. **O** Veel blokken onder elkaar (dagboek, eigen plan, plan van de trainer); de medische en AVG-teksten zijn bewust lang en zijn niet ingekort. |
-| Profielfoto | 2 (Profiel, foto kiezen) plus bijsnijden | Duidelijk. |
+| Uren controleren | Diensten, Uren: per medewerker gepland, gewerkt en contract | 0 tot 1 (periode) |
+| Goedkeuren | Alles goedkeuren, afwijkingen apart openen en goedkeuren | 2 plus afwijkingen |
+| Naar de salarisadministratie | CSV voor salaris, Markeer als verwerkt (ligt daarna vast) | 1 en 2 |
+| Andere exports | Beheer · Cijfers, Alle exports | 2 |
 
-**A** Bij de eerste keer op Home drie kaarten: Boek een les, Volg je schema, Maak het je eigen (Profiel). Een tabblad dat de sportschool uit heeft gezet, valt weg.
+### Nieuw lid in de ledenapp
 
-## Wat is aangepast
+Onderbalk: Home, Boeken, Schema, Voeding, Profiel.
 
-**Nieuw: eerste-keer-uitleg per rol** (NL en EN, hoogstens 3 kaarten, een tegelijk, wegklikbaar)
-- Rol bepalen: `src/lib/club/rollen/welkom.ts` (`welkomRol`, zelfde volgorde als de startpagina; Kane ziet de uitleg van de clubmanager). Getest in `welkom.test.ts`.
-- Teksten: `src/lib/aiyourgym/taal/woorden/club/welkom.ts` (zes rollen plus leden).
-- Componenten: `src/components/club/welkom/` (`WelkomKaarten` client, `WelkomVoorRol` server). Wegklikken onthoudt de browser per sportschool, persoon, rol en versie (`WELKOM_VERSIE`); een knop naar het scherm waar je al bent valt weg.
-- Staat op Vandaag, Cijfers, Groepslessen, Personeel (ook Uren) en Home in de ledenapp.
+| Wat | Waar | Klikken |
+|---|---|---|
+| Activeren | Link of QR van de sportschool, wachtwoord kiezen | 3 tot 4 |
+| Inchecken | Home, QR bovenaan | 1 |
+| Les of afspraak boeken | Boeken | 2 |
+| Schema volgen | Schema; per set een tik. Zonder schema van de trainer start het lid er zelf een | 1 |
+| Voeding | Voeding: dagboek bovenaan, het plan als compacte kaart | 1 |
+| Gegevens, foto, kopen | Profiel | 1 tot 2 |
 
-**Duidelijker gedrag**
-- Taken: ingelogde medewerker vinkt meteen af onder de eigen naam (`src/lib/club/taken/ik.ts`, getest).
-- Groepslessen: snelknop Mijn lessen.
-- Personeel: roosteraar opent op het weekrooster (`opentBijEigenDiensten`, getest).
+## Eerste-keer-kaarten
 
-**Kortere teksten** (NL en EN): Vandaag (overdracht leeg, leden met risico), Check-in (camera), Taken (beheer), Notities (intro), schema-editor (kopie, progressie, geen sets, vervangen), ledenkaart (geen intake, schema maken), Personeel (week kopieren, uren goedkeuren, voetnoot), Groepslessen (wachtlijst), ledenapp (regels reserveren, wachtlijst, geen lessen, wachtwoord).
+Hoogstens drie wegklikbare kaarten per rol op de startpagina (NL en EN, kop plus een korte regel). Sinds 03-11-2026 (`WELKOM_VERSIE` 2, dus iedereen ziet ze nog een keer) volgen ze de vijf plekken:
 
-In cijfers: 8 schermen met kortere teksten, 3 schermen met minder klikken (taak afvinken 3 naar 1, eigen lessen 2 naar 1, roosteraar 1 klik minder en geen verkeerd startscherm), 5 startschermen plus Home in de ledenapp met eerste-keer-uitleg.
+| Rol | Staat op | Kaarten |
+|---|---|---|
+| Eigenaar | Vandaag | Alles op vijf plekken · Je team op het Prikbord · Cijfers en instellingen in Beheer |
+| Clubmanager (en het master account) | Vandaag | Alles op vijf plekken · Je team op het Prikbord · Kwijt? Druk Ctrl K (Hulp onder ?) |
+| Trainer | Vandaag | Begin op Vandaag (check-in) · Lees het Prikbord · Alles van een lid op de ledenkaart |
+| Instructeur | Rooster · Lessen | Je lessen staan bij Lessen · Aanwezigheid afvinken · Lees het Prikbord |
+| Roosteraar | Rooster · Diensten | Diensten plannen · Snel een nieuwe week · Groepslessen bij Lessen |
+| Administratie | Diensten, Uren | Uren goedkeuren · Naar de salarisadministratie (exports bij Cijfers) · Lees het Prikbord |
+| Lid | Home in de ledenapp | Boek een les · Volg je schema · Maak het je eigen |
 
-## Tweede ronde (zelfde dag)
+Code: rol in `src/lib/club/rollen/welkom.ts` (`welkomRol`, zelfde volgorde als de startpagina), teksten in `src/lib/aiyourgym/taal/woorden/club/welkom.ts`, knoppen en doelen in `src/components/club/welkom/WelkomVoorRol.tsx`. Een knop naar het scherm waar je al bent valt weg. Wegklikken onthoudt het account (migratie 476), de browser is het vangnet. Kaarten echt anders: `WELKOM_VERSIE` ophogen.
 
-- **Vandaag voor de vloer**: "Nu in de club" en "Leden met risico" staan voor wie geen leiding is onder een uitklapbaar Meer. Eigenaar en clubmanager zien ze meteen.
-- **Leeg rooster voor een instructeur**: "Nog geen lessen in deze week. De roosteraar of clubmanager zet ze erin." Geen knop meer naar Instellingen voor wie daar niet mag komen.
-- **Voeding in de ledenapp**: bovenaan het dagboek, het plan als compacte kaart (kcal en doel) met Bekijk plan; het hele plan en zelf maken of aanpassen zitten daarachter.
-- **Uitleg per account**: wegklikken bewaart het account (migratie 476, uitgevoerd), dus niet meer per apparaat. De browser blijft het vangnet (master account zonder profiel, geen verbinding).
-- **Regel van Eersel**: nu data per vestiging (`club_vestigingen.alleen_eigen_leden`, migratie 477, uitgevoerd, aan voor Eersel). Teksten bij check-in zijn algemeen ("Hier sporten alleen eigen leden").
-- **Leesmodus**: wie Leden of Leads alleen mag zien, krijgt op de ledenkaart en bij Leads geen knoppen die iets wijzigen.
-- **Geen concurrenten bij naam**: de uitleg bij Ledenbestand inlezen en het hulpartikel noemen geen andere software meer.
+## Eerder aangepast (30-10-2026, geldt nog)
+
+- **A** Taken: een ingelogde medewerker vinkt meteen af onder de eigen naam (`src/lib/club/taken/ik.ts`).
+- **A** Lessen: snelknop Mijn lessen.
+- **A** Vandaag voor de vloer: wie geen leiding is, ziet "Nu in de club" en "Leden met risico" onder een uitklapbaar Meer.
+- **A** Leesmodus: wie Leden of Leads alleen mag zien, krijgt op de ledenkaart en bij Leads geen knoppen die iets wijzigen.
+- **A** Regel "alleen eigen leden" per vestiging (`club_vestigingen.alleen_eigen_leden`, migratie 477, aan voor Eersel).
+- **A** Kortere teksten (NL en EN) bij Vandaag, check-in, taken, notities, schema-editor, ledenkaart, diensten, lessen en de ledenapp.
+- **A** Geen concurrenten bij naam in uitleg en hulp.
 
 ## Wat nog openstaat
 
-1. **Zoeken op de telefoon**: Ctrl K is op de telefoon onzichtbaar. Hoort bij de navigatie-agent (shell).
-2. **Schakelaar voor "alleen eigen leden"**: de regel staat in de database, maar nog niet als schakelaar bij Regels per vestiging.
-3. **Leesmodus op de ledenkaart**: metingen (Voortgang) en het voedingsplan op de kaart hebben nog geen leesmodus; de API weigert wel.
-4. **Zoektrefwoorden**: het zoekveld (Ctrl K, hulp) vindt Ledenbestand inlezen ook op de namen van andere systemen. Die woorden zijn niet zichtbaar; weghalen als Kane dat wil.
+1. **O** Schakelaar voor "alleen eigen leden": de regel staat in de database, nog niet als schakelaar bij Regels per vestiging.
+2. **O** Leesmodus op de ledenkaart: metingen en het voedingsplan hebben nog geen leesmodus; de API weigert wel.
+3. **O** Zoektrefwoorden: het zoekveld vindt Ledenbestand inlezen ook op de namen van andere systemen. Die woorden zijn niet zichtbaar; weghalen als Kane dat wil.
+4. **O** Open vragen uit `EENVOUD-10-MINUTEN.md`: de naam Prikbord, en of een verplichte mededeling iemand moet tegenhouden (nu alleen bovenaan Vandaag).

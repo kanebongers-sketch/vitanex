@@ -91,7 +91,7 @@ export const RAPPORTEN: Record<RapportSleutel, RapportDefinitie> = {
   uren: {
     sleutel: 'uren',
     titel: 'Gewerkte en goedgekeurde uren',
-    uitleg: 'Per medewerker de uren uit het personeelsrooster: gepland, gewerkt, goedgekeurd en verwerkt.',
+    uitleg: 'Per medewerker de uren uit de diensten: gepland, gewerkt, goedgekeurd en verwerkt.',
     telling: 'Gewerkt = werkelijke tijd min pauze, vanaf de status Gewerkt. Goedgekeurd telt ook wat al verwerkt is. Ziek en verlof op de geplande tijd. Open diensten zonder medewerker tellen niet.',
     groep: 'team',
     kolommen: ['Medewerker', 'Vestiging', 'Diensten', 'Gepland (uren)', 'Gewerkt (uren)', 'Goedgekeurd (uren)', 'Verwerkt (uren)', 'Nog goed te keuren (uren)', 'Ziek (uren)', 'Verlof (uren)'],

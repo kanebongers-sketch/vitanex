@@ -16,9 +16,9 @@ export const ROLLEN_TEKST = woordenboek({
     rolUitleg: {
       eigenaar: 'Cijfers, team, abonnement en alles van het bedrijf.',
       manager: 'Leidt de club: bijna alles, behalve wat van de eigenaar is.',
-      trainer: 'Werkvloer, leden, coaching en afspraken.',
+      trainer: "Vandaag, leden, schema's, voeding en eigen afspraken.",
       instructeur: 'Geeft groepslessen en werkt het rooster bij.',
-      roosteraar: 'Plant het personeelsrooster en het groepslesrooster.',
+      roosteraar: 'Plant de diensten en de lessen.',
       administratie: 'Keurt uren goed en maakt de export.',
     },
     categorieen: {
@@ -119,9 +119,9 @@ export const ROLLEN_TEKST = woordenboek({
     rolUitleg: {
       eigenaar: 'Figures, team, subscription and everything about the business.',
       manager: 'Runs the club: almost everything, except what belongs to the owner.',
-      trainer: 'Gym floor, members, coaching and appointments.',
+      trainer: 'Today, members, programmes, nutrition and own appointments.',
       instructeur: 'Teaches group classes and keeps the timetable up to date.',
-      roosteraar: 'Plans the staff rota and the class timetable.',
+      roosteraar: 'Plans the shifts and the classes.',
       administratie: 'Approves hours and makes the export.',
     },
     categorieen: {

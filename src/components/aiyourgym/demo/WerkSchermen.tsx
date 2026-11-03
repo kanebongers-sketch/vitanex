@@ -47,7 +47,7 @@ export function VandaagScherm({ data, vestiging, taal }: VandaagProps) {
   const t = DEMO_SCHERM[taal]
   const leadStatus: Record<string, string> = t.leadStatus
   return (
-    <Venster actief="Werkvloer">
+    <Venster actief="Vandaag">
       <div className="aygm-rooster-kop">
         <div>
           <p className="aygm-boven">
@@ -132,7 +132,7 @@ interface RoosterProps {
 export function RoosterWeekScherm({ week, vestiging, taal }: RoosterProps) {
   const t = DEMO_SCHERM[taal]
   return (
-    <Venster actief="Planning">
+    <Venster actief="Rooster">
       <div className="aygm-rooster-kop">
         <div>
           <p className="aygm-boven">{t.weekVan(dagKort(week.maandag, taal))}</p>
