@@ -1,9 +1,13 @@
 // ─── Club: tellers in het menu (PUUR) ───────────────────────────────────────
 // Idee geleend van HubFit (besluit Kane 30-10-2026), op onze manier: een klein
 // echt aantal bij een onderdeel en zijn groep, alleen waar het iets zegt.
-// - taken: verplichte taken van vandaag die nog open staan, in de vestiging.
-// - opvolgen: open opvolging van leden plus leads die vandaag (of eerder) gebeld
-//   moeten worden. Opvolgen is een sectie op Vandaag, dus de teller staat bij Vandaag.
+// - taken: taken die echt vandaag nog moeten (open dagtaken, en weektaken
+//   alleen als het minimum anders niet meer lukt; moetVandaag in taken/voortgang.ts).
+// - opvolgen: wat er vandaag op de belijst staat (Bellen vandaag op Vandaag),
+//   dus hoogstens BEL_MAX: leden (een per persoon, niet verlopen) plus leads die
+//   aan de beurt zijn. Nooit de hele achterstand en nooit "99+" (opdracht Kane
+//   03-11-2026, Club in 10 minuten); de achterstand staat in de volledige lijst.
+//   Opvolgen is een sectie op Vandaag, dus de teller staat bij Vandaag.
 // - leads: nieuwe leads (status nieuw) in de vestiging.
 // - prikbord: mededelingen voor deze persoon die nog gelezen of bevestigd
 //   moeten worden (ook een gewijzigde werkwijze). Staat op het Prikbord en dus
@@ -13,6 +17,8 @@
 // geen getal zonder bron). Bij 0 staat er niets.
 // Wie een teller ziet volgt dezelfde zichtbaarheid als het menu (isZichtbaar:
 // pakket afgenomen, onderdeel aan en het recht via de rol, ook met rollen v2).
+
+import { belTeller } from '@/lib/club/automatisering/belijst'
 
 export const TELLER_SOORTEN = ['taken', 'opvolgen', 'leads', 'prikbord'] as const
 export type TellerSoort = (typeof TELLER_SOORTEN)[number]
@@ -57,6 +63,16 @@ export function welkeTellers(r: TellerRechten): TellerSoort[] {
   if (r.leads) uit.push('leads')
   if (r.prikbord) uit.push('prikbord')
   return uit
+}
+
+/**
+ * De teller bij Vandaag: wat er vandaag op de belijst staat. `ledenUniek` telt
+ * elk lid met een open, niet verlopen opvolgtaak een keer; `leads` de leads die
+ * vandaag of eerder gebeld moesten worden. Hoogstens BEL_MAX.
+ */
+export function opvolgTeller(ledenUniek: number | null, leads: number | null): number | null {
+  if (ledenUniek === null || leads === null) return null
+  return belTeller(schoonAantal(ledenUniek) + schoonAantal(leads))
 }
 
 /** Een aantal van buiten: een geheel getal van 0 of meer, anders 0. */

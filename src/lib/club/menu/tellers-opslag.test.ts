@@ -10,7 +10,7 @@ vi.mock('@/lib/club/taken/opslag', () => ({
 }))
 vi.mock('@/lib/club/taken/voortgang', () => ({
   takenVanVandaag: () => [],
-  nogOpen: () => taken.open ?? 0,
+  moetVandaag: () => taken.open ?? 0,
 }))
 
 import { haalTellers } from './tellers-opslag'
@@ -22,7 +22,7 @@ interface Vraag {
 }
 
 /** Een nep-Supabase die elke telling vastlegt en een aantal per tabel en status geeft. */
-function nepAdmin(aantallen: Record<string, number | 'fout'>) {
+function nepAdmin(aantallen: Record<string, number | string[] | 'fout'>) {
   const vragen: Vraag[] = []
   const admin = {
     from(tabel: string) {
@@ -38,9 +38,14 @@ function nepAdmin(aantallen: Record<string, number | 'fout'>) {
         in: (k: string, w: unknown[]) => (v.filters.push(`in:${k}=${w.join(',')}`), bouwer),
         is: (k: string, w: unknown) => (v.filters.push(`is:${k}=${String(w)}`), bouwer),
         lte: (k: string, w: unknown) => (v.filters.push(`lte:${k}=${String(w)}`), bouwer),
-        then: (ok: (r: { count: number | null; error: { message: string } | null }) => unknown) => {
+        gte: (k: string, w: unknown) => (v.filters.push(`gte:${k}=${String(w)}`), bouwer),
+        limit: (n: number) => (v.filters.push(`limit:${n}`), bouwer),
+        then: (ok: (r: { count: number | null; data: { lid_id: string }[] | null; error: { message: string } | null }) => unknown) => {
           const n = aantallen[sleutel()]
-          return Promise.resolve(n === 'fout' ? { count: null, error: { message: 'kapot' } } : { count: n ?? 0, error: null }).then(ok)
+          if (n === 'fout') return Promise.resolve({ count: null, data: null, error: { message: 'kapot' } }).then(ok)
+          // Een getal = zoveel verschillende leden; een lijst = deze lid-id's (dubbel mag).
+          const ids = Array.isArray(n) ? n : Array.from({ length: n ?? 0 }, (_, i) => `lid-${i}`)
+          return Promise.resolve({ count: ids.length, data: ids.map((lid_id) => ({ lid_id })), error: null }).then(ok)
         },
       }
       return bouwer
@@ -63,9 +68,22 @@ beforeEach(() => {
 
 describe('haalTellers', () => {
   it('telt open taken, te bellen (leden plus leads) en nieuwe leads', async () => {
-    const { admin } = nepAdmin({ 'club_opvolgtaken|status=open': 3, 'club_leads|status=nieuw,contact,proefles_geweest': 2, 'club_leads|status=nieuw': 4 })
+    const { admin } = nepAdmin({ 'club_opvolgtaken|status=open': 2, 'club_leads|status=nieuw,contact,proefles_geweest': 2, 'club_leads|status=nieuw': 4 })
     const t = await haalTellers({ admin, userId: nieuweSportschool(), vestiging: 'budel', rechten: ALLES, nu: NU })
-    expect(t).toEqual({ taken: 2, opvolgen: 5, leads: 4 })
+    expect(t).toEqual({ taken: 2, opvolgen: 4, leads: 4 })
+  })
+
+  it('te bellen: nooit de hele achterstand, hoogstens de belijst van vandaag (5)', async () => {
+    const { admin } = nepAdmin({ 'club_opvolgtaken|status=open': 60, 'club_leads|status=nieuw,contact,proefles_geweest': 16 })
+    const t = await haalTellers({ admin, userId: nieuweSportschool(), vestiging: 'budel', rechten: ALLES, nu: NU })
+    expect(t.opvolgen).toBe(5)
+  })
+
+  it('te bellen: een lid met twee open taken telt een keer, verlopen taken tellen niet', async () => {
+    const { admin, vragen } = nepAdmin({ 'club_opvolgtaken|status=open': ['a', 'a', 'b'] })
+    const t = await haalTellers({ admin, userId: nieuweSportschool(), vestiging: 'budel', rechten: { taken: false, opvolgenLeden: true, leads: false, vandaag: true }, nu: NU })
+    expect(t.opvolgen).toBe(2)
+    expect(vragen[0]?.filters).toContain('gte:aangemaakt_op=2026-10-16')
   })
 
   it('filtert elke telling op de sportschool en de vestiging', async () => {

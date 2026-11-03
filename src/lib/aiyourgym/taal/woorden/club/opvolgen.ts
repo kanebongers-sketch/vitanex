@@ -61,7 +61,7 @@ export const OPVOLGEN = woordenboek({
       opzegging: { titel: 'Exitgesprek', waarom: 'Je leert waarom leden gaan, en soms blijft iemand toch.' },
       mijlpaal: { titel: 'Mijlpaal', waarom: 'Vieren wat goed gaat, houdt mensen gemotiveerd.' },
     },
-    status: { open: 'Open', gedaan: 'Gedaan', overgeslagen: 'Overgeslagen', vervallen: 'Vanzelf opgelost' },
+    status: { open: 'Open', gedaan: 'Gedaan', overgeslagen: 'Overgeslagen', vervallen: 'Vanzelf opgelost', verlopen: 'Verlopen, te lang open' },
     wie: {
       iedereen: 'Iedereen',
       onbekend: 'Onbekende medewerker',
@@ -124,7 +124,7 @@ export const OPVOLGEN = woordenboek({
       opzegging: { titel: 'Exit chat', waarom: 'You learn why members leave, and sometimes someone stays after all.' },
       mijlpaal: { titel: 'Milestone', waarom: 'Celebrating what goes well keeps people motivated.' },
     },
-    status: { open: 'Open', gedaan: 'Done', overgeslagen: 'Skipped', vervallen: 'Resolved itself' },
+    status: { open: 'Open', gedaan: 'Done', overgeslagen: 'Skipped', vervallen: 'Resolved itself', verlopen: 'Expired, open too long' },
     wie: {
       iedereen: 'Everyone',
       onbekend: 'Unknown staff member',

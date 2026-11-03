@@ -8,6 +8,7 @@
 import type { LidStatus } from '@/lib/club/kern/lid'
 import { dagNummer } from '@/lib/club/leden/tijd'
 import { REGEL_SLEUTELS, type Regel, type RegelSleutel } from './regels'
+import { isVerlopen } from './belijst'
 
 /** Hoe lang een gemiste aanleiding (proeflid, opzegging) nog op de lijst komt. */
 export const INHAAL_DAGEN = 14
@@ -175,6 +176,8 @@ export interface BestaandeTaak {
   lidId: string
   regel: RegelSleutel
   periode: string
+  /** Wanneer de taak klaarstond (ISO); nodig om te zien of hij verlopen is. */
+  aangemaaktOp?: string
 }
 
 export interface Ronde {
@@ -182,6 +185,8 @@ export interface Ronde {
   nieuw: Aanleiding[]
   /** Open taken waarvan de aanleiding niet meer klopt (lid kwam weer, score herstelde, opzegging ingetrokken). */
   vervallen: string[]
+  /** Open taken die langer dan VERLOOP_DAGEN open staan: sluiten als verlopen (niets verwijderd). */
+  verlopen: string[]
 }
 
 function sleutel(lidId: string, regel: string): string {
@@ -192,9 +197,10 @@ function sleutel(lidId: string, regel: string): string {
  * Wat er deze ronde moet gebeuren, gegeven de OPEN taken van deze leden.
  * Heeft een lid al een open taak voor een regel, dan komt er geen tweede bij
  * (ook niet voor een nieuwe periode). Taken van leden die niet in `leden`
- * zitten, blijven ongemoeid.
+ * zitten, blijven ongemoeid. Met `vandaag` erbij sluiten taken die langer dan
+ * VERLOOP_DAGEN open staan als verlopen, zodat de lijst geen achterstand opstapelt.
  */
-export function planRonde(aanleidingen: readonly Aanleiding[], open: readonly BestaandeTaak[], bekendeLeden: ReadonlySet<string>): Ronde {
+export function planRonde(aanleidingen: readonly Aanleiding[], open: readonly BestaandeTaak[], bekendeLeden: ReadonlySet<string>, vandaag?: string): Ronde {
   const openSleutels = new Set(open.map((t) => sleutel(t.lidId, t.regel)))
   const nuGeldig = new Set(aanleidingen.map((a) => sleutel(a.lidId, a.regel)))
   const nieuw = aanleidingen.filter((a) => !openSleutels.has(sleutel(a.lidId, a.regel)))
@@ -202,5 +208,7 @@ export function planRonde(aanleidingen: readonly Aanleiding[], open: readonly Be
     .filter((t) => STAAT_REGELS.has(t.regel) && bekendeLeden.has(t.lidId) && !nuGeldig.has(sleutel(t.lidId, t.regel)))
     .map((t) => t.id)
     .sort()
-  return { nieuw, vervallen }
+  const weg = new Set(vervallen)
+  const verlopen = vandaag ? open.filter((t) => !weg.has(t.id) && isVerlopen(t, vandaag)).map((t) => t.id).sort() : []
+  return { nieuw, vervallen, verlopen }
 }

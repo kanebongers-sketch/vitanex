@@ -221,7 +221,30 @@ describe('planRonde', () => {
     const aanleidingen = [a('x', 'welkom', '2026-10-15')]
     const eerste = planRonde(aanleidingen, [], new Set(['x']))
     const open = eerste.nieuw.map((n, i) => ({ id: `t${i}`, lidId: n.lidId, regel: n.regel, periode: n.periode }))
-    expect(planRonde(aanleidingen, open, new Set(['x']))).toEqual({ nieuw: [], vervallen: [] })
+    expect(planRonde(aanleidingen, open, new Set(['x']))).toEqual({ nieuw: [], vervallen: [], verlopen: [] })
+  })
+
+  it('sluit taken die langer dan 14 dagen open staan als verlopen, ook gebeurtenissen', () => {
+    const open = [
+      { id: 'oud', lidId: 'x', regel: 'verjaardag' as const, periode: '2026', aangemaaktOp: '2026-10-01T08:00:00Z' },
+      { id: 'grens', lidId: 'y', regel: 'welkom' as const, periode: '2026-10-20', aangemaaktOp: '2026-10-20T08:00:00Z' },
+      { id: 'vers', lidId: 'z', regel: 'mijlpaal' as const, periode: '50', aangemaaktOp: '2026-11-02T08:00:00Z' },
+      { id: 'zonder', lidId: 'w', regel: 'welkom' as const, periode: 'p' },
+    ]
+    const ronde = planRonde([], open, new Set(['x', 'y', 'z', 'w']), '2026-11-03')
+    expect(ronde.verlopen).toEqual(['oud'])
+  })
+
+  it('een taak die vervalt, verloopt niet ook nog', () => {
+    const open = [{ id: 't1', lidId: 'x', regel: 'niet_gezien' as const, periode: '2026-09-01', aangemaaktOp: '2026-09-02T08:00:00Z' }]
+    const ronde = planRonde([], open, new Set(['x']), '2026-11-03')
+    expect(ronde.vervallen).toEqual(['t1'])
+    expect(ronde.verlopen).toEqual([])
+  })
+
+  it('zonder dag van vandaag verloopt er niets (oude aanroep)', () => {
+    const open = [{ id: 'oud', lidId: 'x', regel: 'verjaardag' as const, periode: '2026', aangemaaktOp: '2026-01-01T08:00:00Z' }]
+    expect(planRonde([], open, new Set(['x'])).verlopen).toEqual([])
   })
 })
 

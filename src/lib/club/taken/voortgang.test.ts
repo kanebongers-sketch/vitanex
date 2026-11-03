@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { maakTaak, vink, WEEK } from './testdata'
-import { nogOpen, normPerWeek, perMoment, resterendeDagen, takenVanVandaag, telGedaan, weekTeller } from './voortgang'
+import { moetVandaag, nogOpen, normPerWeek, perMoment, resterendeDagen, takenVanVandaag, telGedaan, weekTeller } from './voortgang'
 
 const stofzuigen = maakTaak({ id: 'stofzuigen', frequentie: 'per_week', perWeekMin: 3 })
 
@@ -88,5 +88,24 @@ describe('takenVanVandaag', () => {
   it('groepeert per moment in vaste volgorde', () => {
     const items = takenVanVandaag(taken, [], WEEK, '2026-10-14')
     expect(perMoment(items).map((g) => g.moment)).toEqual(['ochtend', 'vrij', 'afsluiten'])
+  })
+})
+
+describe('moetVandaag (teller in het menu)', () => {
+  it('telt open dagtaken, maar geen weektaak die nog speling heeft', () => {
+    const dag = maakTaak({ id: 'balie' })
+    // Woensdag, stofzuigen 3 keer per week, nog niets gedaan: 3 nodig, 5 dagen over, dus speling.
+    const items = takenVanVandaag([dag, stofzuigen], [], WEEK, '2026-10-14')
+    expect(nogOpen(items)).toBe(2)
+    expect(moetVandaag(items)).toBe(1)
+  })
+  it('telt een weektaak wel als het minimum anders niet meer lukt', () => {
+    // Zaterdag, nog niets gedaan: 3 nodig, 2 dagen over, dus achter en vandaag nodig.
+    const items = takenVanVandaag([stofzuigen], [], WEEK, '2026-10-17')
+    expect(moetVandaag(items)).toBe(1)
+  })
+  it('telt niets wat al is afgevinkt of optioneel is', () => {
+    const items = takenVanVandaag([maakTaak({ id: 'a' }), maakTaak({ id: 'b', frequentie: 'indien_nodig' })], [vink('a', '2026-10-14')], WEEK, '2026-10-14')
+    expect(moetVandaag(items)).toBe(0)
   })
 })

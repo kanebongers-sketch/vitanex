@@ -138,7 +138,7 @@ export const MENU = woordenboek({
     },
     tellers: {
       taken: (n: number) => (n === 1 ? '1 open taak vandaag' : `${n} open taken vandaag`),
-      opvolgen: (n: number) => (n === 1 ? '1 lid of lead om te bellen' : `${n} leden of leads om te bellen`),
+      opvolgen: (n: number) => (n === 1 ? '1 gesprek op de belijst van vandaag' : `${n} gesprekken op de belijst van vandaag`),
       leads: (n: number) => (n === 1 ? '1 nieuwe lead' : `${n} nieuwe leads`),
       prikbord: (n: number) => (n === 1 ? '1 open punt op het Prikbord' : `${n} open punten op het Prikbord`),
     },
@@ -289,7 +289,7 @@ export const MENU = woordenboek({
     },
     tellers: {
       taken: (n: number) => (n === 1 ? '1 open task today' : `${n} open tasks today`),
-      opvolgen: (n: number) => (n === 1 ? '1 member or lead to call' : `${n} members or leads to call`),
+      opvolgen: (n: number) => (n === 1 ? "1 call on today's list" : `${n} calls on today's list`),
       leads: (n: number) => (n === 1 ? '1 new lead' : `${n} new leads`),
       prikbord: (n: number) => (n === 1 ? '1 open item on the Notice board' : `${n} open items on the Notice board`),
     },

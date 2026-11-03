@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { ONDERDELEN, isZichtbaar, type PlekSleutel } from '@/components/club/shell/onderdelen'
 import { MENU } from '@/lib/aiyourgym/taal/woorden/club/menu'
 import {
-  ONDERDEEL_TELLER, TELLER_SOORTEN, VERS_MS, groepTellers, leesTellers, moetVerversen, onderdeelTeller, schoonAantal, somVan,
+  ONDERDEEL_TELLER, TELLER_SOORTEN, VERS_MS, groepTellers, opvolgTeller, leesTellers, moetVerversen, onderdeelTeller, schoonAantal, somVan,
   tellerRechten, tellerTekst, tellersVoor, welkeTellers, type TellerRechten,
 } from './tellers'
 
@@ -110,5 +110,17 @@ describe('kort onthouden in de browser', () => {
     expect(moetVerversen(vorige, 'budel', 1000 + VERS_MS)).toBe(true)
     expect(moetVerversen(vorige, 'eersel', 1001)).toBe(true)
     expect(moetVerversen(vorige, 'budel', 1001, true)).toBe(true)
+  })
+})
+
+describe('opvolgTeller', () => {
+  it('telt de belijst van vandaag: hoogstens 5, nooit de achterstand', () => {
+    expect(opvolgTeller(60, 16)).toBe(5)
+    expect(opvolgTeller(2, 1)).toBe(3)
+    expect(opvolgTeller(0, 0)).toBe(0)
+  })
+  it('bij een leesfout geen getal', () => {
+    expect(opvolgTeller(null, 3)).toBeNull()
+    expect(opvolgTeller(3, null)).toBeNull()
   })
 })

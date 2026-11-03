@@ -107,3 +107,13 @@ export function perMoment(items: readonly VandaagTaak[]): { moment: Moment; item
 export function nogOpen(items: readonly VandaagTaak[]): number {
   return items.filter((i) => i.soort === 'verplicht' && !i.afgevinkt).length
 }
+
+/**
+ * Hoeveel taken moeten echt vandaag nog (de teller in het menu, opdracht Kane
+ * 03-11-2026): elke open dagtaak, en een weektaak alleen als het minimum
+ * zonder vandaag niet meer te halen is (status achter). Een weektaak met nog
+ * speling kan ook morgen en telt dus niet mee; hij staat wel in de lijst.
+ */
+export function moetVandaag(items: readonly VandaagTaak[]): number {
+  return items.filter((i) => i.soort === 'verplicht' && !i.afgevinkt && (i.taak.frequentie !== 'per_week' || i.teller?.status === 'achter')).length
+}

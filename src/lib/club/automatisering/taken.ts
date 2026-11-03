@@ -1,14 +1,16 @@
 // ─── Club: opvolgtaken (PUUR) ───────────────────────────────────────────────
 // Een opvolgtaak is een lid plus een aanleiding (regel) die het team oppakt:
 // open, gedaan of overgeslagen. "Vervallen" zet Club zelf als de aanleiding
-// niet meer klopt (het lid kwam weer, de score herstelde).
+// niet meer klopt (het lid kwam weer, de score herstelde). "Verlopen" zet Club
+// zelf als een taak langer dan 14 dagen open stond (migratie 491, VERLOOP_DAGEN
+// in belijst.ts); de taak blijft bewaard en is terug te zetten met Heropen.
 
 import { MEDEWERKER_ROLLEN, type MedewerkerRol } from '@/lib/club/kern/medewerker'
 import { REGEL_SLEUTELS, isRegelSleutel, isUuid, type RegelSleutel, type Uitkomst, type Wie } from './regels'
 import type { SjabloonWaarden } from './sjabloon'
 import { isLidUitkomst, type LidUitkomst } from '@/lib/club/behoud/uitkomst'
 
-export const TAAK_STATUSSEN = ['open', 'gedaan', 'overgeslagen', 'vervallen'] as const
+export const TAAK_STATUSSEN = ['open', 'gedaan', 'overgeslagen', 'vervallen', 'verlopen'] as const
 export type TaakStatus = (typeof TAAK_STATUSSEN)[number]
 
 export const TAAK_STATUS_LABEL: Record<TaakStatus, string> = {
@@ -16,6 +18,7 @@ export const TAAK_STATUS_LABEL: Record<TaakStatus, string> = {
   gedaan: 'Gedaan',
   overgeslagen: 'Overgeslagen',
   vervallen: 'Vanzelf opgelost',
+  verlopen: 'Verlopen, te lang open',
 }
 
 export const NOTITIE_MAX = 500

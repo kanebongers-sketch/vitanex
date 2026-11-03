@@ -10,7 +10,6 @@ import { haalVandaag } from '@/lib/club/cijfers/haal-vandaag'
 import { dagLang, dagSleutel, tijdNl } from '@/lib/club/cijfers/tijd'
 import { VandaagHero } from '@/components/club/vandaag/VandaagHero'
 import { LesTijdlijn } from '@/components/club/vandaag/LesTijdlijn'
-import { LeadsOpvolgen } from '@/components/club/vandaag/Opvolgen'
 import { RisicoLeden } from '@/components/club/vandaag/RisicoLeden'
 import { WieWerkt } from '@/components/club/vandaag/Werkvloer'
 import { JarigVandaag, NieuwDezeWeek } from '@/components/club/vandaag/NieuwEnJarig'
@@ -158,11 +157,8 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
       ]}
     />
   )
-  // Bellen vandaag, rechts: leads die aan de beurt zijn en wie er jarig is; lege lijsten vallen weg.
-  const bellenRechts = [
-    zie('leads') && data.opvolgen.length > 0 && <LeadsOpvolgen key="leads" leads={data.opvolgen} totaal={data.opvolgenTotaal} vandaag={data.vandaag} vestiging={vestiging} />,
-    zie('leden') && data.jarig.length > 0 && <JarigVandaag key="jarig" jarigen={data.jarig} vestiging={vestiging} />,
-  ].filter(Boolean)
+  // Bellen vandaag, rechts: wie er jarig is (de leads kiest de sectie zelf, hoogstens vijf gesprekken samen).
+  const jarigBlok = zie('leden') && data.jarig.length > 0 ? <JarigVandaag key="jarig" jarigen={data.jarig} vestiging={vestiging} /> : null
   // Takenlijsten maken: wie Taken mag beheren (zonder rollen v2: wie Taken mag zien).
   const magLijstMaken = v2Minstens(t, 'taken', 'beheren') ?? true
   return (
@@ -227,8 +223,19 @@ export default async function ClubVandaag({ searchParams }: { searchParams: Zoek
       {zie('taken') && <TakenSectie admin={t.admin} userId={t.userId} vestiging={vestiging} vandaag={nlDelen(nu).datum} ik={ikAlsAfvinker(t)} heeftLijst={takenlijst} magMaken={magLijstMaken} />}
 
       {(zie('opvolgen') || leadsOfJarig) && (
-        <OpvolgSectie admin={t.admin} userId={t.userId} vestiging={vestiging} vestigingNaam={vestigingNaam} magLeden={zie('opvolgen')} magBewerken={kanBewerken(t, 'opvolgen')} magRegels={mag('beheer')}>
-          {bellenRechts.length > 0 ? bellenRechts : null}
+        <OpvolgSectie
+          admin={t.admin}
+          userId={t.userId}
+          vestiging={vestiging}
+          vestigingNaam={vestigingNaam}
+          vandaag={data.vandaag}
+          magLeden={zie('opvolgen')}
+          magBewerken={kanBewerken(t, 'opvolgen')}
+          magRegels={mag('beheer')}
+          leads={zie('leads') ? data.opvolgen : null}
+          leadsTotaal={data.opvolgenTotaal}
+        >
+          {jarigBlok}
         </OpvolgSectie>
       )}
 

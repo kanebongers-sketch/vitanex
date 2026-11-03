@@ -2,7 +2,8 @@
 // Elke query filtert op user_id (de sportschool). De ronde van vandaag draait
 // als iemand de opvolglijst opent (geen cron): ze rekent de aanleidingen uit,
 // maakt nieuwe taken (de unieke sleutel lid + regel + periode houdt dubbele
-// tegen) en laat open taken vervallen waarvan de stand niet meer klopt.
+// tegen), laat open taken vervallen waarvan de stand niet meer klopt en sluit
+// taken die langer dan 14 dagen open staan als verlopen (belijst.ts).
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
@@ -88,13 +89,13 @@ function naarSignaal(rij: LedenRij, totalen: ReadonlyMap<string, Totalen>): LidS
 
 async function haalOpenSleutels(admin: SupabaseClient, userId: string, vestiging: Vestiging): Promise<BestaandeTaak[] | null> {
   const rijen = await alleRijen('open opvolgtaken', (van, tot) =>
-    admin.from('club_opvolgtaken').select('id, lid_id, regel, periode').eq('user_id', userId).eq('vestiging', vestiging).eq('status', 'open').order('id').range(van, tot),
+    admin.from('club_opvolgtaken').select('id, lid_id, regel, periode, aangemaakt_op').eq('user_id', userId).eq('vestiging', vestiging).eq('status', 'open').order('id').range(van, tot),
   )
   if (!rijen) return null
   return rijen.flatMap((r) => {
     const o = r as Record<string, unknown>
     return typeof o.id === 'string' && typeof o.lid_id === 'string' && typeof o.periode === 'string'
-      ? [{ id: o.id, lidId: o.lid_id, regel: o.regel as RegelSleutel, periode: o.periode }]
+      ? [{ id: o.id, lidId: o.lid_id, regel: o.regel as RegelSleutel, periode: o.periode, aangemaaktOp: typeof o.aangemaakt_op === 'string' ? o.aangemaakt_op : undefined }]
       : []
   })
 }
@@ -102,6 +103,7 @@ async function haalOpenSleutels(admin: SupabaseClient, userId: string, vestiging
 export interface RondeUitkomst {
   nieuw: number
   vervallen: number
+  verlopen: number
 }
 
 /**
@@ -117,7 +119,7 @@ export async function maakTakenVoorVandaag(admin: SupabaseClient, userId: string
   ])
   if (!regels || !rijen || !totalen || !open) return null
   const aanleidingen = bepaalAanleidingen(rijen.map((r) => naarSignaal(r, totalen)), regels, dagSleutel(nu))
-  const ronde = planRonde(aanleidingen, open, new Set(rijen.map((r) => r.lid.id)))
+  const ronde = planRonde(aanleidingen, open, new Set(rijen.map((r) => r.lid.id)), dagSleutel(nu))
   const perRegel = new Map(regels.map((r) => [r.sleutel, regelNaarRij(r)]))
   const demo = new Set(rijen.filter((r) => r.lid.demo).map((r) => r.lid.id))
 
@@ -149,9 +151,20 @@ export async function maakTakenVoorVandaag(admin: SupabaseClient, userId: string
       .in('id', ronde.vervallen)
     if (error) console.error('[club] opvolgtaken laten vervallen mislukt', error.message)
   }
+  if (ronde.verlopen.length > 0) {
+    // Te lang open: sluiten als verlopen (bewaard, terug te zetten met Heropen). Zonder migratie 491
+    // weigert de database deze status; dan telt de lijst ze toch niet mee (ledenOpVolgorde).
+    const { error } = await admin
+      .from('club_opvolgtaken')
+      .update({ status: 'verlopen', afgehandeld_door: 'Club', afgehandeld_op: nu.toISOString() })
+      .eq('user_id', userId)
+      .eq('status', 'open')
+      .in('id', ronde.verlopen)
+    if (error) console.error('[club] opvolgtaken laten verlopen mislukt', error.message)
+  }
   const { error } = await admin.from('club_opvolg_rondes').upsert({ user_id: userId, vestiging, dag: dagSleutel(nu), gedaan_op: nu.toISOString() }, { onConflict: 'user_id,vestiging,dag' })
   if (error) console.error('[club] opvolgronde vastleggen mislukt', error.message)
-  return { nieuw: ronde.nieuw.length, vervallen: ronde.vervallen.length }
+  return { nieuw: ronde.nieuw.length, vervallen: ronde.vervallen.length, verlopen: ronde.verlopen.length }
 }
 
 /** Voor Club Vandaag: draai de ronde alleen als die vandaag nog niet draaide (snel bij elk openen). */

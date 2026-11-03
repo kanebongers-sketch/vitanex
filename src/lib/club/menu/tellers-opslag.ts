@@ -8,13 +8,14 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Vestiging } from '@/lib/club/kern/vestiging'
 import { alleenActief, haalAfvinkingen, haalTaken } from '@/lib/club/taken/opslag'
-import { nogOpen, takenVanVandaag } from '@/lib/club/taken/voortgang'
+import { moetVandaag, takenVanVandaag } from '@/lib/club/taken/voortgang'
+import { verloopGrens } from '@/lib/club/automatisering/belijst'
 import { weekContext } from '@/lib/club/taken/week'
 import { weekParam, nlDelen } from '@/lib/club/rooster/tijd'
 import { haalOpenTelling } from '@/lib/club/prikbord/opslag'
 import { totaalOpen } from '@/lib/club/prikbord/model'
 import type { Kijker } from '@/lib/club/prikbord/typen'
-import { tellersVoor, welkeTellers, type TellerRechten, type TellerSoort, type Tellers } from './tellers'
+import { opvolgTeller, tellersVoor, welkeTellers, type TellerRechten, type TellerSoort, type Tellers } from './tellers'
 
 const CACHE_MS = 10_000
 const CACHE_MAX = 500
@@ -37,25 +38,45 @@ async function aantal(wat: string, query: PromiseLike<{ count: number | null; er
   return count ?? 0
 }
 
-/** Verplichte taken van vandaag die nog open staan (zoals de tegel op Vandaag ze telt). */
+/** Taken die echt vandaag nog moeten (moetVandaag: geen weektaken met speling). */
 async function openTaken(admin: SupabaseClient, userId: string, vestiging: Vestiging, vandaag: string): Promise<number | null> {
   const week = weekContext(weekParam(vandaag), vandaag)
   const [data, afvinkingen] = await Promise.all([haalTaken(admin, userId, vestiging), haalAfvinkingen(admin, userId, vestiging, week.maandag, week.zondag)])
   if (!data || !afvinkingen) return null
-  return nogOpen(takenVanVandaag(alleenActief(data).taken, afvinkingen, week.dagen, vandaag))
+  return moetVandaag(takenVanVandaag(alleenActief(data).taken, afvinkingen, week.dagen, vandaag))
 }
 
 function leadsBasis(admin: SupabaseClient, userId: string, vestiging: Vestiging) {
   return admin.from('club_leads').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('vestiging', vestiging).is('geanonimiseerd_op', null)
 }
 
-/** Open opvolging van leden plus leads die vandaag of eerder gebeld moesten worden. */
+/** Hoogstens zoveel open opvolgtaken lezen om leden te tellen: de teller stopt toch bij BEL_MAX. */
+const LEDEN_LEES_MAX = 200
+
+/** Leden met een open, niet verlopen opvolgtaak, elk een keer; null bij een fout. */
+async function ledenOpLijst(admin: SupabaseClient, userId: string, vestiging: Vestiging, vandaag: string): Promise<number | null> {
+  const { data, error } = await admin
+    .from('club_opvolgtaken')
+    .select('lid_id')
+    .eq('user_id', userId)
+    .eq('vestiging', vestiging)
+    .eq('status', 'open')
+    .gte('aangemaakt_op', verloopGrens(vandaag))
+    .limit(LEDEN_LEES_MAX)
+  if (error) {
+    log('opvolging', error)
+    return null
+  }
+  return new Set((data ?? []).map((r) => String((r as Record<string, unknown>).lid_id))).size
+}
+
+/** Wat er vandaag op de belijst staat: leden (een per persoon) plus leads die aan de beurt zijn, hoogstens BEL_MAX. */
 async function teBellen(admin: SupabaseClient, userId: string, vestiging: Vestiging, vandaag: string, r: TellerRechten): Promise<number | null> {
   const [leden, leads] = await Promise.all([
-    r.opvolgenLeden ? aantal('opvolging', admin.from('club_opvolgtaken').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('vestiging', vestiging).eq('status', 'open')) : 0,
+    r.opvolgenLeden ? ledenOpLijst(admin, userId, vestiging, vandaag) : 0,
     r.leads ? aantal('leads opvolgen', leadsBasis(admin, userId, vestiging).in('status', LEAD_OPVOLGEN).lte('opvolgen_op', vandaag)) : 0,
   ])
-  return leden === null || leads === null ? null : leden + leads
+  return opvolgTeller(leden, leads)
 }
 
 export interface TellerVraag {
