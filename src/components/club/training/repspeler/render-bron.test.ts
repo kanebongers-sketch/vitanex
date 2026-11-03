@@ -4,6 +4,7 @@ import { OEFENRENDERS } from '@/components/aiyourgym/inhoud/oefenrenders'
 import { planVoor } from '@/lib/club/training/repspeler/plan'
 import { standOp } from '@/lib/club/training/repspeler/tijdlijn'
 import { frameSrc, inclusief, kiesMaat, leesRepRender, repRenderVoor } from './render-bron'
+import { herhalingDuur, uitvoeringVoor } from '@/lib/club/training/repspeler/uitvoering'
 
 const MATEN = [{ breedte: 480 }, { breedte: 720 }, { breedte: 1080 }]
 
@@ -61,18 +62,22 @@ describe('renders uit de website', () => {
     expect(frameSrc(rep, rep.maten[0], 0)).toContain(`/oefenbeelden/${r.slug}/frames/`)
     const plan = planVoor(rep, { herhalingen: '15', tijdSec: null, tempo: '3010' })
     if (plan.soort === 'herhaling') {
-      // Besluit Kane 29-10-2026: 1 seconde heen en 1 terug, ook bij schematempo 3010.
-      expect(plan.repDuur).toBe(2)
-      expect(plan.totaal).toBe(30)
-      expect(plan.segmenten.map((s) => [s.soort, s.duur])).toEqual([
-        ['heen', 1],
-        ['terug', 1],
-      ])
+      // Besluit Kane 03-11-2026: het uitvoeringstempo van de oefening, ook bij schematempo 3010.
+      const eigen = uitvoeringVoor(r.slug)
+      expect(eigen).not.toBeNull()
+      expect(rep.uitvoering?.tempo).toEqual(eigen?.tempo)
+      expect(plan.repDuur).toBeCloseTo(herhalingDuur(eigen!.tempo), 9)
+      expect(plan.totaal).toBeCloseTo(15 * plan.repDuur, 9)
     }
     for (let t = 0; t <= plan.totaal; t += 0.1) {
       const s = standOp(plan, t)
       expect(s.frame).toBeGreaterThanOrEqual(0)
       expect(s.frame).toBeLessThan(rep.frames)
+      expect(s.frameNa).toBeGreaterThanOrEqual(0)
+      expect(s.frameNa).toBeLessThan(rep.frames)
+      expect(Math.abs(s.frameNa - s.frame)).toBeLessThanOrEqual(1)
+      expect(s.meng).toBeGreaterThanOrEqual(0)
+      expect(s.meng).toBeLessThanOrEqual(0.5)
     }
   })
 

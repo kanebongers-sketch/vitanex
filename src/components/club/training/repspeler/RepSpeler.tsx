@@ -19,9 +19,11 @@ import { REPSPELER, faseWoord } from '@/lib/aiyourgym/taal/woorden/ledenapp/reps
 import './repspeler.css'
 
 // De rep-speler (besluit Kane 24-10-2026): de Blender-render speelt en telt
-// elke herhaling mee. Besluit Kane 29-10-2026: het beeld speelt altijd op 1
-// seconde heen en 1 seconde terug (anders rekken de beelden uit en hapert het),
-// dus 15 herhalingen duren 30 seconden. Het schematempo staat eronder als tekst. Na de set: "Set klaar", de rust uit het schema en een knop om de
+// elke herhaling mee. Besluit Kane 03-11-2026: elke oefening speelt in haar
+// eigen uitvoeringstempo (src/lib/club/training/repspeler/uitvoering.ts). Speelt
+// een fase trager dan de render, dan vloeien twee naburige frames in elkaar over
+// (stand.meng), zodat het beeld bij 2 tot 3 seconden niet hapert. Het
+// schematempo staat eronder als tekst. Na de set: "Set klaar", de rust uit het schema en een knop om de
 // set vast te leggen in de bestaande training. De rekensom zit puur en getest
 // in src/lib/club/training/repspeler; hier alleen tekenen en bedienen.
 // Het tekenen gebeurt per frame met requestAnimationFrame op een canvas, zonder
@@ -42,6 +44,30 @@ export interface RepSpelerProps {
 }
 
 type Status = 'wacht' | 'loopt' | 'pauze' | 'klaar'
+
+/** Stappen voor het overvloeien: genoeg voor een vloeiend beeld, zonder elk animatieframe opnieuw te tekenen. */
+const MENG_STAPPEN = 12
+
+/**
+ * Teken een frame, of twee naburige frames in elkaar overvloeiend. Met
+ * 'lighter' tellen de (voorvermenigvuldigde) beelden op: (1 - meng) maal het
+ * ene plus meng maal het andere is een zuivere overgang, ook in de doorzichtige
+ * rand rond het figuur.
+ */
+function tekenMeng(ctx: CanvasRenderingContext2D, doek: HTMLCanvasElement, img: CanvasImageSource, na: CanvasImageSource | null, meng: number) {
+  ctx.clearRect(0, 0, doek.width, doek.height)
+  if (!na) {
+    ctx.drawImage(img, 0, 0, doek.width, doek.height)
+    return
+  }
+  ctx.globalCompositeOperation = 'lighter'
+  ctx.globalAlpha = 1 - meng
+  ctx.drawImage(img, 0, 0, doek.width, doek.height)
+  ctx.globalAlpha = meng
+  ctx.drawImage(na, 0, 0, doek.width, doek.height)
+  ctx.globalAlpha = 1
+  ctx.globalCompositeOperation = 'source-over'
+}
 
 function weergaveVan(s: Stand): Weergave {
   return { rep: s.rep, gedaan: s.gedaan, label: s.label, segment: s.segment, kant: s.kant, segmentIndex: s.segmentIndex, overSec: Math.ceil(s.over), piek: opPiek(s) }
@@ -95,7 +121,7 @@ export function RepSpeler(p: RepSpelerProps) {
   const klok = useRef<Klok>(nieuweKlok())
   const canvas = useRef<HTMLCanvasElement>(null)
   const ring = useRef<SVGCircleElement>(null)
-  const laatsteFrame = useRef(-1)
+  const laatsteFrame = useRef('')
   const vorige = useRef<Weergave>(weergave)
   const tikRef = useRef(tik.tik)
   const kanStarten = minder || frames.klaar
@@ -109,16 +135,18 @@ export function RepSpeler(p: RepSpelerProps) {
     (s: Stand) => {
       const doek = canvas.current
       const img = frames.beelden[s.frame]
+      const na = frames.beelden[s.frameNa]
+      const meng = Math.round(s.meng * MENG_STAPPEN) / MENG_STAPPEN
+      const sleutel = meng > 0 ? `${s.frame}>${s.frameNa}@${meng}` : String(s.frame)
       // Breedte 0 = al vrijgegeven beeld: niet tekenen (het vorige frame blijft staan).
-      if (doek && img && s.frame !== laatsteFrame.current && breedteVan(img) > 0) {
+      if (doek && img && sleutel !== laatsteFrame.current && breedteVan(img) > 0) {
         const ctx = doek.getContext('2d')
         if (doek.width !== breedteVan(img)) {
           doek.width = breedteVan(img)
           doek.height = hoogteVan(img)
         }
-        ctx?.clearRect(0, 0, doek.width, doek.height)
-        ctx?.drawImage(img, 0, 0, doek.width, doek.height)
-        laatsteFrame.current = s.frame
+        if (ctx) tekenMeng(ctx, doek, img, meng > 0 && na && breedteVan(na) > 0 ? na : null, meng)
+        laatsteFrame.current = sleutel
       }
       ring.current?.setAttribute('stroke-dashoffset', String(100 * (1 - s.voortgang)))
       const w = weergaveVan(s)
@@ -175,7 +203,7 @@ export function RepSpeler(p: RepSpelerProps) {
 
   function opnieuw() {
     klok.current = herstart(klok.current)
-    laatsteFrame.current = -1
+    laatsteFrame.current = ''
     const begin = { ...weergaveVan(standOp(plan, 0)), rep: 0 }
     vorige.current = begin
     setWeergave(begin)

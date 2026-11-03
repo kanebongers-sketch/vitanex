@@ -122,7 +122,7 @@ describe('klok', () => {
   })
 })
 
-describe('planVoor (besluit Kane 29-10-2026: altijd 1 seconde heen, 1 terug)', () => {
+describe('planVoor zonder uitvoeringstempo (terugval: 1 seconde heen, 1 terug)', () => {
   const fases: FrameFases = { rust_begin: [0, 3], heen: [4, 30], houden_ver: [31, 36], terug: [37, 66], rust_eind: [67, 71] }
   const squat = { frames: 72, fps: 24, fases, heenIs: 'excentrisch' as const, soort: 'herhaling' as const }
   const curl = { ...squat, heenIs: 'concentrisch' as const }

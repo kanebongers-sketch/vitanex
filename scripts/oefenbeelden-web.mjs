@@ -95,6 +95,7 @@ function framesBudget(m, aantal) {
  * soort vasthouden: de houding blijft staan en de lus is alleen ademen (plank);
  * heen_is is daar de inademing en telt voor de speler niet als richting.
  */
+// Een nieuwe slug krijgt ook een uitvoeringstempo in src/lib/club/training/repspeler/uitvoering.ts (test).
 const BEWEGING = {
   'back-squat': { heen_is: 'excentrisch', soort: 'herhaling' },
   'front-squat': { heen_is: 'excentrisch', soort: 'herhaling' },

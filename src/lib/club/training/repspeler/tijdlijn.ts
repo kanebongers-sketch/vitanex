@@ -1,11 +1,15 @@
 // ─── Club, rep-speler: de tijdlijn van een set (PUUR) ───────────────────────
 // Van een tempo en de fases van een render naar "welk beeld staat er op
-// seconde t". De speler geeft hier altijd AFSPEEL_TEMPO aan (1 seconde heen,
-// 1 terug, besluit Kane 29-10-2026); een schematempo alleen voor de tekst. Een herhaling is een reeks segmenten (heen, vast,
+// seconde t". De speler geeft hier het uitvoeringstempo van de oefening aan
+// (besluit Kane 03-11-2026, uitvoering.ts); een schematempo alleen voor de
+// tekst. Een herhaling is een reeks segmenten (heen, vast,
 // terug, rust); welke tempo-seconden bij de heenweg horen hangt af van de
 // render: bij een squat is de heenweg het zakken (excentrisch), bij een curl het
 // optillen (concentrisch). De frames binnen een segment lopen lineair mee: de
-// natuurlijke versnelling zit al in de render zelf.
+// natuurlijke versnelling zit al in de render zelf. Speelt een segment trager
+// dan de render (2 tot 3 seconden zakken), dan valt de stand tussen twee
+// frames: `frameNa` en `meng` laten de speler die twee in elkaar overvloeien,
+// zodat het beeld niet hapert.
 // Een houdoefening (plank) heeft geen herhalingen maar een doeltijd; de render
 // speelt dan als rustige lus op zijn eigen snelheid.
 
@@ -37,14 +41,21 @@ export interface HerhalingInvoer {
   woorden?: FaseWoorden
   /** Alleen bij een wisselende render: de fases van de herhaling rechts (de linkerkant staat in `fases`). */
   fasesRechts?: FrameFases
+  /** Ander woord voor vasthouden of rust waar de render daar beweegt (uitvoering.ts). */
+  labels?: SegmentLabels
 }
 
-function segmentenVan(fases: FrameFases, frames: number, exc: boolean, t: Tempo, w: FaseWoorden): Segment[] {
+export interface SegmentLabels {
+  houden?: string
+  rust?: string
+}
+
+function segmentenVan(fases: FrameFases, frames: number, exc: boolean, t: Tempo, w: FaseWoorden, l: SegmentLabels = {}): Segment[] {
   const kandidaten: Segment[] = [
     { soort: 'heen', label: w.heen, duur: exc ? t.excentrisch : t.concentrisch, frames: binnen(fases.heen, frames) },
-    { soort: 'houden', label: w.vast, duur: exc ? t.pauzeGerekt : t.pauzeSamen, frames: binnen(fases.houden_ver, frames) },
+    { soort: 'houden', label: l.houden ?? w.vast, duur: exc ? t.pauzeGerekt : t.pauzeSamen, frames: binnen(fases.houden_ver, frames) },
     { soort: 'terug', label: w.terug, duur: exc ? t.concentrisch : t.excentrisch, frames: binnen(fases.terug, frames) },
-    { soort: 'rust', label: w.vast, duur: exc ? t.pauzeSamen : t.pauzeGerekt, frames: binnen(fases.rust_eind, frames) },
+    { soort: 'rust', label: l.rust ?? w.vast, duur: exc ? t.pauzeSamen : t.pauzeGerekt, frames: binnen(fases.rust_eind, frames) },
   ]
   return kandidaten.filter((s) => Number.isFinite(s.duur) && s.duur > 0)
 }
@@ -53,12 +64,12 @@ export function maakHerhalingPlan(inv: HerhalingInvoer): HerhalingPlan {
   const frames = Math.max(1, Math.floor(inv.frames))
   const w = inv.woorden ?? standaardWoorden(inv.heenIs)
   const exc = inv.heenIs === 'excentrisch'
-  const segmenten = segmentenVan(inv.fases, frames, exc, inv.tempo, w)
+  const segmenten = segmentenVan(inv.fases, frames, exc, inv.tempo, w, inv.labels)
   const repDuur = segmenten.reduce((som, s) => som + s.duur, 0)
   const reps = Math.max(1, Math.floor(Number.isFinite(inv.reps) ? inv.reps : 1))
   const plan: HerhalingPlan = { soort: 'herhaling', reps, segmenten, repDuur, totaal: reps * repDuur, frames }
   if (!inv.fasesRechts) return plan
-  return { ...plan, segmentenRechts: segmentenVan(inv.fasesRechts, frames, exc, inv.tempo, w) }
+  return { ...plan, segmentenRechts: segmentenVan(inv.fasesRechts, frames, exc, inv.tempo, w, inv.labels) }
 }
 
 /** Kant van herhaling `repIndex` (0 is de eerste): bij een wisselende render links, rechts, links, ... */
@@ -94,8 +105,19 @@ export function maakVasthoudPlan(inv: VasthoudInvoer): VasthoudPlan {
   return { soort: 'vasthouden', doelSec, totaal: doelSec, frames, fps: inv.fps > 0 ? inv.fps : 24, lus: [0, frames - 1], label: inv.label ?? 'vasthouden' }
 }
 
-function frameIn(bereik: FrameBereik, deel: number): number {
-  return Math.round(bereik[0] + (bereik[1] - bereik[0]) * klem(deel, 0, 1))
+/** Plek in het bereik als kommagetal: tussen twee frames als het segment trager speelt dan de render. */
+function plekIn(bereik: FrameBereik, deel: number): number {
+  return bereik[0] + (bereik[1] - bereik[0]) * klem(deel, 0, 1)
+}
+
+/** De twee frames rond een plek en hoeveel van het tweede erdoor schijnt (0 tot 1), in de looprichting. */
+export function mengVan(plek: number, frames: number): { frame: number; frameNa: number; meng: number } {
+  const max = Math.max(0, frames - 1)
+  const p = klem(Number.isFinite(plek) ? plek : 0, 0, max)
+  const onder = Math.floor(p)
+  const boven = Math.min(max, onder + 1)
+  const meng = boven === onder ? 0 : p - onder
+  return { frame: Math.round(p), frameNa: meng < 0.5 ? boven : onder, meng: meng < 0.5 ? meng : 1 - meng }
 }
 
 function herhalingStand(plan: HerhalingPlan, t: number): Stand {
@@ -103,11 +125,11 @@ function herhalingStand(plan: HerhalingPlan, t: number): Stand {
   const eindSegmenten = segmentenVoor(plan, plan.reps - 1)
   const laatste = eindSegmenten[eindSegmenten.length - 1]
   if (!laatste || plan.repDuur <= 0) {
-    return { frame: 0, rep: plan.reps, gedaan: plan.reps, label: '', segment: 'rust', kant: eindKant, segmentIndex: 0, deel: 1, voortgang: 1, over: 0, klaar: true }
+    return { frame: 0, frameNa: 0, meng: 0, rep: plan.reps, gedaan: plan.reps, label: '', segment: 'rust', kant: eindKant, segmentIndex: 0, deel: 1, voortgang: 1, over: 0, klaar: true }
   }
   if (t >= plan.totaal) {
     const i = eindSegmenten.length - 1
-    return { frame: laatste.frames[1], rep: plan.reps, gedaan: plan.reps, label: laatste.label, segment: laatste.soort, kant: eindKant, segmentIndex: i, deel: 1, voortgang: 1, over: 0, klaar: true }
+    return { frame: laatste.frames[1], frameNa: laatste.frames[1], meng: 0, rep: plan.reps, gedaan: plan.reps, label: laatste.label, segment: laatste.soort, kant: eindKant, segmentIndex: i, deel: 1, voortgang: 1, over: 0, klaar: true }
   }
   const tijd = Math.max(0, t)
   const repIndex = Math.min(plan.reps - 1, Math.floor(tijd / plan.repDuur))
@@ -122,7 +144,7 @@ function herhalingStand(plan: HerhalingPlan, t: number): Stand {
   const seg = segmenten[index]
   const deel = klem((binnenRep - begin) / seg.duur, 0, 1)
   return {
-    frame: klem(frameIn(seg.frames, deel), 0, plan.frames - 1),
+    ...mengVan(plekIn(seg.frames, deel), plan.frames),
     rep: repIndex + 1,
     gedaan: repIndex,
     label: seg.label,
@@ -143,6 +165,8 @@ function vasthoudStand(plan: VasthoudPlan, t: number): Stand {
   const frame = plan.lus[0] + (Math.floor(tijd * plan.fps) % lengte)
   return {
     frame: klem(frame, 0, plan.frames - 1),
+    frameNa: klem(frame, 0, plan.frames - 1),
+    meng: 0,
     rep: 1,
     gedaan: klaar ? 1 : 0,
     label: plan.label,
@@ -165,7 +189,7 @@ export function standOp(plan: RepPlan, t: number): Stand {
 /** "2 sec omlaag, 1 sec vast, 2 sec omhoog" of "30 sec vasthouden". `woord` vertaalt een fasewoord (standaard: zoals het is). */
 export function tempoUitleg(plan: RepPlan, woord: (w: string) => string = (w) => w): string {
   if (plan.soort === 'vasthouden') return `${Math.round(plan.doelSec)} sec ${woord(plan.label)}`
-  return plan.segmenten.map((s) => `${secTekst(s.duur)} ${woord(s.label)}`).join(', ')
+  return plan.segmenten.map((s) => `${secTekst(s.duur, s.soort === 'heen' || s.soort === 'terug')} ${woord(s.label)}`).join(', ')
 }
 
 /** Ligt het verste punt (piek) in beeld? Voor de stilstaande beelden bij minder beweging. */

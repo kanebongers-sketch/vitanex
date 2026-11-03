@@ -1,6 +1,7 @@
 // ─── Club, rep-speler: gedeelde typen (PUUR) ────────────────────────────────
-// De rep-speler speelt een Blender-render van een oefening altijd op 1 seconde
-// heen en 1 seconde terug (besluit Kane 29-10-2026) en telt elke herhaling mee. Een render is een reeks losse beelden met
+// De rep-speler speelt een Blender-render van een oefening in het eigen
+// uitvoeringstempo van die oefening (besluit Kane 03-11-2026, uitvoering.ts) en
+// telt elke herhaling mee. Een render is een reeks losse beelden met
 // vaste fases (frame-bereiken): rust aan het begin, de heenweg, vasthouden op
 // het verste punt, de terugweg en rust aan het eind.
 
@@ -90,8 +91,12 @@ export type RepPlan = HerhalingPlan | VasthoudPlan
 
 /** Wat er op tijdstip t in beeld staat. */
 export interface Stand {
-  /** Frame-index, altijd tussen 0 en frames - 1. */
+  /** Frame-index, altijd tussen 0 en frames - 1 (het dichtstbijzijnde frame). */
   frame: number
+  /** Het buurframe waar de stand naartoe loopt; gelijk aan `frame` als er niets te mengen valt. */
+  frameNa: number
+  /** 0 tot 0,5: hoeveel van `frameNa` over `frame` heen schijnt (vloeiend bij trage fasen). */
+  meng: number
   /** De herhaling die nu loopt, 1 tot en met reps (bij vasthouden 1). */
   rep: number
   /** Afgeronde herhalingen. */

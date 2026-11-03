@@ -10,7 +10,7 @@ import { repRenderVoor } from './render-bron'
 // de ledenapp): met een Blender-render de rep-speler in voorbeeldstand (zonder
 // vastleggen), anders de bekende illustratie. Zonder schema speelt hij 10
 // herhalingen; met een schemaregel het aantal uit het voorschrift. Het beeld
-// speelt altijd op 1 seconde heen en 1 terug (besluit Kane 29-10-2026).
+// speelt in het uitvoeringstempo van de oefening (besluit Kane 03-11-2026).
 
 interface OefeningVoorbeeldProps {
   naam: string

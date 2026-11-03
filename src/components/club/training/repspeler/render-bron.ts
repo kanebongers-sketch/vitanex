@@ -11,6 +11,7 @@
 import { frameUrl, renderVoor, type FaseNaam, type FaseReeks, type OefenRender } from '@/components/aiyourgym/inhoud/oefenrenders'
 import type { RenderTiming } from '@/lib/club/training/repspeler/plan'
 import type { FrameBereik, FrameFases } from '@/lib/club/training/repspeler/typen'
+import { uitvoeringVoor } from '@/lib/club/training/repspeler/uitvoering'
 
 export interface RepMaat {
   /** Breedte van een frame in px (480, 720 of 1080). */
@@ -55,6 +56,7 @@ function fasesVan(fasen: Readonly<Record<FaseNaam, FaseReeks>>, aantal: number):
 export function leesRepRender(r: OefenRender): RepRender | null {
   const f = r.frames
   if (!f || f.aantal < 2 || !(f.fps > 0) || f.maten.length === 0) return null
+  const uitvoering = uitvoeringVoor(r.slug)
   return {
     slug: r.slug,
     naam: r.naam,
@@ -64,6 +66,8 @@ export function leesRepRender(r: OefenRender): RepRender | null {
     heenIs: f.heenIs,
     soort: f.soort,
     ...(f.fasenRechts ? { fasesRechts: fasesVan(f.fasenRechts, f.aantal) } : {}),
+    // Besluit Kane 03-11-2026: elke oefening speelt in haar eigen uitvoeringstempo.
+    uitvoering: uitvoering ? { tempo: uitvoering.tempo, ...(uitvoering.labels ? { labels: uitvoering.labels } : {}) } : null,
     maten: [...f.maten].sort((a, b) => a.maat - b.maat).map((m) => ({ breedte: m.maat })),
     poster: r.begin.src,
     posterKlein: r.beginKlein.src,

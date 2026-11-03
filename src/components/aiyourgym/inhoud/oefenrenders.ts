@@ -73,8 +73,9 @@ export interface OefenRender {
 // ─── Losse beelden en fasen voor de rep-speler (besluit Kane 24-10-2026) ────
 // Een geanimeerde WebP is niet per beeld te sturen. Daarom staan alle beelden
 // van de lus ook los in public/oefenbeelden/<slug>/frames/<maat>/f000.webp, en
-// zegt de data welke beelden bij welke fase horen. De speler speelt heen en terug
-// elk in 1 seconde (besluit Kane 29-10-2026), nooit uitgerekt tot het schematempo.
+// zegt de data welke beelden bij welke fase horen. De speler speelt elke oefening
+// in haar eigen uitvoeringstempo (besluit Kane 03-11-2026,
+// src/lib/club/training/repspeler/uitvoering.ts), niet in het schematempo.
 
 /** Fasen van een herhaling in volgorde. Samen dekken ze de lus van 0 tot aantal. */
 export const FASE_VOLGORDE = ['rust_begin', 'heen', 'houden_ver', 'terug', 'rust_eind'] as const

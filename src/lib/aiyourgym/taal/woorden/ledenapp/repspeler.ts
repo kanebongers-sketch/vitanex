@@ -1,7 +1,7 @@
 import { woordenboek } from '../../woordenboek'
 
-// De rep-speler (besluit Kane 24-10-2026): de Blender-render, altijd op 1
-// seconde heen en 1 terug (besluit Kane 29-10-2026), met de teller, de rust na de set en de coaching eronder. Ook in
+// De rep-speler (besluit Kane 24-10-2026): de Blender-render, in het
+// uitvoeringstempo van de oefening (besluit Kane 03-11-2026), met de teller, de rust na de set en de coaching eronder. Ook in
 // de oefenbibliotheek van Club en het oefeningblad van de ledenapp.
 
 export const REPSPELER = woordenboek({
@@ -23,6 +23,7 @@ export const REPSPELER = woordenboek({
       omhoog: 'omhoog',
       vast: 'vast',
       vasthouden: 'vasthouden',
+      springen: 'springen',
     },
     kant: { links: 'links', rechts: 'rechts' },
     // Wisselende oefening (besluit Kane 30-10-2026): elke kant telt als een herhaling.
@@ -75,6 +76,7 @@ export const REPSPELER = woordenboek({
       omhoog: 'up',
       vast: 'hold',
       vasthouden: 'hold',
+      springen: 'jump',
     },
     kant: { links: 'left', rechts: 'right' },
     perKant: (reps: number, links: number, rechts: number) =>
