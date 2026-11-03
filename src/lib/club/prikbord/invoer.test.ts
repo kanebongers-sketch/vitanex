@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { leesGelezen, leesMededeling, leesUitvoering, leesWerkwijze, leesWerkwijzeWijziging } from './invoer'
 
 const NU = new Date('2026-11-03T10:00:00Z')
-const EIGENAAR = { eigenaar: true, vestigingen: ['budel', 'eersel'] }
-const MANAGER = { eigenaar: false, vestigingen: ['budel'] }
+const EIGENAAR = { eigenaar: true, vestigingen: ['budel', 'eersel'], alleVestigingen: true }
+const MANAGER = { eigenaar: false, vestigingen: ['budel'], alleVestigingen: true }
 const ID = '00000000-0000-4000-8000-000000000001'
 
 describe('prikbord: invoer mededeling', () => {

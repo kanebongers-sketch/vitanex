@@ -25,11 +25,28 @@ function log(wat: string, bericht: string): void {
   console.error(`[club/prikbord] ${wat} mislukt`, bericht)
 }
 
-/** Lopende en recent gearchiveerde mededelingen (nieuwste eerst). */
+/** Hoogstens zoveel mededelingen op het Prikbord (nieuwste eerst). */
 const MAX_MEDEDELINGEN = 300
+/** Gearchiveerde of verlopen mededelingen blijven zo lang zichtbaar in het archief. */
+export const ARCHIEF_DAGEN = 90
+/** Zoveel ids per verzoek met .in(): de URL blijft kort. */
+export const IDS_PER_VERZOEK = 50
 
-export async function haalMededelingen(admin: SupabaseClient, userId: string): Promise<Mededeling[] | null> {
-  const { data, error } = await admin.from('club_mededelingen').select(MEDEDELING_KOLOMMEN).eq('user_id', userId).order('geplaatst_op', { ascending: false }).limit(MAX_MEDEDELINGEN)
+/** Het filter voor lopende en recent gearchiveerde of verlopen mededelingen (PostgREST or). */
+export function lopendOfRecentFilter(nu: Date, dagen = ARCHIEF_DAGEN): string {
+  const grens = new Date(nu.getTime() - dagen * 86_400_000).toISOString()
+  return `and(gearchiveerd.eq.false,or(verloopt_op.is.null,verloopt_op.gte."${grens}")),geplaatst_op.gte."${grens}"`
+}
+
+/** Lopende en recent gearchiveerde mededelingen (nieuwste eerst). */
+export async function haalMededelingen(admin: SupabaseClient, userId: string, nu = new Date()): Promise<Mededeling[] | null> {
+  const { data, error } = await admin
+    .from('club_mededelingen')
+    .select(MEDEDELING_KOLOMMEN)
+    .eq('user_id', userId)
+    .or(lopendOfRecentFilter(nu))
+    .order('geplaatst_op', { ascending: false })
+    .limit(MAX_MEDEDELINGEN)
   if (error) {
     log('mededelingen lezen', error.message)
     return null
@@ -37,17 +54,38 @@ export async function haalMededelingen(admin: SupabaseClient, userId: string): P
   return (data ?? []).flatMap((r) => mededelingUitRij(r) ?? [])
 }
 
-/** De gelezen-regels bij deze mededelingen; met een profiel alleen die van hem. */
+/** Een lijst in stukken van hoogstens `grootte`. */
+export function inStukken<T>(lijst: readonly T[], grootte = IDS_PER_VERZOEK): T[][] {
+  const stukken: T[][] = []
+  for (let i = 0; i < lijst.length; i += grootte) stukken.push(lijst.slice(i, i + grootte))
+  return stukken
+}
+
+/**
+ * De gelezen-regels bij deze mededelingen. Met een profiel alleen die van hem
+ * (gefilterd op profiel_id, geen lange lijst ids in de URL); zonder profiel
+ * (de leiding) in stukken van IDS_PER_VERZOEK mededelingen.
+ */
 export async function haalGelezen(admin: SupabaseClient, userId: string, mededelingIds: readonly string[], profielId?: string): Promise<Gelezen[] | null> {
   if (mededelingIds.length === 0) return []
-  let q = admin.from('club_mededeling_gelezen').select(GELEZEN_KOLOMMEN).eq('user_id', userId).in('mededeling_id', [...mededelingIds])
-  if (profielId) q = q.eq('profiel_id', profielId)
-  const { data, error } = await q.limit(20_000)
-  if (error) {
-    log('gelezen lezen', error.message)
+  const gevraagd = new Set(mededelingIds)
+  if (profielId) {
+    const { data, error } = await admin.from('club_mededeling_gelezen').select(GELEZEN_KOLOMMEN).eq('user_id', userId).eq('profiel_id', profielId).limit(20_000)
+    if (error) {
+      log('gelezen lezen', error.message)
+      return null
+    }
+    return (data ?? []).flatMap((r) => gelezenUitRij(r) ?? []).filter((g) => gevraagd.has(g.mededelingId))
+  }
+  const antwoorden = await Promise.all(
+    inStukken([...gevraagd]).map((ids) => admin.from('club_mededeling_gelezen').select(GELEZEN_KOLOMMEN).eq('user_id', userId).in('mededeling_id', ids).limit(20_000)),
+  )
+  const fout = antwoorden.find((a) => a.error)
+  if (fout?.error) {
+    log('gelezen lezen', fout.error.message)
     return null
   }
-  return (data ?? []).flatMap((r) => gelezenUitRij(r) ?? [])
+  return antwoorden.flatMap((a) => (a.data ?? []).flatMap((r) => gelezenUitRij(r) ?? []))
 }
 
 /** Alle werkwijzen met de stappen van de huidige versie (ook het archief). */
@@ -101,11 +139,13 @@ export async function haalWerkwijzeBijLijst(admin: SupabaseClient, userId: strin
 /** Wat er voor deze persoon open staat (de regel op Vandaag en de teller). Null bij een fout. */
 export async function haalOpenTelling(admin: SupabaseClient, userId: string, kijker: Kijker, nu: Date): Promise<OpenTelling | null> {
   if (!kijker.profielId) return { mededelingen: 0, werkwijzen: 0 }
+  // Alleen lopende mededelingen: niet gearchiveerd en niet verlopen.
   const { data, error } = await admin
     .from('club_mededelingen')
     .select(MEDEDELING_KOLOMMEN)
     .eq('user_id', userId)
     .eq('gearchiveerd', false)
+    .or(`verloopt_op.is.null,verloopt_op.gt."${nu.toISOString()}"`)
     .order('geplaatst_op', { ascending: false })
     .limit(MAX_MEDEDELINGEN)
   if (error) {
@@ -182,24 +222,30 @@ export async function haalMededeling(admin: SupabaseClient, userId: string, id: 
   return mededelingUitRij(data)
 }
 
-/** Gelezen (en eventueel bevestigd). Een bevestiging blijft staan; gelezen_op blijft het eerste moment. */
+/**
+ * Gelezen (en eventueel bevestigd). Veilig bij twee verzoeken tegelijk: eerst
+ * een regel als die er nog niet is (bestaat hij al, dan verandert er niets, dus
+ * gelezen_op blijft het eerste moment en een bevestiging wordt nooit gewist),
+ * daarna bij bevestigen alleen bevestigd_op zetten waar die nog leeg is.
+ */
 export async function markeerGelezen(admin: SupabaseClient, userId: string, mededelingId: string, profielId: string, bevestig: boolean): Promise<boolean> {
   const nu = new Date().toISOString()
-  const bestaand = await admin.from('club_mededeling_gelezen').select('id, bevestigd_op').eq('user_id', userId).eq('mededeling_id', mededelingId).eq('profiel_id', profielId).maybeSingle()
-  if (bestaand.error) {
-    log('gelezen lezen', bestaand.error.message)
+  const regel = await admin
+    .from('club_mededeling_gelezen')
+    .upsert({ user_id: userId, mededeling_id: mededelingId, profiel_id: profielId, gelezen_op: nu, bevestigd_op: bevestig ? nu : null }, { onConflict: 'mededeling_id,profiel_id', ignoreDuplicates: true })
+  if (regel.error) {
+    log('gelezen bewaren', regel.error.message)
     return false
   }
-  if (bestaand.data) {
-    if (!bevestig || bestaand.data.bevestigd_op) return true
-    const { error } = await admin.from('club_mededeling_gelezen').update({ bevestigd_op: nu }).eq('id', bestaand.data.id).eq('user_id', userId)
-    if (error) log('bevestigen', error.message)
-    return !error
-  }
+  if (!bevestig) return true
   const { error } = await admin
     .from('club_mededeling_gelezen')
-    .upsert({ user_id: userId, mededeling_id: mededelingId, profiel_id: profielId, gelezen_op: nu, bevestigd_op: bevestig ? nu : null }, { onConflict: 'mededeling_id,profiel_id', ignoreDuplicates: false })
-  if (error) log('gelezen bewaren', error.message)
+    .update({ bevestigd_op: nu })
+    .eq('user_id', userId)
+    .eq('mededeling_id', mededelingId)
+    .eq('profiel_id', profielId)
+    .is('bevestigd_op', null)
+  if (error) log('bevestigen', error.message)
   return !error
 }
 
@@ -232,11 +278,45 @@ export async function maakWerkwijze(admin: SupabaseClient, userId: string, w: Ni
 }
 
 /**
- * Een nieuwe versie. Eerst de versie zelf (uniek per werkwijze: twee mensen
- * tegelijk geeft een fout in plaats van een gat), dan het nummer op de
- * werkwijze, alleen als die nog op de oude versie staat.
+ * Uitkomst van een nieuwe versie. 'melding': de versie staat, maar de
+ * verplichte mededeling kon niet geplaatst worden (alleen zonder migratie 492);
+ * de UI biedt dan "Melding opnieuw plaatsen".
  */
-export async function bewaarNieuweVersie(admin: SupabaseClient, userId: string, w: Werkwijze, v: NieuweVersie, door: string | null): Promise<'ok' | 'oud' | 'fout'> {
+export type VersieUitkomst = 'ok' | 'oud' | 'fout' | 'melding'
+
+function functieOntbreekt(error: { code?: string }): boolean {
+  return error.code === 'PGRST202' || error.code === '42883'
+}
+
+/**
+ * Een nieuwe versie: versie, versienummer en (bij een belangrijke wijziging)
+ * de mededeling in een transactie (functie club_werkwijze_nieuwe_versie,
+ * migratie 492). Zonder die functie de oude weg in stappen.
+ */
+export async function bewaarNieuweVersie(admin: SupabaseClient, userId: string, w: Werkwijze, v: NieuweVersie, door: string | null): Promise<VersieUitkomst> {
+  const m = v.mededeling
+  const { data, error } = await admin.rpc('club_werkwijze_nieuwe_versie', {
+    p_user: userId,
+    p_werkwijze: w.id,
+    p_oude_versie: w.versie,
+    p_versie: v.versie,
+    p_stappen: v.stappen,
+    p_wat_anders: v.watAnders,
+    p_door: door,
+    p_mededeling: m ? { titel: m.titel, inhoud: m.inhoud, vestigingen: [...m.vestigingen], rollen: [...m.rollen] } : null,
+  })
+  if (!error) return data === 'ok' ? 'ok' : 'oud'
+  log('nieuwe versie (database-functie)', error.message)
+  if (!functieOntbreekt(error)) return 'fout'
+  return bewaarNieuweVersieInStappen(admin, userId, w, v, door)
+}
+
+/**
+ * Zonder migratie 492: eerst de versie zelf (uniek per werkwijze: twee mensen
+ * tegelijk geeft een fout in plaats van een gat), dan het nummer op de
+ * werkwijze, alleen als die nog op de oude versie staat, dan de mededeling.
+ */
+async function bewaarNieuweVersieInStappen(admin: SupabaseClient, userId: string, w: Werkwijze, v: NieuweVersie, door: string | null): Promise<VersieUitkomst> {
   const versie = await admin.from('club_werkwijze_versies').insert({ user_id: userId, werkwijze_id: w.id, versie: v.versie, stappen: v.stappen, wat_anders: v.watAnders, door_profiel: door })
   if (versie.error) {
     // 23505: deze versie bestaat al (iemand anders was net eerder).
@@ -256,8 +336,18 @@ export async function bewaarNieuweVersie(admin: SupabaseClient, userId: string, 
     await admin.from('club_werkwijze_versies').delete().eq('werkwijze_id', w.id).eq('user_id', userId).eq('versie', v.versie)
     return error ? 'fout' : 'oud'
   }
-  if (v.mededeling && !(await plaatsMededeling(admin, userId, v.mededeling, door))) return 'fout'
+  if (v.mededeling && !(await plaatsMededeling(admin, userId, v.mededeling, door))) return 'melding'
   return 'ok'
+}
+
+/** Staat er al een wijziging-mededeling voor deze versie? Null bij een leesfout. */
+export async function heeftWijzigingMededeling(admin: SupabaseClient, userId: string, werkwijzeId: string, versie: number): Promise<boolean | null> {
+  const { data, error } = await admin.from('club_mededelingen').select('id').eq('user_id', userId).eq('werkwijze_id', werkwijzeId).eq('werkwijze_versie', versie).limit(1)
+  if (error) {
+    log('wijziging-mededeling lezen', error.message)
+    return null
+  }
+  return (data ?? []).length > 0
 }
 
 export async function wijzigWerkwijze(admin: SupabaseClient, userId: string, id: string, meta: WerkwijzeMeta): Promise<boolean | null> {
@@ -306,12 +396,27 @@ export async function bewaarUitvoering(admin: SupabaseClient, userId: string, u:
   return !error
 }
 
-/** Een notitie (titel en tekst) om er een werkwijze van te maken. */
-export async function haalNotitie(admin: SupabaseClient, userId: string, id: string): Promise<{ titel: string; inhoud: string } | null> {
-  const { data, error } = await admin.from('club_kladblok').select('titel, inhoud').eq('id', id).eq('user_id', userId).maybeSingle()
+export interface NotitieBron {
+  titel: string
+  inhoud: string
+  map: string
+  gearchiveerd: boolean
+  /** null = een notitie voor alle vestigingen. */
+  vestiging: string | null
+}
+
+/** Een notitie (titel, tekst, map, archief en vestiging) om er een werkwijze van te maken. */
+export async function haalNotitie(admin: SupabaseClient, userId: string, id: string): Promise<NotitieBron | null> {
+  const { data, error } = await admin.from('club_kladblok').select('titel, inhoud, map, gearchiveerd, vestiging').eq('id', id).eq('user_id', userId).maybeSingle()
   if (error) log('notitie lezen', error.message)
   if (error || !data || typeof data.titel !== 'string') return null
-  return { titel: data.titel, inhoud: typeof data.inhoud === 'string' ? data.inhoud : '' }
+  return {
+    titel: data.titel,
+    inhoud: typeof data.inhoud === 'string' ? data.inhoud : '',
+    map: typeof data.map === 'string' ? data.map : '',
+    gearchiveerd: data.gearchiveerd === true,
+    vestiging: typeof data.vestiging === 'string' ? data.vestiging : null,
+  }
 }
 
 /** Welke notitie is al een werkwijze geworden (notitie naar werkwijze). */

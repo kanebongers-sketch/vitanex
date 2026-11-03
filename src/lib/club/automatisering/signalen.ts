@@ -178,6 +178,8 @@ export interface BestaandeTaak {
   periode: string
   /** Wanneer de taak klaarstond (ISO); nodig om te zien of hij verlopen is. */
   aangemaaktOp?: string
+  /** Wanneer de taak het laatst werd heropend (migratie 492); de 14 dagen tellen dan vanaf daar. */
+  heropendOp?: string | null
 }
 
 export interface Ronde {

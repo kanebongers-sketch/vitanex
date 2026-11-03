@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { eisClubToegang } from '@/lib/club/toegang'
 import { magOnderdeel } from '@/lib/club/beheerders/rechten'
+import { kanBewerken } from '@/lib/club/rollen/wie'
 import { type ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit } from '@/lib/club/kern/vestigingen'
 import { haalKladblok } from '@/lib/club/kladblok/data'
@@ -68,6 +69,7 @@ export default async function PrikbordPagina({ searchParams }: { searchParams: Z
         kanBevestigen={kijker.profielId !== null}
         takenlijsten={takenlijsten}
         notities={metNotities ? notities : undefined}
+        notitiesAlleenLezen={!kanBewerken(t, 'notities')}
         werkwijzeVanNotitie={werkwijzen ? werkwijzeVanNotitie(werkwijzen) : {}}
         startWerkwijze={typeof zoek.w === 'string' ? zoek.w : null}
       />

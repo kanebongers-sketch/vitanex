@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isOudAdres, KAART_TABS, kiesKaartPlek, kiesLidTab, kwamVanLid, lidKaartPad, metVanLid, plekVan, terugNaar } from './tabs'
+import { isOudAdres, KAART_TABS, kiesKaartPlek, kiesLidTab, kwamVanLid, lidKaartPad, metVanLid, oudAdresNaar, plekVan, terugNaar } from './tabs'
 
 const LID = '22222222-2222-4222-8222-222222222222'
 
@@ -102,5 +102,23 @@ describe('terugNaar', () => {
     expect(terugNaar({ ...basis, vanLid: false })).toBe(basis.anders)
     expect(terugNaar({ ...basis, magLeden: false })).toBe(basis.anders)
     expect(terugNaar({ ...basis, lidId: null })).toBe(basis.anders)
+  })
+})
+
+describe('oudAdresNaar: een oud ?tab= blijvend door, met alle zoekparameters', () => {
+  it('van=lid en andere parameters gaan mee, tab wordt vervangen, anker erbij', () => {
+    const pad = oudAdresNaar('l1', 'budel', kiesKaartPlek('contact'), { tab: 'contact', van: 'lid', v: 'eersel', x: ['1', '2'] })
+    const url = new URL(pad, 'https://aiyourgym.com')
+    expect(url.pathname).toBe('/club/leden/l1')
+    expect(url.searchParams.get('van')).toBe('lid')
+    expect(url.searchParams.get('v')).toBe('budel')
+    expect(url.searchParams.getAll('x')).toEqual(['1', '2'])
+    expect(url.searchParams.get('tab')).toBe(plekVan('contact').tab === 'overzicht' ? null : plekVan('contact').tab)
+    expect(url.hash).toBe(plekVan('contact').anker ? `#${plekVan('contact').anker}` : '')
+  })
+
+  it('naar Overzicht zonder ?tab=', () => {
+    const pad = oudAdresNaar('l1', 'budel', { tab: 'overzicht', anker: null }, { tab: 'planning', van: 'lid' })
+    expect(pad).toBe('/club/leden/l1?van=lid&v=budel')
   })
 })

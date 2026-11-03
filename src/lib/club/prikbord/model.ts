@@ -167,19 +167,35 @@ export function nieuweVersie(w: Werkwijze, invoer: NieuweVersieInvoer, titel: (n
     versie,
     stappen: invoer.stappen,
     watAnders: invoer.watAnders,
-    mededeling: invoer.belangrijk
-      ? {
-          titel: titel(w.titel, versie).slice(0, 120),
-          inhoud: invoer.watAnders ?? '',
-          verplicht: true,
-          soort: 'wijziging',
-          werkwijzeId: w.id,
-          werkwijzeVersie: versie,
-          vestigingen: w.vestigingen,
-          rollen: w.rollen,
-        }
-      : null,
+    mededeling: invoer.belangrijk ? wijzigingMededeling(w, versie, invoer.watAnders ?? '', titel) : null,
   }
+}
+
+/** De verplichte mededeling bij een belangrijke wijziging van een werkwijze (versie `versie`). */
+export function wijzigingMededeling(
+  w: Pick<Werkwijze, 'id' | 'titel' | 'vestigingen' | 'rollen'>,
+  versie: number,
+  watAnders: string,
+  titel: (naam: string, versie: number) => string,
+): NieuweMededeling {
+  return {
+    titel: titel(w.titel, versie).slice(0, 120),
+    inhoud: watAnders,
+    verplicht: true,
+    soort: 'wijziging',
+    werkwijzeId: w.id,
+    werkwijzeVersie: versie,
+    vestigingen: w.vestigingen,
+    rollen: w.rollen,
+  }
+}
+
+/**
+ * "Melding opnieuw plaatsen" na een mislukte mededeling: de mededeling voor de
+ * huidige versie, met de zin wat er anders is. Null zonder die zin.
+ */
+export function meldingOpnieuw(w: Werkwijze, titel: (naam: string, versie: number) => string): NieuweMededeling | null {
+  return w.watAnders ? wijzigingMededeling(w, w.versie, w.watAnders, titel) : null
 }
 
 /** De werkwijzen voor deze kijker; de leiding ziet ze allemaal. */

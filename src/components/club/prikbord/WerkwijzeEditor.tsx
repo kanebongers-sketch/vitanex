@@ -45,6 +45,8 @@ export function WerkwijzeEditor({ werkwijze, vestigingen, takenlijsten, onKlaar 
   const [watAnders, setWatAnders] = useState('')
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
+  /** De versie staat, maar de verplichte mededeling lukte niet: het nummer van die versie. */
+  const [meldingMislukt, setMeldingMislukt] = useState<number | null>(null)
 
   const wijzig = (i: number, deel: Partial<Stap>) => setStappen((nu) => nu.map((s, j) => (j === i ? { ...s, ...deel } : s)))
   const schuif = (i: number, r: -1 | 1) =>
@@ -67,8 +69,48 @@ export function WerkwijzeEditor({ werkwijze, vestigingen, takenlijsten, onKlaar 
       : await stuur('/api/club/prikbord/werkwijzen', 'POST', { titel, werkwijzeSoort: soort, vestigingen: gekozenVestigingen, rollen, stappen: schoon, takenlijstId: takenlijstId || null })
     setBezig(false)
     if (!uit.ok) return setFout(uit.fout)
+    const d = uit.data as { versie?: unknown; meldingMislukt?: unknown } | null
+    if (werkwijze && d?.meldingMislukt === true) {
+      setMeldingMislukt(typeof d.versie === 'number' ? d.versie : werkwijze.versie + 1)
+      return router.refresh()
+    }
     onKlaar()
     router.refresh()
+  }
+
+  async function meldingOpnieuw() {
+    if (bezig || !werkwijze) return
+    setBezig(true)
+    setFout(null)
+    const uit = await stuur(`/api/club/prikbord/werkwijzen/${werkwijze.id}`, 'PATCH', { meldingOpnieuw: true })
+    setBezig(false)
+    if (!uit.ok) return setFout(uit.fout)
+    setMeldingMislukt(null)
+    onKlaar()
+    router.refresh()
+  }
+
+  if (meldingMislukt !== null) {
+    return (
+      <div className="pb-formulier club-kaart club-kaart--vlak">
+        <p className="club-melding club-melding--fout" role="alert">
+          {t.meldingMislukt(meldingMislukt)}
+        </p>
+        {fout ? (
+          <p className="club-melding club-melding--fout" role="alert">
+            {fout}
+          </p>
+        ) : null}
+        <div className="pb-acties">
+          <button type="button" className="club-knop club-knop--primair" onClick={() => void meldingOpnieuw()} disabled={bezig}>
+            {bezig ? tekst.formulier.bezig : t.meldingOpnieuw}
+          </button>
+          <button type="button" className="club-knop club-knop--stil" onClick={onKlaar}>
+            {tekst.formulier.annuleren}
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (

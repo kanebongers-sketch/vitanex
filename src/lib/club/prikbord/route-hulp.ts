@@ -7,7 +7,7 @@ import { clubFout, type ClubToegang } from '@/lib/club/toegang'
 import { clubTekst } from '@/lib/aiyourgym/taal/server'
 import { PRIKBORD } from '@/lib/aiyourgym/taal/woorden/club/prikbord'
 import { minstens, type Niveau } from '@/lib/club/rollen/typen'
-import { isEigenaar } from '@/lib/club/rollen/wie'
+import { isEigenaar, isMedewerkerSessie } from '@/lib/club/rollen/wie'
 import { prikbordNiveau } from './toegang'
 import type { Schrijver } from './invoer'
 
@@ -25,8 +25,10 @@ export async function prikbordNiveauFout(t: ClubToegang, drempel: Niveau): Promi
   return minstens(prikbordNiveau(t), drempel) ? null : clubFout((await prikbordFouten()).nietGevonden, 404)
 }
 
+/** Wie schrijft. Alleen een medewerker kan een deel van de vestigingen hebben (zonder vinkje alle vestigingen). */
 export function schrijverVan(t: ClubToegang): Schrijver {
-  return { eigenaar: isEigenaar(t), vestigingen: t.vestigingen.map((v) => v.sleutel) }
+  const alleVestigingen = !isMedewerkerSessie(t) || t.profiel?.alleVestigingen === true
+  return { eigenaar: isEigenaar(t), vestigingen: t.vestigingen.map((v) => v.sleutel), alleVestigingen }
 }
 
 /** De body als JSON, of null. */

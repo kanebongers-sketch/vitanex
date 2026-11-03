@@ -1,6 +1,7 @@
 // POST /api/club/prikbord/werkwijzen: een nieuwe werkwijze (versie 1).
 // Body: { voorbeeld, vestigingen?, rollen? } (een gekozen voorbeeld, nooit
-// automatisch), { notitieId } ("Maak er een werkwijze van") of
+// automatisch), { notitieId } ("Maak er een werkwijze van", alleen een notitie uit
+// de map Kennis, niet gearchiveerd, van een eigen vestiging) of
 // { titel, werkwijzeSoort?, vestigingen?, rollen?, stappen, takenlijstId? }.
 // Vraagt het niveau beheren op het Prikbord.
 
@@ -8,7 +9,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { clubFout, clubJson, logActie, type ClubToegang, vereisClubToegang } from '@/lib/club/toegang'
 import { clubTekst } from '@/lib/aiyourgym/taal/server'
 import { PRIKBORD } from '@/lib/aiyourgym/taal/woorden/club/prikbord'
-import { leesWerkwijze, type WerkwijzeInvoer } from '@/lib/club/prikbord/invoer'
+import { leesWerkwijze, notitieMagWerkwijze, vestigingenVanNotitie, type Schrijver, type WerkwijzeInvoer } from '@/lib/club/prikbord/invoer'
 import { stappenUitTekst } from '@/lib/club/prikbord/model'
 import { haalNotitie, maakWerkwijze, takenlijstBestaat, type NieuweWerkwijze } from '@/lib/club/prikbord/opslag'
 import { profielIdVan } from '@/lib/club/prikbord/toegang'
@@ -19,17 +20,18 @@ type Tekst = (typeof PRIKBORD)['nl']
 type Fout = keyof Tekst['fouten']
 
 /** Van de invoer naar een werkwijze om op te slaan, of een foutsleutel. */
-async function bouw(t: ClubToegang, w: WerkwijzeInvoer, tekst: Tekst): Promise<NieuweWerkwijze | Fout> {
+async function bouw(t: ClubToegang, w: WerkwijzeInvoer, s: Schrijver, tekst: Tekst): Promise<NieuweWerkwijze | Fout> {
   if (w.soort === 'voorbeeld') {
     const v = tekst.voorbeelden[w.voorbeeld]
     return { titel: v.titel, soort: w.voorbeeld, vestigingen: w.vestigingen, rollen: w.rollen, stappen: v.stappen.map((s) => ({ tekst: s.tekst, uitleg: s.uitleg })), takenlijstId: null, bronNotitieId: null }
   }
   if (w.soort === 'notitie') {
     const n = await haalNotitie(t.admin, t.userId, w.notitieId)
-    if (!n) return 'nietGevonden'
+    // Alleen uit de map Kennis, niet gearchiveerd en van een eigen vestiging; anders bestaat hij niet.
+    if (!n || !notitieMagWerkwijze(n, s)) return 'nietGevonden'
     const stappen = stappenUitTekst(n.inhoud, GRENZEN.stappen)
     if (stappen.length === 0) return 'stappen'
-    return { titel: n.titel.slice(0, GRENZEN.titel), soort: 'eigen', vestigingen: [], rollen: [], stappen, takenlijstId: null, bronNotitieId: w.notitieId }
+    return { titel: n.titel.slice(0, GRENZEN.titel), soort: 'eigen', vestigingen: vestigingenVanNotitie(n, s), rollen: [], stappen, takenlijstId: null, bronNotitieId: w.notitieId }
   }
   if (w.takenlijstId && !(await takenlijstBestaat(t.admin, t.userId, w.takenlijstId))) return 'takenlijst'
   return { titel: w.titel, soort: w.werkwijzeSoort, vestigingen: w.vestigingen, rollen: w.rollen, stappen: w.stappen, takenlijstId: w.takenlijstId, bronNotitieId: null }
@@ -41,9 +43,10 @@ export async function POST(req: NextRequest) {
   const geen = await prikbordNiveauFout(t, 'beheren')
   if (geen) return geen
   const tekst = await clubTekst(PRIKBORD)
-  const invoer = leesWerkwijze(await leesBody(req), schrijverVan(t))
+  const schrijver = schrijverVan(t)
+  const invoer = leesWerkwijze(await leesBody(req), schrijver)
   if (!invoer.ok) return clubFout(tekst.fouten[invoer.fout], 400)
-  const nieuw = await bouw(t, invoer.waarde, tekst)
+  const nieuw = await bouw(t, invoer.waarde, schrijver, tekst)
   if (typeof nieuw === 'string') return clubFout(tekst.fouten[nieuw], nieuw === 'nietGevonden' ? 404 : 400)
   const id = await maakWerkwijze(t.admin, t.userId, nieuw, profielIdVan(t))
   if (!id) return clubFout(tekst.fouten.opslaan, 500)

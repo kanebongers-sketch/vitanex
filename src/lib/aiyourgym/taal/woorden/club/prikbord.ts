@@ -108,6 +108,8 @@ export const PRIKBORD = woordenboek({
       watAndersPlaats: 'Bijvoorbeeld: de verlichting gaat nu als laatste uit.',
       opslaan: 'Opslaan',
       opslaanVersie: (n: number) => `Opslaan als versie ${n}`,
+      meldingMislukt: (n: number) => `Versie ${n} is opgeslagen, maar de melding aan het team kon niet geplaatst worden. Het team ziet de wijziging nog niet als verplicht.`,
+      meldingOpnieuw: 'Melding opnieuw plaatsen',
     },
     uitvoeren: {
       kop: (titel: string) => `${titel} uitvoeren`,
@@ -319,6 +321,8 @@ export const PRIKBORD = woordenboek({
       watAndersPlaats: 'For example: the lights now go off last.',
       opslaan: 'Save',
       opslaanVersie: (n: number) => `Save as version ${n}`,
+      meldingMislukt: (n: number) => `Version ${n} has been saved, but the notice to the team could not be posted. The team does not see the change as required yet.`,
+      meldingOpnieuw: 'Post notice again',
     },
     uitvoeren: {
       kop: (titel: string) => `Run ${titel}`,

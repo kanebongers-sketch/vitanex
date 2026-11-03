@@ -18,7 +18,8 @@ function groepeer(lijst: Regel[]): Regel[][] {
   return uit
 }
 
-export function Leesweergave({ inhoud, onVink }: { inhoud: string; onVink: (index: number) => void }) {
+/** Met alleenLezen zijn de vakjes zichtbaar maar niet aan te klikken. */
+export function Leesweergave({ inhoud, onVink, alleenLezen = false }: { inhoud: string; onVink: (index: number) => void; alleenLezen?: boolean }) {
   const t = useTekst(NOTITIES).lees
   if (!inhoud.trim()) return <p className="club-hint">{t.leeg}</p>
   return (
@@ -32,7 +33,7 @@ export function Leesweergave({ inhoud, onVink }: { inhoud: string; onVink: (inde
                 r.soort === 'vink' ? (
                   <li key={r.index}>
                     <label className={r.klaar ? 'kb-vink kb-vink--klaar' : 'kb-vink'}>
-                      <input type="checkbox" checked={r.klaar} onChange={() => onVink(r.index)} />
+                      <input type="checkbox" checked={r.klaar} disabled={alleenLezen} onChange={() => onVink(r.index)} />
                       <span>{r.tekst || t.leegPunt}</span>
                     </label>
                   </li>

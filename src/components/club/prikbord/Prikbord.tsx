@@ -28,6 +28,8 @@ interface Props {
   takenlijsten: readonly TakenlijstKeuze[]
   /** undefined = geen blok Notities (geen recht); null = laden mislukt. */
   notities: KladNotitie[] | null | undefined
+  /** Mag deze persoon notities alleen zien (niet bewerken)? */
+  notitiesAlleenLezen: boolean
   werkwijzeVanNotitie: Readonly<Record<string, string>>
   startWerkwijze: string | null
 }
@@ -81,6 +83,7 @@ export function Prikbord(p: Props) {
               vestiging={p.vestiging}
               begin={p.notities}
               startId={null}
+              alleenLezen={p.notitiesAlleenLezen}
               notitieActie={(n) => <NotitieNaarWerkwijze notitie={n} bestaand={p.werkwijzeVanNotitie[n.id] ?? null} magMaken={p.magBeheren} onOpen={openWerkwijze} />}
             />
           )}

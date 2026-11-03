@@ -35,6 +35,8 @@ export const NOTITIES = woordenboek({
       afgevinkt: (klaar: number, totaal: number) => `${klaar}/${totaal} afgevinkt`,
       notitie: 'Notitie',
       kies: 'Kies links een notitie, of maak een nieuwe.',
+      kiesLezen: 'Kies links een notitie om te lezen.',
+      alleenLezen: 'Je kunt de notities lezen, niet wijzigen.',
       onverwacht: 'Onverwacht antwoord van de server.',
     },
     editor: {
@@ -97,6 +99,8 @@ export const NOTITIES = woordenboek({
       afgevinkt: (klaar: number, totaal: number) => `${klaar}/${totaal} ticked off`,
       notitie: 'Note',
       kies: 'Choose a note on the left, or create a new one.',
+      kiesLezen: 'Choose a note on the left to read it.',
+      alleenLezen: 'You can read the notes, not change them.',
       onverwacht: 'Unexpected response from the server.',
     },
     editor: {

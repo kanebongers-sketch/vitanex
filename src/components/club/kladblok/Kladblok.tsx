@@ -7,6 +7,7 @@ import { MAPPEN, leesKladAntwoord, pastKlad, sorteerKlad, voorproef, type KladMa
 import { stuur } from '@/components/club/leden/stuur'
 import { vinkStand } from '@/lib/club/kladblok/opmaak'
 import { NotitieEditor } from './NotitieEditor'
+import { NotitieLezen } from './NotitieLezen'
 import { useTaal, useTekst } from '@/lib/aiyourgym/taal/client'
 import { formatDatum } from '@/lib/aiyourgym/taal/formaat'
 import { NOTITIES } from '@/lib/aiyourgym/taal/woorden/club/notities'
@@ -21,6 +22,8 @@ interface Props {
   startId: string | null
   /** Een extra actie per notitie (het Prikbord geeft hier "Maak er een werkwijze van"). */
   notitieActie?: (n: KladNotitie) => ReactNode
+  /** Alleen lezen (wie notities mag zien maar niet bewerken): geen nieuwe notitie, geen editor. */
+  alleenLezen?: boolean
 }
 
 /** " · 2/5 afgevinkt" als de notitie afvinkpunten heeft, anders leeg. */
@@ -36,7 +39,7 @@ function zetUrl(id: string | null) {
   window.history.replaceState(null, '', url)
 }
 
-export function Kladblok({ vestiging, begin, startId, notitieActie }: Props) {
+export function Kladblok({ vestiging, begin, startId, notitieActie, alleenLezen = false }: Props) {
   const [notities, setNotities] = useState<KladNotitie[]>(begin)
   const [openId, setOpenId] = useState<string | null>(startId && begin.some((n) => n.id === startId) ? startId : null)
   const [zoek, setZoek] = useState('')
@@ -86,9 +89,13 @@ export function Kladblok({ vestiging, begin, startId, notitieActie }: Props) {
     <div className={`kb${open ? ' kb--open' : ''}`}>
       <aside className="kb-lijst" aria-label={t.label}>
         <div className="kb-lijst-kop">
-          <button type="button" className="club-knop club-knop--primair" onClick={() => void nieuw()} disabled={bezig}>
-            <Plus size={16} aria-hidden /> {t.nieuw}
-          </button>
+          {alleenLezen ? (
+            <p className="club-hint">{t.alleenLezen}</p>
+          ) : (
+            <button type="button" className="club-knop club-knop--primair" onClick={() => void nieuw()} disabled={bezig}>
+              <Plus size={16} aria-hidden /> {t.nieuw}
+            </button>
+          )}
           <label className="kb-zoek">
             <Search size={16} aria-hidden />
             <span className="club-sr">{t.zoekLabel}</span>
@@ -126,10 +133,12 @@ export function Kladblok({ vestiging, begin, startId, notitieActie }: Props) {
         )}
       </aside>
       <section className="kb-editor" aria-label={t.notitie}>
-        {open ? (
+        {open && alleenLezen ? (
+          <NotitieLezen key={open.id} notitie={open} vestiging={vestiging} onSluit={() => kies(null)} actie={notitieActie?.(open)} />
+        ) : open ? (
           <NotitieEditor key={open.id} notitie={open} vestiging={vestiging} onWijziging={vervang} onWeg={weg} onSluit={() => kies(null)} actie={notitieActie?.(open)} />
         ) : (
-          <p className="club-leeg kb-niets">{t.kies}</p>
+          <p className="club-leeg kb-niets">{alleenLezen ? t.kiesLezen : t.kies}</p>
         )}
       </section>
     </div>

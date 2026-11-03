@@ -39,11 +39,22 @@ export function verloopGrens(vandaag: string, dagen = VERLOOP_DAGEN): string {
   return new Date((dagNummer(vandaag.slice(0, 10)) - dagen) * MS_DAG).toISOString().slice(0, 10)
 }
 
-/** Is deze open taak verlopen (langer dan VERLOOP_DAGEN open)? Zonder datum: nee. */
-export function isVerlopen(taak: { status?: string; aangemaaktOp?: string }, vandaag: string, dagen = VERLOOP_DAGEN): boolean {
+const DAG = /^\d{4}-\d{2}-\d{2}$/
+
+/**
+ * Sinds wanneer staat deze taak open (YYYY-MM-DD)? Het laatste van aanmaken en
+ * heropenen, zoals greatest(aangemaakt_op, heropend_op); leeg zonder geldige datum.
+ */
+export function openSinds(taak: { aangemaaktOp?: string; heropendOp?: string | null }): string {
+  const dagen = [taak.aangemaaktOp, taak.heropendOp ?? undefined].map((d) => d?.slice(0, 10) ?? '').filter((d) => DAG.test(d))
+  return dagen.reduce((a, b) => (b > a ? b : a), '')
+}
+
+/** Is deze open taak verlopen (langer dan VERLOOP_DAGEN open sinds aanmaken of heropenen)? Zonder datum: nee. */
+export function isVerlopen(taak: { status?: string; aangemaaktOp?: string; heropendOp?: string | null }, vandaag: string, dagen = VERLOOP_DAGEN): boolean {
   if (taak.status !== undefined && taak.status !== 'open') return false
-  const op = taak.aangemaaktOp?.slice(0, 10) ?? ''
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(op)) return false
+  const op = openSinds(taak)
+  if (op === '') return false
   return op < verloopGrens(vandaag, dagen)
 }
 

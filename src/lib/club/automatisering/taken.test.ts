@@ -117,9 +117,9 @@ describe('leesTaakActie en actieNaarWijziging', () => {
     expect(u.ok && actieNaarWijziging(u.waarde, 'Kane', NU)).toEqual({ notitie: null })
   })
 
-  it('heropen maakt de taak weer open', () => {
+  it('heropen maakt de taak weer open en zet heropend_op op nu (de 14 dagen tellen opnieuw)', () => {
     const u = leesTaakActie({ actie: 'heropen' })
-    expect(u.ok && actieNaarWijziging(u.waarde, 'Kane', NU)).toEqual({ status: 'open', uitkomst: null, afgehandeld_door: null, afgehandeld_op: null })
+    expect(u.ok && actieNaarWijziging(u.waarde, 'Kane', NU)).toEqual({ status: 'open', uitkomst: null, afgehandeld_door: null, afgehandeld_op: null, heropend_op: NU.toISOString() })
   })
 
   it('weigert onbekende acties en te lange notities', () => {

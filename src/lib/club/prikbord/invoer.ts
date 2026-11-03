@@ -35,11 +35,16 @@ function titelVan(v: unknown): string | null {
   return t.length >= 1 && t.length <= GRENZEN.titel ? t : null
 }
 
-/** Een lijst vestigingen: alleen bekende (die van deze persoon), zonder dubbel. Leeg = alle. */
-function vestigingenVan(v: unknown, toegestaan: readonly string[]): string[] | null {
-  if (v === undefined || v === null) return []
-  if (!Array.isArray(v) || !v.every((x) => typeof x === 'string' && toegestaan.includes(x))) return null
-  return [...new Set(v as string[])]
+/**
+ * Een lijst vestigingen: alleen bekende (die van deze persoon), zonder dubbel.
+ * Leeg betekent "alle vestigingen van de sportschool"; dat mag alleen wie ook
+ * alle vestigingen heeft. Anders wordt leeg aangevuld met de eigen vestigingen.
+ */
+export function vestigingenVan(v: unknown, s: Pick<Schrijver, 'vestigingen' | 'alleVestigingen'>): string[] | null {
+  if (v !== undefined && v !== null && (!Array.isArray(v) || !v.every((x) => typeof x === 'string' && s.vestigingen.includes(x)))) return null
+  const lijst = Array.isArray(v) ? [...new Set(v as string[])] : []
+  if (lijst.length > 0 || s.alleVestigingen) return lijst
+  return s.vestigingen.length > 0 ? [...new Set(s.vestigingen)] : null
 }
 
 function rollenVan(v: unknown): Rol[] | null {
@@ -53,11 +58,13 @@ export interface Schrijver {
   eigenaar: boolean
   /** De vestigingen van de schrijver (sleutels). */
   vestigingen: readonly string[]
+  /** Heeft de schrijver alle vestigingen van de sportschool? Alleen dan mag "alle" (een lege lijst). */
+  alleVestigingen: boolean
 }
 
 /** Doelgroep: een clubmanager richt nooit iets aan de eigenaar alleen. */
 function doelgroep(o: Record<string, unknown>, s: Schrijver): Lees<{ vestigingen: string[]; rollen: Rol[] }> {
-  const vestigingen = vestigingenVan(o.vestigingen, s.vestigingen)
+  const vestigingen = vestigingenVan(o.vestigingen, s)
   if (!vestigingen) return { ok: false, fout: 'vestiging' }
   const rollen = rollenVan(o.rollen)
   if (!rollen) return { ok: false, fout: 'rol' }
@@ -164,12 +171,17 @@ export interface WerkwijzeMeta {
   gearchiveerd?: boolean
 }
 
-export type WerkwijzeWijziging = { soort: 'meta'; meta: WerkwijzeMeta } | { soort: 'versie'; versie: NieuweVersieInvoer }
+export type WerkwijzeWijziging = { soort: 'meta'; meta: WerkwijzeMeta } | { soort: 'versie'; versie: NieuweVersieInvoer } | { soort: 'melding' }
 
-/** Een werkwijze wijzigen: de gegevens (titel, voor wie, takenlijst, archief) of een nieuwe versie van de stappen. */
+/**
+ * Een werkwijze wijzigen: de gegevens (titel, voor wie, takenlijst, archief),
+ * een nieuwe versie van de stappen, of { meldingOpnieuw: true } (de verplichte
+ * mededeling van de huidige versie opnieuw plaatsen als die mislukte).
+ */
 export function leesWerkwijzeWijziging(body: unknown, s: Schrijver): Lees<WerkwijzeWijziging> {
   const o = object(body)
   if (!o) return { ok: false, fout: 'ongeldig' }
+  if (o.meldingOpnieuw !== undefined) return o.meldingOpnieuw === true ? { ok: true, waarde: { soort: 'melding' } } : { ok: false, fout: 'ongeldig' }
   if (o.stappen !== undefined) {
     const stappen = leesStappen(o.stappen)
     if (!stappen) return { ok: false, fout: 'stappen' }
@@ -238,4 +250,28 @@ export function leesUitvoering(body: unknown, vestigingen: readonly string[], nu
       lidId: isUuid(o.lidId) ? o.lidId : null,
     },
   }
+}
+
+/** Wat een notitie moet hebben om er een werkwijze van te maken. */
+export interface NotitieKenmerken {
+  map: string
+  gearchiveerd: boolean
+  /** null = een notitie voor alle vestigingen. */
+  vestiging: string | null
+}
+
+/**
+ * Mag deze persoon van deze notitie een werkwijze maken? Alleen uit de map
+ * Kennis, niet uit het archief, en alleen een notitie van een eigen vestiging
+ * (een notitie voor alle vestigingen mag iedereen).
+ */
+export function notitieMagWerkwijze(n: NotitieKenmerken, s: Pick<Schrijver, 'vestigingen'>): boolean {
+  if (n.map !== 'kennis' || n.gearchiveerd) return false
+  return n.vestiging === null || s.vestigingen.includes(n.vestiging)
+}
+
+/** Voor wie de werkwijze uit een notitie is: de vestiging van de notitie, anders alle (of de eigen). */
+export function vestigingenVanNotitie(n: Pick<NotitieKenmerken, 'vestiging'>, s: Pick<Schrijver, 'vestigingen' | 'alleVestigingen'>): string[] {
+  if (n.vestiging !== null) return [n.vestiging]
+  return s.alleVestigingen ? [] : [...new Set(s.vestigingen)]
 }

@@ -12,9 +12,31 @@ import type { LedenRij } from '@/lib/club/leden/lijst'
 import { dagSleutel } from '@/lib/club/leden/tijd'
 import { regelNaarRij, regelsCompleet, type Regel, type RegelSleutel } from './regels'
 import { MIJLPAAL_VENSTER, bepaalAanleidingen, planRonde, type BestaandeTaak, type LidSignaal } from './signalen'
-import { TAAK_KOLOMMEN, taakUitRij, telPerRegel, type Taak } from './taken'
+import { taakKolommen, taakUitRij, telPerRegel, type Taak } from './taken'
 
 const MS_DAG = 86_400_000
+/** Hoe lang "kolom ontbreekt" geldt voordat we opnieuw kijken (dan werkt migratie 492 zonder herstart). */
+const KOLOM_OPNIEUW_MS = 60_000
+
+let heropendStand: { aanwezig: boolean; tot: number } | null = null
+
+/** Alleen voor tests: vergeet wat we over de kolom heropend_op weten. */
+export function vergeetHeropendKolom(): void {
+  heropendStand = null
+}
+
+/**
+ * Bestaat club_opvolgtaken.heropend_op al (migratie 492)? Zo niet, dan valt
+ * de code terug op aangemaakt_op en logt een keer per minuut de fout.
+ * Aanwezig onthouden we voorgoed.
+ */
+export async function heeftHeropendKolom(admin: SupabaseClient, userId: string, nu = Date.now()): Promise<boolean> {
+  if (heropendStand && (heropendStand.aanwezig || nu < heropendStand.tot)) return heropendStand.aanwezig
+  const { error } = await admin.from('club_opvolgtaken').select('heropend_op').eq('user_id', userId).limit(1)
+  if (error) console.error('[club] kolom heropend_op niet te lezen (migratie 492 nog niet uitgevoerd?), terugval op aangemaakt_op', error.message)
+  heropendStand = { aanwezig: !error, tot: nu + KOLOM_OPNIEUW_MS }
+  return !error
+}
 
 /** De zeven regels van een sportschool; null bij een leesfout. */
 export async function haalRegels(admin: SupabaseClient, userId: string): Promise<Regel[] | null> {
@@ -88,14 +110,15 @@ function naarSignaal(rij: LedenRij, totalen: ReadonlyMap<string, Totalen>): LidS
 }
 
 async function haalOpenSleutels(admin: SupabaseClient, userId: string, vestiging: Vestiging): Promise<BestaandeTaak[] | null> {
+  const kolommen = (await heeftHeropendKolom(admin, userId)) ? 'id, lid_id, regel, periode, aangemaakt_op, heropend_op' : 'id, lid_id, regel, periode, aangemaakt_op'
   const rijen = await alleRijen('open opvolgtaken', (van, tot) =>
-    admin.from('club_opvolgtaken').select('id, lid_id, regel, periode, aangemaakt_op').eq('user_id', userId).eq('vestiging', vestiging).eq('status', 'open').order('id').range(van, tot),
+    admin.from('club_opvolgtaken').select(kolommen).eq('user_id', userId).eq('vestiging', vestiging).eq('status', 'open').order('id').range(van, tot),
   )
   if (!rijen) return null
   return rijen.flatMap((r) => {
     const o = r as Record<string, unknown>
     return typeof o.id === 'string' && typeof o.lid_id === 'string' && typeof o.periode === 'string'
-      ? [{ id: o.id, lidId: o.lid_id, regel: o.regel as RegelSleutel, periode: o.periode, aangemaaktOp: typeof o.aangemaakt_op === 'string' ? o.aangemaakt_op : undefined }]
+      ? [{ id: o.id, lidId: o.lid_id, regel: o.regel as RegelSleutel, periode: o.periode, aangemaaktOp: typeof o.aangemaakt_op === 'string' ? o.aangemaakt_op : undefined, heropendOp: typeof o.heropend_op === 'string' ? o.heropend_op : null }]
       : []
   })
 }
@@ -183,20 +206,25 @@ function naarTaken(data: unknown[] | null): Taak[] {
 
 /** Alle open taken van een vestiging. */
 export async function haalOpenTaken(admin: SupabaseClient, userId: string, vestiging: Vestiging): Promise<Taak[] | null> {
+  const kolommen = taakKolommen(await heeftHeropendKolom(admin, userId))
   const rijen = await alleRijen('opvolgtaken', (van, tot) =>
-    admin.from('club_opvolgtaken').select(TAAK_KOLOMMEN).eq('user_id', userId).eq('vestiging', vestiging).eq('status', 'open').order('aangemaakt_op').order('id').range(van, tot),
+    admin.from('club_opvolgtaken').select(kolommen).eq('user_id', userId).eq('vestiging', vestiging).eq('status', 'open').order('aangemaakt_op').order('id').range(van, tot),
   )
   return rijen ? naarTaken(rijen) : null
 }
 
-/** Wat het team de laatste dagen afhandelde (niet wat Club zelf liet vervallen), nieuwste eerst. */
+/**
+ * Wat de laatste dagen is afgehandeld, nieuwste eerst: door het team (gedaan,
+ * overgeslagen) en wat Club als verlopen sloot, zodat Heropen bereikbaar is.
+ * Niet wat vanzelf verviel (de aanleiding klopte niet meer).
+ */
 export async function haalRecentAfgehandeld(admin: SupabaseClient, userId: string, vestiging: Vestiging, nu: Date, dagen = 7, limiet = 30): Promise<Taak[] | null> {
   const { data, error } = await admin
     .from('club_opvolgtaken')
-    .select(TAAK_KOLOMMEN)
+    .select(taakKolommen(await heeftHeropendKolom(admin, userId)))
     .eq('user_id', userId)
     .eq('vestiging', vestiging)
-    .in('status', ['gedaan', 'overgeslagen'])
+    .in('status', ['gedaan', 'overgeslagen', 'verlopen'])
     .gte('afgehandeld_op', new Date(nu.getTime() - dagen * MS_DAG).toISOString())
     .order('afgehandeld_op', { ascending: false })
     .limit(limiet)
@@ -220,7 +248,16 @@ export type Bijgewerkt = { soort: 'ok'; taak: Taak } | { soort: 'niet_gevonden' 
 
 /** Een taak bijwerken, alleen binnen deze sportschool. */
 export async function werkTaakBij(admin: SupabaseClient, userId: string, id: string, wijziging: Record<string, string | null>): Promise<Bijgewerkt> {
-  const { data, error } = await admin.from('club_opvolgtaken').update(wijziging).eq('user_id', userId).eq('id', id).select(TAAK_KOLOMMEN).maybeSingle()
+  const metHeropend = await heeftHeropendKolom(admin, userId)
+  // Zonder migratie 492 bestaat heropend_op niet: dan zonder die kolom opslaan (de fout is al gelogd).
+  const zonder = Object.fromEntries(Object.entries(wijziging).filter(([k]) => k !== 'heropend_op'))
+  const { data, error } = await admin
+    .from('club_opvolgtaken')
+    .update(metHeropend ? wijziging : zonder)
+    .eq('user_id', userId)
+    .eq('id', id)
+    .select(taakKolommen(metHeropend))
+    .maybeSingle()
   if (error) {
     console.error('[club] opvolgtaak bijwerken mislukt', error.message)
     return { soort: 'fout' }

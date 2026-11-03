@@ -4,6 +4,8 @@
 // niet meer klopt (het lid kwam weer, de score herstelde). "Verlopen" zet Club
 // zelf als een taak langer dan 14 dagen open stond (migratie 491, VERLOOP_DAGEN
 // in belijst.ts); de taak blijft bewaard en is terug te zetten met Heropen.
+// Heropen zet heropend_op (migratie 492): de 14 dagen tellen dan vanaf dat
+// moment, anders zou een oude taak meteen weer verlopen.
 
 import { MEDEWERKER_ROLLEN, type MedewerkerRol } from '@/lib/club/kern/medewerker'
 import { REGEL_SLEUTELS, isRegelSleutel, isUuid, type RegelSleutel, type Uitkomst, type Wie } from './regels'
@@ -48,11 +50,21 @@ export interface Taak {
   afgehandeldDoor: string | null
   afgehandeldOp: string | null
   aangemaaktOp: string
+  /** Wanneer de taak het laatst werd heropend (migratie 492), of null. */
+  heropendOp?: string | null
   lid: TaakLid | null
 }
 
-export const TAAK_KOLOMMEN =
+/** Kolommen zonder heropend_op: zolang migratie 492 niet is uitgevoerd. */
+export const TAAK_KOLOMMEN_OUD =
   'id, lid_id, vestiging, regel, periode, waarde, reden, status, rol, medewerker_id, notitie, uitkomst, afgehandeld_door, afgehandeld_op, aangemaakt_op, club_leden(voornaam, achternaam, telefoon, email, profielfoto)'
+
+export const TAAK_KOLOMMEN = TAAK_KOLOMMEN_OUD.replace('aangemaakt_op,', 'aangemaakt_op, heropend_op,')
+
+/** De kolommen om te lezen, met of zonder heropend_op. */
+export function taakKolommen(metHeropend: boolean): string {
+  return metHeropend ? TAAK_KOLOMMEN : TAAK_KOLOMMEN_OUD
+}
 
 function tekst(v: unknown): string | null {
   return typeof v === 'string' && v.trim() !== '' ? v : null
@@ -104,6 +116,7 @@ export function taakUitRij(rij: unknown): Taak | null {
     afgehandeldDoor: tekst(r.afgehandeld_door),
     afgehandeldOp: tekst(r.afgehandeld_op),
     aangemaaktOp: tekst(r.aangemaakt_op) ?? '',
+    heropendOp: tekst(r.heropend_op),
     lid: lidUit(r.club_leden),
   }
 }
@@ -175,7 +188,8 @@ export function leesTaakActie(ruw: unknown): Uitkomst<TaakActie> {
 export function actieNaarWijziging(actie: TaakActie, wie: string, nu: Date): Record<string, string | null> {
   const notitie: Record<string, string | null> = actie.notitie === undefined ? {} : { notitie: actie.notitie }
   if (actie.soort === 'notitie') return { ...notitie }
-  if (actie.soort === 'heropen') return { ...notitie, status: 'open', uitkomst: null, afgehandeld_door: null, afgehandeld_op: null }
+  // heropend_op = nu: de 14 dagen tot verlopen tellen vanaf het heropenen (migratie 492).
+  if (actie.soort === 'heropen') return { ...notitie, status: 'open', uitkomst: null, afgehandeld_door: null, afgehandeld_op: null, heropend_op: nu.toISOString() }
   const uitkomst = actie.soort === 'gedaan' ? actie.uitkomst : null
   return { ...notitie, status: actie.soort, uitkomst, afgehandeld_door: wie.slice(0, 80), afgehandeld_op: nu.toISOString() }
 }

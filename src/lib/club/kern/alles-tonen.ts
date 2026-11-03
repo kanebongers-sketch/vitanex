@@ -42,3 +42,37 @@ export async function haalAllesTonen(admin: SupabaseClient, organisatieId: strin
   }
   return leesAllesTonen((data as { instellingen?: unknown } | null)?.instellingen)
 }
+
+export type AllesTonenOpslag = 'ok' | 'weg' | 'fout'
+
+/** Ontbreekt de database-functie (migratie 492 nog niet uitgevoerd)? */
+function functieOntbreekt(error: { code?: string; message?: string }): boolean {
+  return error.code === 'PGRST202' || error.code === '42883'
+}
+
+/**
+ * Zet alleen het sleuteltje menu.alles_tonen (migratie 492, functie
+ * club_organisatie_alles_tonen: een update in de database, andere sleutels en
+ * gelijktijdige wijzigingen blijven staan). Zonder die functie: lezen en
+ * terugschrijven, met de fout in het log.
+ */
+export async function zetAllesTonen(admin: SupabaseClient, organisatieId: string, beheerderId: string, aan: boolean): Promise<AllesTonenOpslag> {
+  const { data, error } = await admin.rpc('club_organisatie_alles_tonen', { p_org: organisatieId, p_beheerder: beheerderId, p_aan: aan })
+  if (!error) return data === true ? 'ok' : 'weg'
+  console.error('[club] alles tonen via de database-functie mislukt', error.message)
+  if (!functieOntbreekt(error)) return 'fout'
+  const huidig = await admin.from('club_organisaties').select('instellingen').eq('id', organisatieId).eq('beheerder_id', beheerderId).maybeSingle()
+  if (huidig.error) {
+    console.error('[club] instellingen lezen mislukt', huidig.error.message)
+    return 'fout'
+  }
+  if (!huidig.data) return 'weg'
+  const ruw: unknown = (huidig.data as { instellingen?: unknown }).instellingen
+  const schrijf = await admin
+    .from('club_organisaties')
+    .update({ instellingen: metAllesTonen(ruw, aan), bijgewerkt_op: new Date().toISOString() })
+    .eq('id', organisatieId)
+    .eq('beheerder_id', beheerderId)
+  if (schrijf.error) console.error('[club] alles tonen opslaan mislukt', schrijf.error.message)
+  return schrijf.error ? 'fout' : 'ok'
+}

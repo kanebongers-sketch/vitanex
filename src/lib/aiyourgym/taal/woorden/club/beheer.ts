@@ -35,6 +35,8 @@ export const BEHEER = woordenboek({
         label: 'Alles tonen, ook wat nog leeg is',
         uitleg: 'Uit: Taken, Leads, Diensten en Prikbord verschijnen pas als ze gebruikt worden.',
         fout: 'Opslaan lukte niet. Probeer het opnieuw.',
+        nietGevonden: 'Niet gevonden.',
+        invoer: 'Stuur { aan: true } of { aan: false }.',
       },
       acties: {
         huisstijl: { titel: 'Logo uploaden', uitleg: 'Je logo staat in Club, de ledenapp en mails.' },
@@ -159,6 +161,8 @@ export const BEHEER = woordenboek({
         label: 'Show everything, including what is still empty',
         uitleg: 'Off: Tasks, Leads, Shifts and Noticeboard appear once they are used.',
         fout: 'Saving did not work. Please try again.',
+        nietGevonden: 'Not found.',
+        invoer: 'Send { aan: true } or { aan: false }.',
       },
       acties: {
         huisstijl: { titel: 'Upload your logo', uitleg: 'Your logo appears in Club, the member app and emails.' },

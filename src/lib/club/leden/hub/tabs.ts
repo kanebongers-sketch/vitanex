@@ -10,7 +10,8 @@
 // naar het juiste tabblad van het lid. Geen vrije terug-URL: zo kan een link
 // nooit naar een ander adres doorsturen.
 
-import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
+import { VESTIGING_PARAM, clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
+import { doorstuurPad } from '@/lib/club/kern/doorsturen'
 
 /** De tabbladen die de kaart echt heeft. */
 export const KAART_TABS = ['overzicht', 'training', 'lidmaatschap'] as const
@@ -95,6 +96,15 @@ export function lidKaartPad(lidId: string, vestiging: Vestiging, tab: LidTab = S
   const basis = clubPad(pad, vestiging, plek.tab === STANDAARD_TAB ? {} : { tab: plek.tab })
   const doel = anker ?? plek.anker
   return doel ? `${basis}#${doel}` : basis
+}
+
+/**
+ * Een oud adres (?tab=planning, contact, privacy) naar de nieuwe plek: het
+ * nieuwe tabblad met het anker, en alle andere zoekparameters (zoals van=lid) mee.
+ */
+export function oudAdresNaar(lidId: string, vestiging: Vestiging, plek: KaartPlek, zoek: Record<string, string | string[] | undefined>): string {
+  const extra: Record<string, string> = { [VESTIGING_PARAM]: vestiging, ...(plek.tab === STANDAARD_TAB ? {} : { tab: plek.tab }) }
+  return doorstuurPad(`/leden/${encodeURIComponent(lidId)}`, zoek, extra, ['tab'], plek.anker ?? undefined)
 }
 
 /** Begon deze actie op de ledenkaart (?van=lid)? */

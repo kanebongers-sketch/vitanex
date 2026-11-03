@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { eisClubToegang } from '@/lib/club/toegang'
+import { kanBewerken } from '@/lib/club/rollen/wie'
 import { type ZoekParams } from '@/lib/club/kern/vestiging'
 import { kiesUit, naamVan } from '@/lib/club/kern/vestigingen'
 import { GeenVestigingen } from '@/components/club/shell/GeenVestigingen'
@@ -36,7 +37,7 @@ export default async function NotitiesPagina({ searchParams }: { searchParams: Z
       {notities === null ? (
         <p className="club-melding club-melding--fout" role="alert">{tekst.fout}</p>
       ) : (
-        <Kladblok key={vestiging} vestiging={vestiging} begin={notities} startId={n ?? null} />
+        <Kladblok key={vestiging} vestiging={vestiging} begin={notities} startId={n ?? null} alleenLezen={!kanBewerken(t, 'notities')} />
       )}
     </>
   )

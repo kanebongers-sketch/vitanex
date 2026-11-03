@@ -1,7 +1,7 @@
 import { kanBewerken } from '@/lib/club/rollen/wie'
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound, redirect } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { eisModule, type ClubToegang } from '@/lib/club/toegang'
 import { type Vestiging, type ZoekParams } from '@/lib/club/kern/vestiging'
 import { binnenVestigingen, hoortBij, naamVan } from '@/lib/club/kern/vestigingen'
@@ -13,7 +13,7 @@ import { haalVerwijderverzoek } from '@/lib/club/leden/avg/opslag'
 import { healthActief } from '@/lib/club/health/schakelaar'
 import { lidgeldOpen } from '@/lib/club/betalen/plannen/toegang'
 import { kaartRechten, zichtbareLidTabs, type KaartRechten } from '@/lib/club/leden/hub/rechten'
-import { isOudAdres, kiesKaartPlek, kiesLidTab, lidKaartPad, type KaartTab } from '@/lib/club/leden/hub/tabs'
+import { isOudAdres, kiesKaartPlek, kiesLidTab, lidKaartPad, oudAdresNaar, type KaartTab } from '@/lib/club/leden/hub/tabs'
 import { haalLaatsteIntake } from '@/lib/club/nieuwe-leden/intake-opslag'
 import { getTaal } from '@/lib/aiyourgym/taal/server'
 import { tekst } from '@/lib/aiyourgym/taal/woordenboek'
@@ -120,11 +120,9 @@ export default async function LidPagina({ params, searchParams }: { params: Prom
   // Rollen v2: wie een onderdeel alleen mag zien, krijgt dat deel van de kaart in leesmodus.
   const rechten = kaartRechten({ onderdelen: t.onderdelen, modulesUit: t.organisatie.uit, healthAan: healthActief(), lidgeldOpen: betalen, bewerkbaar: (s) => kanBewerken(t, s) })
   const tabs = zichtbareLidTabs(rechten)
-  // Een oud adres (?tab=planning, contact, privacy): door naar het nieuwe tabblad op de juiste sectie.
-  if (isOudAdres(ruw.tab)) {
-    const plek = kiesKaartPlek(ruw.tab, tabs)
-    redirect(lidKaartPad(lid.id, vestiging, plek.tab, plek.anker ?? undefined))
-  }
+  // Een oud adres (?tab=planning, contact, privacy): blijvend door naar het nieuwe tabblad op de
+  // juiste sectie, met alle andere zoekparameters (zoals van=lid) erbij.
+  if (isOudAdres(ruw.tab)) permanentRedirect(oudAdresNaar(lid.id, vestiging, kiesKaartPlek(ruw.tab, tabs), ruw))
   const tab: KaartTab = kiesLidTab(ruw.tab, tabs)
   const coach = kaart.medewerkers.find((m) => m.id === lid.coachId)
   const inhoud: TabInhoud = { t, kaart, vestiging, rechten, nu }
