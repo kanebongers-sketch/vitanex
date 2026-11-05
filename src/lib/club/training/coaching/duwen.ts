@@ -202,7 +202,7 @@ export const COACHING_DUWEN: CoachingBoek = {
     ],
     opstelling: [
       'Ga op de rand van een stevige bank zitten en zet je handen naast je billen, vingers naar voren.',
-      'Schuif je billen van de bank en zet je voeten voor je, knieen gebogen voor de lichtste versie.',
+      'Schuif je billen van de bank en zet je benen gestrekt voor je met je hielen op de grond. Met gebogen knieen is het lichter.',
     ],
     stappen: [
       'Zak door je ellebogen te buigen, je rug blijft dicht bij de bank.',
@@ -217,7 +217,7 @@ export const COACHING_DUWEN: CoachingBoek = {
     ademhaling: 'Adem in terwijl je zakt en adem uit terwijl je omhoog duwt.',
     tempo: '2 tellen omlaag, 1 tel omhoog.',
     makkelijker: 'Zet je voeten dichter bij de bank met je knieen meer gebogen, zodat je benen meer gewicht dragen.',
-    zwaarder: 'Strek je benen of leg je hielen op een tweede bank.',
+    zwaarder: 'Leg je hielen op een tweede bank of leg een schijf op je schoot.',
   },
 
   'Dips voor de borst': {

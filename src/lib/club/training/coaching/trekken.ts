@@ -171,12 +171,13 @@ export const COACHING_TREKKEN: CoachingBoek = {
     ],
     opstelling: [
       'Zit op het einde van een bank met je voeten breed en plat op de grond.',
-      'Leun iets voorover en zet je elleboog tegen de binnenkant van je bovenbeen, de dumbbell hangt tussen je benen.',
+      'Leun iets voorover en zet je elleboog tegen de binnenkant van je bovenbeen, de dumbbell hangt tussen je benen. Leg je andere hand op je knie.',
     ],
     stappen: [
       'Begin met je arm bijna gestrekt en je handpalm naar voren.',
       'Krul de dumbbell naar je schouder zonder dat je bovenarm beweegt.',
       'Knijp kort aan en laat de dumbbell langzaam zakken.',
+      'Zet de dumbbell na je laatste herhaling op de grond tussen je voeten en pak hem met je andere hand voor de andere kant.',
     ],
     fouten: [
       { fout: 'Elleboog los van je been', beter: 'Houd je bovenarm tegen je been gedrukt, dan blijft je schouder buiten spel.' },

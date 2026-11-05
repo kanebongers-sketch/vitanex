@@ -156,6 +156,22 @@ export const UITVOERING: Readonly<Record<string, UitvoeringRegel>> = {
   'trx-row': t(2, 0, 1, 0.5, 'TRX row: 1 sec omhoog trekken, kort vast, 2 sec terug.'),
   'medicine-ball-slam': t(1.5, 0.5, 0.4, 0.5, 'Medicine ball slam: explosief slaan in 0,4 sec, oppakken en in 1,5 sec rustig weer boven het hoofd.'),
   'wall-ball': t(1, 0.3, 0.6, 1.2, 'Wall ball: 1 sec squat omlaag, explosief omhoog en gooien in 0,6 sec, de bal vangen; ongeveer 3 sec per herhaling.'),
+
+  // Golf 7, de restlijst (05-11-2026): tellen gelijk aan de coaching.
+  'bankdrukken-met-barbell': t(2.5, 0.5, 1, 0, 'Bankdrukken: 2 tot 3 sec zakken tot de borst, kort stil, krachtig omhoog in 1 sec.'),
+  'bankdrukken-met-smalle-greep': t(2, 0.5, 1, 0, 'Bankdrukken smalle greep: 2 sec zakken met de ellebogen langs het lijf, kort stil, 1 sec omhoog.'),
+  'dumbbell-bankdrukken': t(2.5, 0.5, 1, 0, 'Dumbbell bankdrukken: 2 tot 3 sec zakken naast de borst, kort stil, 1 sec omhoog.'),
+  'schuin-bankdrukken-met-barbell': t(2.5, 0.5, 1, 0, 'Schuin bankdrukken: 2 tot 3 sec zakken naar de bovenste borst, kort stil, 1 sec omhoog.'),
+  'schuin-bankdrukken-met-dumbbells': t(2.5, 0.5, 1, 0, 'Schuin bankdrukken met dumbbells: 2 tot 3 sec zakken, kort stil, 1 sec omhoog.'),
+  'dips-op-een-bank': t(2, 0, 1, 0, 'Dips op een bank: 2 sec zakken, 1 sec omhoog.'),
+  'push-up-met-handen-verhoogd': t(2, 0.5, 1, 0, 'Push-up met handen verhoogd: 2 sec zakken, kort stil, 1 sec omhoog.'),
+  'push-up-met-voeten-verhoogd': t(2, 0.5, 1, 0, 'Push-up met voeten verhoogd: 2 sec zakken, kort stil, 1 sec omhoog.'),
+  'hip-thrust-met-barbell': t(2, 0, 1, 1, 'Hip thrust: 1 sec omhoog, 1 sec bovenin knijpen, 2 sec omlaag.'),
+  concentratiecurl: t(3, 0, 1, 1, 'Concentratiecurl: 1 sec omhoog, 1 sec stil, 3 sec omlaag; elke kant een herhaling.'),
+  'zijwaarts-buigen-met-dumbbell': t(2, 0.5, 2, 0, 'Zijwaarts buigen: 2 sec opzij, kort stil, 2 sec terug; elke kant een herhaling.'),
+  'lat-pulldown-met-onderhandse-greep': t(2.5, 0, 1, 0.5, 'Lat pulldown onderhands: 1 sec omlaag, kort stil, 2 tot 3 sec omhoog.'),
+  'trap-bar-deadlift': t(2, 0, 1, 0.5, 'Trap bar deadlift: 1 sec omhoog, kort stil, 2 sec terug naar de grond.'),
+  'face-pull': t(2, 0, 1, 1, 'Face pull: 1 sec trekken, 1 sec vasthouden, 2 sec terug.'),
   'nordic-hamstring-curl': t(3.5, 0.5, 1.5, 0.5, 'Nordic: 3 tot 4 sec remmend voorover zakken, opvangen op de handen, in 1,5 sec terug omhoog.'),
 
   // Duwen
@@ -231,6 +247,8 @@ export const UITVOERING: Readonly<Record<string, UitvoeringRegel>> = {
   crosstrainer: HOUDEN('Crosstrainer op tijd: een omwenteling per lus, de speler telt seconden.'),
   traploper: HOUDEN('Traploper op tijd: twee stappen per lus, de speler telt seconden.'),
   roeiergometer: HOUDEN('Roeiergometer op tijd: een haal per lus (ongeveer 24 per minuut), de speler telt seconden.'),
+  // Golf 7 (05-11-2026): op tijd, zoals de farmer walk.
+  'suitcase-carry': HOUDEN('Dragen op tijd: rustig wandeltempo met een kettlebell aan een kant, twee passen per lus, de speler telt seconden.'),
 }
 
 export function isHoudregel(r: UitvoeringRegel): r is Houdregel {

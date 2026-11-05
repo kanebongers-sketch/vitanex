@@ -271,6 +271,27 @@ const BEWEGING = {
   crosstrainer: { heen_is: 'concentrisch', soort: 'vasthouden' },
   traploper: { heen_is: 'concentrisch', soort: 'vasthouden' },
   roeiergometer: { heen_is: 'concentrisch', soort: 'vasthouden' },
+  // Golf 7, de restlijst (05-11-2026). Drukken, dips en push-ups zakken eerst; hip thrust, curl, buigen terug omhoog, pulldown, trap bar en face pull trekken of strekken eerst.
+  'bankdrukken-met-barbell': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'bankdrukken-met-smalle-greep': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'dumbbell-bankdrukken': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'schuin-bankdrukken-met-barbell': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'schuin-bankdrukken-met-dumbbells': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'dips-op-een-bank': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'push-up-met-handen-verhoogd': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'push-up-met-voeten-verhoogd': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'hip-thrust-met-barbell': { heen_is: 'concentrisch', soort: 'herhaling' },
+  concentratiecurl: { heen_is: 'concentrisch', soort: 'herhaling' },
+  'zijwaarts-buigen-met-dumbbell': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'lat-pulldown-met-onderhandse-greep': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'trap-bar-deadlift': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'face-pull': { heen_is: 'concentrisch', soort: 'herhaling' },
+  // Op tijd, zoals de farmer walk: lopen met een dumbbell aan een kant.
+  'suitcase-carry': {
+    heen_is: 'concentrisch',
+    soort: 'vasthouden',
+    tempo: [[0, 0], [1, 0], [24, 1], [25, 1], [47, 0], [48, 0]],
+  },
 }
 
 /** Instellingen per bestand: kwaliteit en inspanning van libwebp. */
@@ -623,8 +644,8 @@ async function verwerk(bron, slug) {
   const beweging = BEWEGING[slug]
   if (!beweging) throw new Error(`${slug} staat niet in BEWEGING (heen_is en soort): voeg hem toe`)
   const losePose = poseVan(bron, slug)
-  // Een pose zonder tempo of sleutels (farmer walk) krijgt het tempo uit BEWEGING.
-  const pose = losePose.tempo || losePose.sleutels || !beweging.tempo ? losePose : { ...losePose, tempo: beweging.tempo }
+  // Een pose zonder tempo of sleutels (farmer walk, suitcase carry met een leeg tempo) krijgt het tempo uit BEWEGING.
+  const pose = losePose.tempo?.length || losePose.sleutels || !beweging.tempo ? losePose : { ...losePose, tempo: beweging.tempo }
   const { losseMaten, ...maat } = await maakBestanden(bron, slug, uit)
   const fasen = fasenVoorPose(pose, maat.beelden)
   const bytes = Object.fromEntries(BESTANDEN.map((b) => [b, statSync(join(uit, `${b}.webp`)).size]))

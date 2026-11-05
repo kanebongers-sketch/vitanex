@@ -97,7 +97,7 @@ describe('andere materiaalfilters (lid-voorstel)', () => {
   })
 
   it('een oude oefening zonder render blijft onkiesbaar', () => {
-    const oud = oefeningUitRij({ id: 'x', naam: 'Face pull', spiergroep: 'rug', materiaal: 'kabel', patroon: 'trekken_verticaal', actief: true, gearchiveerd: true })
+    const oud = oefeningUitRij({ id: 'x', naam: 'Pallof press', spiergroep: 'rug', materiaal: 'kabel', patroon: 'trekken_verticaal', actief: true, gearchiveerd: true })
     expect(oud && kiesbaarVoorLid(oud)).toBe(false)
   })
 })

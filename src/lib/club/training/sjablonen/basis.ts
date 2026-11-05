@@ -86,6 +86,7 @@ const BOVEN_ONDER: BasisSjabloon = {
     {
       titel: 'Bovenlichaam 1',
       regels: [
+        r('Bankdrukken met barbell', 4, '6-8', 150, { rir: 2, tempo: '3010' }),
         r('Overhead press', 4, '6-8', 150, { rir: 2 }),
         r('Barbell row', 4, '8-10', 120, { rir: 2 }),
         r('Pull-up', 3, '5-8', 120, { rir: 2, notitie: 'Lukt het nog niet, doe dan de negatieve pull-up.' }),
@@ -119,6 +120,7 @@ const BOVEN_ONDER: BasisSjabloon = {
         r('Skull crusher', 3, '10-12', 0, { groep: 1 }),
         r('Hammer curl', 3, '10-12', 75, { groep: 1 }),
         r('Reverse fly', 3, '12-15', 60),
+        r('Face pull', 3, '12-15', 60, { tempo: '2011' }),
       ],
     },
     {
@@ -127,6 +129,7 @@ const BOVEN_ONDER: BasisSjabloon = {
         r('Deadlift', 4, '5-6', 180, { rir: 2 }),
         r('Front squat', 3, '6-8', 150, { rir: 2 }),
         r('Leg press', 3, '10-12', 120, { rir: 2 }),
+        r('Hip thrust met barbell', 3, '8-12', 90, { rir: 2, tempo: '2011' }),
         r('Lunge met dumbbells', 3, '8-10', 90, { rir: 2, notitie: 'Per been.' }),
         r('Back extension', 3, '10-12', 60, { tempo: '2011' }),
         r('Glute bridge op een been', 3, '10-12', 0, { groep: 1, notitie: 'Per been.' }),
