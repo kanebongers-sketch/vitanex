@@ -51,7 +51,8 @@ export const UITVOERING_GRENZEN = {
   maxBeweging: 4,
   maxPauze: 3,
   minHerhaling: 0.6,
-  maxHerhaling: 8,
+  // 10 sinds golf 10 (05-11-2026): een Turkish get-up op en neer duurt ongeveer 9 tot 10 sec.
+  maxHerhaling: 10,
 } as const
 
 /** Tempo in de volgorde excentrisch, pauze gerekt, concentrisch, pauze samen. */
@@ -184,6 +185,9 @@ export const UITVOERING: Readonly<Record<string, UitvoeringRegel>> = {
   'eenarmige-lat-pulldown': t(2, 0, 1, 0.5, 'Eenarmige lat pulldown: 1 sec omlaag trekken, kort vast, 2 sec terug; elke kant een herhaling.'),
   'landmine-press': t(2, 0, 1, 0, 'Landmine press: 1 sec schuin omhoog duwen, 2 sec terug naar de schouder; elke kant een herhaling.'),
   'pallof-press': t(2, 0, 2, 2, 'Pallof press: 2 sec uitduwen, 2 sec vasthouden zonder te draaien, 2 sec terug; elke kant een herhaling.'),
+
+  // Golf 10 (05-11-2026): wisselend (rechts is het spiegelbeeld van links); een keer op en neer is een herhaling, elke kant een herhaling.
+  'turkish-get-up': t(4, 1, 4, 0.5, 'Turkish get-up: ongeveer 4 sec stap voor stap omhoog tot staan, 4 sec dezelfde weg terug, kort stil bovenin en onderin (samen 9,5 sec); elke kant een herhaling.'),
   'nordic-hamstring-curl': t(3.5, 0.5, 1.5, 0.5, 'Nordic: 3 tot 4 sec remmend voorover zakken, opvangen op de handen, in 1,5 sec terug omhoog.'),
 
   // Duwen

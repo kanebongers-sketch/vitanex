@@ -140,6 +140,15 @@ describe('koppeling render en oefening', () => {
     for (const naam of golf9) expect(isStandaardOefening(naam), naam).toBe(true)
   })
 
+  it('golf 10 (05-11-2026): de Turkish get-up is kiesbaar, en migratie 499 haalt precies die uit het archief', () => {
+    const sql = readFileSync(join(process.cwd(), 'supabase/lifeos-migrations/499_club_oefeningen_golf10_uit_archief.sql'), 'utf8')
+    const golf10 = [...sql.matchAll(/^\s*\('((?:[^']|'')+)'\)/gm)].map((m) => m[1].replace(/''/g, "'"))
+    expect(golf10).toEqual(['Turkish get-up'])
+    expect(sql).not.toMatch(/(delete|drop|truncate)/i)
+    expect(golf10.filter((n) => !isBlenderOefening(n))).toEqual([])
+    for (const naam of golf10) expect(isStandaardOefening(naam), naam).toBe(true)
+  })
+
   it('onbekend of geen tekst is geen Blender-oefening', () => {
     expect(isBlenderOefening('Bestaat niet')).toBe(false)
     expect(isBlenderOefening(null)).toBe(false)
@@ -214,11 +223,12 @@ describe('voorstel met alleen de Blender-oefeningen', () => {
 
 describe('telKiesbareOefeningen (instellingencentrum, 29-10-2026)', () => {
   it('telt de Blender-oefeningen plus de eigen oefeningen, nooit het archief of wat uit staat', () => {
-    const archief = REPDB_ALLE_KOPPELINGEN.map((k) => k.naam).find((n) => hoortInArchief(n))
-    expect(archief).toBeDefined()
+    // Sinds golf 10 (05-11-2026) hoort geen enkele oefening uit de standaardbibliotheek
+    // meer in het archief; een oude eigen oefening in het archief telt ook niet mee.
+    expect(REPDB_ALLE_KOPPELINGEN.map((k) => k.naam).filter((n) => hoortInArchief(n))).toEqual([])
     const rijen = [
       ...BLENDER_OEFENINGEN.map((o) => ({ naam: o.naam, actief: true, gearchiveerd: false })),
-      { naam: archief!, actief: true, gearchiveerd: true },
+      { naam: 'Oude eigen oefening in het archief', actief: true, gearchiveerd: true },
       { naam: 'Eigen oefening van de sportschool', actief: true, gearchiveerd: false },
       { naam: 'Eigen oefening die uit staat', actief: false, gearchiveerd: false },
     ]

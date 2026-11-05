@@ -97,8 +97,16 @@ describe('andere materiaalfilters (lid-voorstel)', () => {
   })
 
   it('een oude oefening zonder render blijft onkiesbaar', () => {
-    const oud = oefeningUitRij({ id: 'x', naam: 'Turkish get-up', spiergroep: 'hele_lichaam', materiaal: 'kettlebell', patroon: 'core', actief: true, gearchiveerd: true })
+    // Sinds golf 10 (05-11-2026) heeft elke oefening uit de standaardbibliotheek een render;
+    // daarom een naam zonder render, zoals een oude eigen oefening in het archief.
+    const oud = oefeningUitRij({ id: 'x', naam: 'Oude oefening zonder beeld', spiergroep: 'hele_lichaam', materiaal: 'kettlebell', patroon: 'core', actief: true, gearchiveerd: true })
+    expect(oud).not.toBeNull()
     expect(oud && kiesbaarVoorLid(oud)).toBe(false)
+  })
+
+  it('dezelfde rij met een render is wel kiesbaar (de render maakt het verschil)', () => {
+    const met = oefeningUitRij({ id: 'y', naam: 'Turkish get-up', spiergroep: 'hele_lichaam', materiaal: 'kettlebell', patroon: 'core', actief: true, gearchiveerd: true })
+    expect(met && kiesbaarVoorLid(met)).toBe(true)
   })
 })
 

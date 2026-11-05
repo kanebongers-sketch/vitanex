@@ -13442,6 +13442,107 @@ export const OEFENRENDER_DATA = [
     }
   },
   {
+    "slug": "turkish-get-up",
+    "naam": "Turkish get-up",
+    "spieren": [
+      "schouder",
+      "romp",
+      "bil",
+      "bovenarm"
+    ],
+    "spierenSecundair": [],
+    "breedte": 1332,
+    "hoogte": 1332,
+    "fps": 24,
+    "beelden": 216,
+    "maten": {
+      "lus-hd": 1332,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1332,
+      "piek": 1332,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9602,
+    "versie": "6795d7b0",
+    "bytes": {
+      "lus-hd": 5097906,
+      "lus": 3800782,
+      "lus-klein": 2176524,
+      "begin": 27956,
+      "piek": 30580,
+      "begin-klein": 9948,
+      "piek-klein": 10912
+    },
+    "frames": {
+      "aantal": 216,
+      "fps": 24,
+      "versie": "40dcb602",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 2450802
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 4261780
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          3
+        ],
+        "heen": [
+          3,
+          51
+        ],
+        "houden_ver": [
+          51,
+          57
+        ],
+        "terug": [
+          57,
+          108
+        ],
+        "rust_eind": [
+          108,
+          108
+        ]
+      },
+      "wisselend": true,
+      "fasen_rechts": {
+        "rust_begin": [
+          108,
+          111
+        ],
+        "heen": [
+          111,
+          159
+        ],
+        "houden_ver": [
+          159,
+          165
+        ],
+        "terug": [
+          165,
+          216
+        ],
+        "rust_eind": [
+          216,
+          216
+        ]
+      },
+      "heen_is": "concentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
     "slug": "upright-row-met-dumbbells",
     "naam": "Upright row met dumbbells",
     "spieren": [

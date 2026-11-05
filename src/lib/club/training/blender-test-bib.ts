@@ -184,4 +184,6 @@ export const BLENDER_BIB: readonly Oefening[] = [
   oef('Eenarmige lat pulldown', 'trekken_verticaal', 'rug', 'kabel', 2, ['schouder'], ['latissimus']),
   oef('Landmine press', 'duwen_verticaal', 'schouders', 'barbell', 2, ['schouder'], ['voorste_schouder']),
   oef('Pallof press', 'core', 'buik', 'kabel', 1, [], ['schuine_buikspieren', 'diepe_buikspier']),
+  // Golf 10 (05-11-2026), kenmerken gelezen uit club_oefeningen. Wisselend (rechts gespiegeld).
+  oef('Turkish get-up', 'core', 'hele_lichaam', 'kettlebell', 3, ['schouder'], ['voorste_schouder', 'diepe_buikspier', 'bilspieren']),
 ]

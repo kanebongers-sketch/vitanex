@@ -302,6 +302,8 @@ const BEWEGING = {
   'eenarmige-lat-pulldown': { heen_is: 'concentrisch', soort: 'herhaling' },
   'landmine-press': { heen_is: 'concentrisch', soort: 'herhaling' },
   'pallof-press': { heen_is: 'concentrisch', soort: 'herhaling' },
+  // Golf 10 (05-11-2026): wisselend met "wissel": "beeld", een herhaling is een keer op en neer.
+  'turkish-get-up': { heen_is: 'concentrisch', soort: 'herhaling' },
 }
 
 /** Instellingen per bestand: kwaliteit en inspanning van libwebp. */
