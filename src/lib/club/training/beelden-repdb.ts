@@ -16,6 +16,8 @@
 // 395_club_oefening_repdb.sql, 400_club_oefeningen_repdb_vervangen.sql en
 // 444_club_oefeningen_uitbreiding.sql (zetten de paden in de database).
 
+import { STANDAARD_500_NAMEN } from './standaard-500-namen'
+
 export interface RepdbKoppeling {
   naam: string
   id: string
@@ -233,7 +235,14 @@ export const REPDB_KOPPELING_444: readonly RepdbKoppeling[] = [
 /** Alle oefeningen met een RepDB-beeld: samen precies de actieve standaardbibliotheek. */
 export const REPDB_ALLE_KOPPELINGEN: readonly RepdbKoppeling[] = [...REPDB_KOPPELING, ...REPDB_KOPPELING_400, ...REPDB_KOPPELING_444]
 
-const STANDAARD_NAMEN: ReadonlySet<string> = new Set(REPDB_ALLE_KOPPELINGEN.map((k) => k.naam))
+/**
+ * Alle namen van de standaardbibliotheek: de oefeningen met een RepDB-koppeling
+ * plus de uitbreiding van migratie 500 (eigen oefeningen zonder RepDB-beeld, die
+ * pas kiesbaar worden met een eigen Blender-render).
+ */
+export const STANDAARD_OEFENING_NAMEN: readonly string[] = [...REPDB_ALLE_KOPPELINGEN.map((k) => k.naam), ...STANDAARD_500_NAMEN]
+
+const STANDAARD_NAMEN: ReadonlySet<string> = new Set(STANDAARD_OEFENING_NAMEN)
 
 /**
  * Hoort deze oefening bij de standaardbibliotheek van AI Your Gym? Alleen die

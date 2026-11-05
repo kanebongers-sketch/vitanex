@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { REPDB_ALLE_KOPPELINGEN, REPDB_GEEN_MATCH } from '../beelden-repdb'
+import { REPDB_GEEN_MATCH, STANDAARD_OEFENING_NAMEN } from '../beelden-repdb'
 import { COACHING_BOEKEN, coachingSleutel, coachingVoor } from './index'
 import { GRENZEN, leesCoaching } from './invoer'
 import type { Coaching } from './typen'
@@ -41,12 +41,12 @@ const MEDISCH = /\b(voorkomt blessures|blessures voorkomen|voorkom je blessures|
 
 describe('coaching per oefening', () => {
   it('dekt elke actieve oefening uit de standaardbibliotheek', () => {
-    const zonder = REPDB_ALLE_KOPPELINGEN.map((k) => k.naam).filter((naam) => coachingVoor(naam) === null)
+    const zonder = STANDAARD_OEFENING_NAMEN.filter((naam) => coachingVoor(naam) === null)
     expect(zonder).toEqual([])
   })
 
   it('heeft geen coaching voor oefeningen die niet (meer) in de bibliotheek staan', () => {
-    const bekend = new Set([...REPDB_ALLE_KOPPELINGEN.map((k) => k.naam), ...REPDB_GEEN_MATCH].map(coachingSleutel))
+    const bekend = new Set([...STANDAARD_OEFENING_NAMEN, ...REPDB_GEEN_MATCH].map(coachingSleutel))
     const los = ALLES.map(([naam]) => naam).filter((naam) => !bekend.has(coachingSleutel(naam)))
     expect(los).toEqual([])
   })

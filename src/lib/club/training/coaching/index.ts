@@ -12,6 +12,10 @@ import { COACHING_SCHOUDERS_CARDIO } from './schouders-cardio'
 import { COACHING_BUIK } from './buik'
 import { COACHING_AANVULLING_ONDER } from './aanvulling-onder'
 import { COACHING_AANVULLING_BOVEN } from './aanvulling-boven'
+import { COACHING_UITBREIDING_500_A } from './uitbreiding-500-a'
+import { COACHING_UITBREIDING_500_B } from './uitbreiding-500-b'
+import { COACHING_UITBREIDING_500_C } from './uitbreiding-500-c'
+import { COACHING_UITBREIDING_500_D } from './uitbreiding-500-d'
 
 export const COACHING_BOEKEN: readonly CoachingBoek[] = [
   COACHING_BENEN,
@@ -22,6 +26,10 @@ export const COACHING_BOEKEN: readonly CoachingBoek[] = [
   COACHING_BUIK,
   COACHING_AANVULLING_ONDER,
   COACHING_AANVULLING_BOVEN,
+  COACHING_UITBREIDING_500_A,
+  COACHING_UITBREIDING_500_B,
+  COACHING_UITBREIDING_500_C,
+  COACHING_UITBREIDING_500_D,
 ]
 
 /** Sleutel zonder verschil in hoofdletters of dubbele spaties. */
