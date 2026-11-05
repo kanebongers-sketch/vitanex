@@ -102,6 +102,7 @@ const BOVEN_ONDER: BasisSjabloon = {
         r('Roemeense deadlift met barbell', 3, '8-10', 120, { rir: 2, tempo: '3110' }),
         r('Bulgarian split squat', 3, '8-10', 90, { rir: 2, notitie: 'Per been.' }),
         r('Step-up', 2, '8-10', 75, { notitie: 'Per been.' }),
+        r('Leg curl liggend', 3, '10-12', 75, { rir: 2 }),
         r('Calf raise met lichaamsgewicht', 3, '15-20', 0, { groep: 1, tempo: '1130' }),
         t('Plank', 3, 40, 60, { groep: 1 }),
       ],
@@ -124,6 +125,7 @@ const BOVEN_ONDER: BasisSjabloon = {
       regels: [
         r('Deadlift', 4, '5-6', 180, { rir: 2 }),
         r('Front squat', 3, '6-8', 150, { rir: 2 }),
+        r('Leg press', 3, '10-12', 120, { rir: 2 }),
         r('Lunge met dumbbells', 3, '8-10', 90, { rir: 2, notitie: 'Per been.' }),
         r('Glute bridge op een been', 3, '10-12', 0, { groep: 1, notitie: 'Per been.' }),
         t('Zijplank', 3, 30, 60, { groep: 1, notitie: 'Per kant.' }),
@@ -146,6 +148,7 @@ const PPL: BasisSjabloon = {
       regels: [
         r('Overhead press', 5, '3-5', 180, { rir: 2 }),
         r('Schuine dumbbell fly', 3, '8-12', 90, { rir: 2, tempo: '3010' }),
+        r('Chest press machine', 3, '10-12', 90, { rir: 2 }),
         r('Push-up met smalle handen', 3, '8-12', 90, { tempo: '3110' }),
         r('Cable crossover', 3, '12-15', 60, { tempo: '2011' }),
         r('Triceps pushdown', 3, '10-12', 60),
@@ -172,6 +175,7 @@ const PPL: BasisSjabloon = {
         r('Back squat', 5, '3-5', 180, { rir: 2, tempo: '3110' }),
         r('Roemeense deadlift met barbell', 3, '6-8', 150, { rir: 2 }),
         r('Lunge met barbell', 3, '6-8', 120, { notitie: 'Per been.' }),
+        r('Leg extension', 3, '12-15', 60),
         r('Nordic hamstring curl', 3, '4-6', 120, { notitie: 'Zo langzaam mogelijk zakken.' }),
         r('Calf raise met lichaamsgewicht', 3, '15-20', 60, { tempo: '1130' }),
       ],

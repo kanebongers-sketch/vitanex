@@ -119,8 +119,8 @@ export const COACHING_AANVULLING_BOVEN: CoachingBoek = {
       { punt: 'Rustig terug', uitleg: 'Laat de handvatten gecontroleerd terugkomen tot ongeveer een rechte hoek in je ellebogen.' },
     ],
     opstelling: [
-      'Stel de zitting zo in dat de handvatten in de beginstand ongeveer op borsthoogte zitten.',
-      'Zit met je rug tegen de leuning en pak de handvatten naast je.',
+      'Stel de zitting zo in dat de handvatten in de beginstand net onder je borst naast je romp zitten.',
+      'Zit met je rug tegen de leuning en pak de schuine handvatten naast je, handpalmen naar binnen.',
     ],
     stappen: [
       'Duw de handvatten omlaag tot je armen gestrekt zijn.',

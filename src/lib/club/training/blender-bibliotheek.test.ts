@@ -95,6 +95,15 @@ describe('koppeling render en oefening', () => {
     for (const naam of golf4) expect(isStandaardOefening(naam), naam).toBe(true)
   })
 
+  it('golf 5 (05-11-2026): de 25 machinerenders zijn kiesbaar, en migratie 494 haalt precies die uit het archief', () => {
+    const sql = readFileSync(join(process.cwd(), 'supabase/lifeos-migrations/494_club_oefeningen_golf5_uit_archief.sql'), 'utf8')
+    const golf5 = [...sql.matchAll(/^\s*\('((?:[^']|'')+)'\)/gm)].map((m) => m[1].replace(/''/g, "'"))
+    expect(golf5).toHaveLength(25)
+    expect(sql).not.toMatch(/(delete|drop|truncate)/i)
+    expect(golf5.filter((n) => !isBlenderOefening(n))).toEqual([])
+    for (const naam of golf5) expect(isStandaardOefening(naam), naam).toBe(true)
+  })
+
   it('onbekend of geen tekst is geen Blender-oefening', () => {
     expect(isBlenderOefening('Bestaat niet')).toBe(false)
     expect(isBlenderOefening(null)).toBe(false)

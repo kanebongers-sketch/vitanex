@@ -647,7 +647,7 @@ export const COACHING_TREKKEN: CoachingBoek = {
     ],
     opstelling: [
       'Stel de borststeun zo in dat je de grepen net met gestrekte armen kunt pakken.',
-      'Stel de stoel zo in dat de grepen ongeveer op borsthoogte zitten en zet je voeten plat.',
+      'Stel de stoel zo in dat de grepen ongeveer op borsthoogte zitten en zet je voeten plat. Pak de rechtopstaande grepen met je handpalmen naar elkaar.',
     ],
     stappen: [
       'Pak de grepen met gestrekte armen en je borst tegen de steun.',

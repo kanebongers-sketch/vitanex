@@ -279,7 +279,7 @@ export const COACHING_AANVULLING_ONDER: CoachingBoek = {
       { punt: 'Rustig terug', uitleg: 'Laat het gewicht langzaam terugkomen en laat de schijven niet op elkaar vallen.' },
     ],
     opstelling: [
-      'Stel de zitting zo in dat de handvatten bij je schouders zitten en zet je voeten onder de rollen.',
+      'Stel de zitting zo in dat de handvatten naast je hoofd boven je schouders zitten en zet je voeten plat op de grond.',
     ],
     stappen: [
       'Pak de handvatten en zet je buik vast.',
