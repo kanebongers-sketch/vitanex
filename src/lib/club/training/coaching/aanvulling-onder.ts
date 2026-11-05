@@ -92,7 +92,7 @@ export const COACHING_AANVULLING_ONDER: CoachingBoek = {
     ],
     opstelling: [
       'Zet de kabel helemaal laag met een touw en sta met je rug naar het toestel.',
-      'Pak het touw tussen je benen en stap twee grote passen naar voren, voeten iets breder dan heupbreedte.',
+      'Pak het touw tussen je benen door, stap twee grote passen naar voren en zet je voeten breed.',
     ],
     stappen: [
       'Laat je heupen naar achteren gaan tot je een rek in je hamstrings voelt, het touw tussen je benen door.',

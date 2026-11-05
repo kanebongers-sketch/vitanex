@@ -620,7 +620,7 @@ export const COACHING_TREKKEN: CoachingBoek = {
       { punt: 'Gecontroleerd terug', uitleg: 'Laat de greep rustig terug tot je armen gestrekt zijn en je schouders iets naar voren gaan.' },
     ],
     opstelling: [
-      'Zet je voeten tegen de steun met je knieen licht gebogen, niet op slot.',
+      'Zet je voeten op de voetplaat met je knieen licht gebogen, niet op slot.',
       'Pak de greep, vaak de V-greep, en ga rechtop zitten met gestrekte armen en een neutrale rug.',
     ],
     stappen: [
@@ -672,7 +672,7 @@ export const COACHING_TREKKEN: CoachingBoek = {
       { punt: 'Schouders laag', uitleg: 'Houd je schouders weg van je oren, ook als de stang bovenin is.' },
     ],
     opstelling: [
-      'Zet de katrol hoog met een rechte stang of touw en pak die op schouderbreedte.',
+      'Zet de katrol hoog met een rechte stang en pak die op schouderbreedte.',
       'Doe een stap achteruit, buig iets voorover vanuit je heupen met een rechte rug en houd je armen bijna gestrekt voor je op hoofdhoogte.',
     ],
     stappen: [

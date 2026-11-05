@@ -103,6 +103,22 @@ export const UITVOERING: Readonly<Record<string, UitvoeringRegel>> = {
   'glute-bridge-op-een-been': t(2, 0, 1, 2, 'Glute bridge op een been: 1 sec omhoog, 2 sec vast, 2 sec omlaag per kant.'),
   superman: t(2, 0, 1, 2, 'Superman: 1 sec optillen, 2 sec vasthouden voor de rugstrekkers, 2 sec omlaag.'),
 
+  // Golf 4, kabels (05-11-2026)
+  'kickback-aan-de-kabel': t(2, 0, 1, 1, 'Kickback aan de kabel: 1 sec been naar achteren, 1 sec vast met de bil aangespannen, 2 sec terug; elke kant telt als een herhaling.'),
+  'pull-through-aan-de-kabel': t(2, 0, 1, 1, 'Pull-through: 2 sec heupen naar achteren, 1 sec krachtig strekken, 1 sec vast met de billen aan.'),
+  'lat-pulldown': t(2, 0, 1, 0.5, 'Lat pulldown: 1 sec trekken naar de borst, kort vasthouden, 2 sec gecontroleerd terug.'),
+  'lat-pulldown-met-v-greep': t(2, 0, 1, 0.5, 'Lat pulldown: 1 sec trekken naar de borst, kort vasthouden, 2 sec gecontroleerd terug.'),
+  'seated-cable-row': t(2, 0, 1, 0.5, ROW),
+  'seated-cable-row-met-brede-greep': t(2, 0, 1, 0.5, ROW),
+  'curl-aan-de-kabel': t(2.5, 0, 1, 0.5, CURL),
+  'hammer-curl-aan-de-kabel': t(2.5, 0, 1, 0.5, CURL),
+  'triceps-pushdown': t(2, 0, 1, 0.5, 'Pushdown: 1 sec omlaag strekken, kort vast, 2 sec terug zonder dat de ellebogen meegaan.'),
+  'triceps-extension-boven-het-hoofd-aan-de-kabel': t(2.5, 0.5, 1, 0, 'Triceps boven het hoofd: 2 tot 3 sec terug achter het hoofd in de rek, kort stil, 1 sec strekken.'),
+  'straight-arm-pulldown': t(2, 0, 1, 0.5, 'Straight arm pulldown: 1 sec in een boog naar de dijen, kort vast, 2 sec terug omhoog.'),
+  'lateral-raise-aan-de-kabel': t(2, 0, 1, 0.5, 'Zijwaarts heffen aan de kabel: 1 sec omhoog, kort stil, 2 sec omlaag; elke kant telt als een herhaling.'),
+  'exorotatie-aan-de-kabel': t(2, 0, 1, 0.5, 'Exorotatie: 1 sec naar buiten draaien, kort stil, 2 sec rustig terug; elke kant telt als een herhaling.'),
+  'cable-crossover': t(2, 0, 1, 0.5, 'Crossover: 1 sec in een boog naar binnen, kort knijpen, 2 sec rustig open.'),
+  'cable-crunch': t(2, 0, 1, 0.5, 'Cable crunch: 1 sec inrollen, kort stil, 2 sec terug zonder de heupen mee te laten zakken.'),
   'nordic-hamstring-curl': t(3.5, 0.5, 1.5, 0.5, 'Nordic: 3 tot 4 sec remmend voorover zakken, opvangen op de handen, in 1,5 sec terug omhoog.'),
 
   // Duwen

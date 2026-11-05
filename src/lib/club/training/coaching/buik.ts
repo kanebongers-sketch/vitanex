@@ -33,12 +33,12 @@ export const COACHING_BUIK: CoachingBoek = {
     kernpunten: [
       { punt: 'Heupen blijven stil', uitleg: 'Je billen zakken niet naar je hielen. Alleen je romp rolt op, anders trekt je lichaamsgewicht het gewicht omlaag.' },
       { punt: 'Ribben naar je bekken', uitleg: 'Denk aan je borstbeen dat naar je navel krult. Je voelt je buik samentrekken, niet je armen.' },
-      { punt: 'Handen vast bij je hoofd', uitleg: 'Het touw blijft naast je oren. Je armen trekken niet, ze houden alleen vast.' },
+      { punt: 'Handen voor je voorhoofd', uitleg: 'Je houdt het touw voor je voorhoofd. Je armen trekken niet, ze houden alleen vast.' },
       { punt: 'Rustig terug', uitleg: 'Laat het gewicht niet terugschieten. Ook omhoog houd je spanning op je buik.' },
     ],
     opstelling: [
       'Zet de katrol hoog en hang het touw eraan. Kies een licht gewicht.',
-      'Kniel een halve meter voor de kabel, pak het touw en houd de uiteinden naast je hoofd.',
+      'Kniel een halve meter voor de kabel, pak het touw en houd je handen voor je voorhoofd.',
     ],
     stappen: [
       'Kom rechtop op je knieen met je heupen licht gebogen.',
@@ -48,7 +48,7 @@ export const COACHING_BUIK: CoachingBoek = {
     ],
     fouten: [
       { fout: 'Op en neer gaan met de heupen', beter: 'Houd je billen boven je knieen. Rol alleen je ruggengraat, alsof je een bal oprolt.' },
-      { fout: 'Trekken met de armen', beter: 'Zet je handen vast bij je hoofd en laat de afstand tussen handen en hoofd gelijk blijven.' },
+      { fout: 'Trekken met de armen', beter: 'Houd je handen vast voor je voorhoofd en laat de afstand tussen handen en hoofd gelijk blijven.' },
       { fout: 'Te zwaar gewicht', beter: 'Kies een gewicht waarbij je 12 tot 15 rustige herhalingen haalt met volle controle.' },
     ],
     ademhaling: 'Adem uit terwijl je naar beneden rolt en adem in terwijl je terugkomt.',

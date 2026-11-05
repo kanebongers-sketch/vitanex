@@ -277,7 +277,7 @@ export const COACHING_SCHOUDERS_CARDIO: CoachingBoek = {
     ],
     opstelling: [
       'Zet de kabel helemaal laag met een enkele greep. Sta zijwaarts naast het toestel en pak de greep met je verste hand, voor je lichaam langs.',
-      'Houd je vrije hand aan het toestel voor steun.',
+      'Zet je vrije hand in je zij.',
     ],
     stappen: [
       'Til je arm zijwaarts op met een lichte buiging in de elleboog.',
@@ -285,7 +285,7 @@ export const COACHING_SCHOUDERS_CARDIO: CoachingBoek = {
       'Laat je arm gecontroleerd terugkomen tot voor je heup, met spanning op de kabel.',
     ],
     fouten: [
-      { fout: 'Wegleunen van het toestel', beter: 'Sta rechtop en gebruik je vrije hand alleen voor balans. Kies een lager gewicht als je moet leunen.' },
+      { fout: 'Wegleunen van het toestel', beter: 'Sta rechtop met je vrije hand in je zij. Kies een lager gewicht als je moet leunen.' },
       { fout: 'Arm gestrekt op slot', beter: 'Houd een kleine buiging in je elleboog. Zo blijft het werk in je schouder.' },
       { fout: 'Kabel terug laten schieten', beter: 'Laat de arm 2 tot 3 tellen zakken. De kabel houdt de spanning vast, gebruik dat.' },
     ],

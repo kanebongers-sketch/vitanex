@@ -439,11 +439,11 @@ export const COACHING_ROMP_BILLEN: CoachingBoek = {
     ],
     opstelling: [
       'Zet de katrol op de laagste stand en maak een enkelband om je enkel vast.',
-      'Sta tegenover de kabel, houd je vast aan het rek, buig licht voorover met een rechte rug en zet je standbeen licht gebogen.',
+      'Sta tegenover de kabel met je handen in je zij, buig licht voorover met een rechte rug en zet je standbeen licht gebogen.',
     ],
     stappen: [
       'Span je buik aan en zet je bekken vast.',
-      'Breng je been met een lichte kniebuiging naar achteren tot je bil volledig aangespannen is.',
+      'Breng je gestrekte been naar achteren en omhoog tot je bil volledig aangespannen is.',
       'Houd een tel vast en breng je been rustig terug naar voren.',
     ],
     fouten: [

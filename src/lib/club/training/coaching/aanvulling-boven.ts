@@ -147,10 +147,10 @@ export const COACHING_AANVULLING_BOVEN: CoachingBoek = {
     ],
     opstelling: [
       'Zet de kabel laag met een touw en pak de uiteinden vast.',
-      'Draai je rug naar het toestel, zet een voet naar voren en breng het touw achter je hoofd, ellebogen naast je oren.',
+      'Draai je rug naar het toestel, zet een voet naar voren, buig je romp licht voorover en breng het touw met beide handen achter je hoofd, ellebogen naast je oren.',
     ],
     stappen: [
-      'Strek je armen schuin omhoog tot ze gestrekt zijn.',
+      'Strek je armen tot ze gestrekt boven je hoofd zijn.',
       'Laat het touw gecontroleerd achter je hoofd zakken tot je een rek in je triceps voelt.',
       'Strek opnieuw zonder je ellebogen te verplaatsen.',
     ],
@@ -281,7 +281,7 @@ export const COACHING_AANVULLING_BOVEN: CoachingBoek = {
       { punt: 'Schouderbladen samen', uitleg: 'Knijp je schouderbladen aan het eind samen en laat ze onderin weer los.' },
     ],
     opstelling: [
-      'Zet een brede stang aan de kabel, ga zitten met je voeten tegen de steun en je knieen licht gebogen.',
+      'Zet een brede stang aan de kabel, ga zitten met je voeten op de voetplaat en je knieen licht gebogen.',
       'Pak de stang breed vast en zit rechtop met gestrekte armen.',
     ],
     stappen: [
@@ -389,7 +389,7 @@ export const COACHING_AANVULLING_BOVEN: CoachingBoek = {
     ],
     opstelling: [
       'Zet de kabel op ellebooghoogte met een losse handgreep en sta er zijwaarts naast.',
-      'Pak de handgreep met de hand die het verst van het toestel is, elleboog in een rechte hoek tegen je zij.',
+      'Pak de handgreep met de hand die het verst van het toestel is, elleboog in een rechte hoek tegen je zij, je andere hand in je zij.',
     ],
     stappen: [
       'Draai je onderarm naar buiten, weg van het toestel, zo ver als lukt zonder dat je elleboog loskomt.',

@@ -79,12 +79,14 @@ const FRAMES_1080_MAX_MB = 6
  * oefenrenders.test.ts. Boven 120 beelden (lange wisselende lussen) groeit hij
  * mee met het aantal beelden (framesBudget).
  */
-const FRAMES_MAX_BYTES = { 480: 1.95 * 1048576, 720: 3.45 * 1048576 }
+// golf 4 (05-11-2026): 20 procent ruimer, gelijk met de test
+const FRAMES_MAX_BYTES = { 480: 2.35 * 1048576, 720: 4.15 * 1048576 }
 const FRAMES_BUDGET_BEELDEN = 120
 
 /** Het budget voor een maat bij dit aantal beelden. */
 function framesBudget(m, aantal) {
-  return FRAMES_MAX_BYTES[m] * Math.max(1, aantal / FRAMES_BUDGET_BEELDEN)
+  // boven 120 beelden naar rato met 12 procent ruimte, zoals de lussen (golf 4: lateral raise aan de kabel)
+  return FRAMES_MAX_BYTES[m] * (aantal > FRAMES_BUDGET_BEELDEN ? (aantal / FRAMES_BUDGET_BEELDEN) * 1.12 : 1)
 }
 
 /**
@@ -205,6 +207,22 @@ const BEWEGING = {
   'wall-sit': { heen_is: 'concentrisch', soort: 'vasthouden' },
   // Nordic: eerst remmend voorover zakken.
   'nordic-hamstring-curl': { heen_is: 'excentrisch', soort: 'herhaling' },
+  // Golf 4, kabels (05-11-2026): elke render begint in de rek of onderin en trekt, duwt of strekt eerst.
+  'lat-pulldown': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'lat-pulldown-met-v-greep': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'seated-cable-row': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'seated-cable-row-met-brede-greep': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'curl-aan-de-kabel': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'hammer-curl-aan-de-kabel': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'triceps-pushdown': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'triceps-extension-boven-het-hoofd-aan-de-kabel': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'straight-arm-pulldown': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'lateral-raise-aan-de-kabel': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'exorotatie-aan-de-kabel': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'cable-crossover': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'cable-crunch': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'kickback-aan-de-kabel': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'pull-through-aan-de-kabel': { heen_is: 'concentrisch', soort: 'herhaling' },
 }
 
 /** Instellingen per bestand: kwaliteit en inspanning van libwebp. */
@@ -312,15 +330,15 @@ function wachttijden(aantal) {
  * zakt de kwaliteit in stappen van 2 tot hij past, nooit onder LUS_MIN_KWALITEIT.
  * Wisselende lussen (30-10-2026) zijn twee herhalingen lang (96 tot 136 beelden,
  * de barbell lunge met bewegende schijven het zwaarst); daarvoor mag de bewegende
- * lus tot 66 zakken, en boven 120 beelden groeit de grens naar rato mee
+ * lus tot 56 zakken (golf 4: kabeltoren in beeld, lateral raise aan de kabel het zwaarst), en boven 120 beelden groeit de grens naar rato mee
  * (`lusGrens`, zelfde regel als in de test). De stills en de losse beelden van de
  * rep-speler houden hun eigen kwaliteit.
  */
 const LUS_MAX_BYTES = { hd: 3072 * 1024, middel: 2304 * 1024, klein: 1330 * 1024 }
-const LUS_MIN_KWALITEIT = 66
+const LUS_MIN_KWALITEIT = 56
 const LUS_BEELDEN_BASIS = 120
-// boven 120 beelden naar rato, met 6 procent ruimte (de glute bridge op een been, 136 beelden met een wissel van het been, is per beeld het zwaarst)
-const lusFactor = (beelden) => (beelden > LUS_BEELDEN_BASIS ? (beelden / LUS_BEELDEN_BASIS) * 1.06 : 1)
+// boven 120 beelden naar rato, met 12 procent ruimte (golf 4: lateral raise aan de kabel) (de glute bridge op een been, 136 beelden met een wissel van het been, is per beeld het zwaarst)
+const lusFactor = (beelden) => (beelden > LUS_BEELDEN_BASIS ? (beelden / LUS_BEELDEN_BASIS) * 1.12 : 1)
 const lusGrens = (bytes, beelden) => Math.round(bytes * lusFactor(beelden))
 
 async function maakLus(frames, snij, maat, opties, doel, maxBytes = Infinity) {
@@ -394,10 +412,14 @@ function mapBytes(dir) {
 /**
  * Losse beelden boven het budget (lange wisselende lussen, zoals de Bulgarian
  * split squat met 136 beelden): opnieuw met een kwaliteit 4 lager tot ze passen,
- * nooit onder LUS_MIN_KWALITEIT. Zelfde grenzen als MAX_FRAMES_MB in oefenrenders.test.ts.
+ * nooit onder FRAMES_MIN_KWALITEIT. Zelfde grenzen als MAX_FRAMES_MB in oefenrenders.test.ts.
+ * Golf 4 (05-11-2026): een groot toestel in beeld (kabeltoren, roeistation) geeft
+ * meer detail per beeld; daarom mogen de losse beelden tot kwaliteit 48 en de bewegende lus tot 58 zakken (alleen als het budget anders niet past).
  */
+const FRAMES_MIN_KWALITEIT = 48
+
 async function framesLichter(frames, snij, dir, m, bytes) {
-  for (let quality = WEBP[`frame${m}`].quality - 4; quality >= LUS_MIN_KWALITEIT; quality -= 4) {
+  for (let quality = WEBP[`frame${m}`].quality - 4; quality >= FRAMES_MIN_KWALITEIT; quality -= 4) {
     console.log(`  frames ${m}: ${(bytes / 1048576).toFixed(2)} MB te zwaar, opnieuw op kwaliteit ${quality}`)
     for (let i = 0; i < frames.length; i++) {
       const vol = await (await uitsnede(frames[i], snij)).png({ compressionLevel: 1 }).toBuffer()

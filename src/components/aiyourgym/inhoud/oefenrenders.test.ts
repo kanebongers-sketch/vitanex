@@ -48,9 +48,9 @@ const MAX_KB = {
 
 const LUSSEN = new Set<keyof typeof MAX_KB>(['lusHd', 'lus', 'lusKlein'])
 
-/** Grens in KB; bewegende lussen boven 120 beelden naar rato, met 6 procent ruimte (zelfde regel als het script). */
+/** Grens in KB; bewegende lussen boven 120 beelden naar rato, met 12 procent ruimte (golf 4: lateral raise aan de kabel; zelfde regel als het script). */
 function grens(sleutel: keyof typeof MAX_KB, beelden: number): number {
-  const factor = beelden > 120 ? (beelden / 120) * 1.06 : 1
+  const factor = beelden > 120 ? (beelden / 120) * 1.12 : 1
   return LUSSEN.has(sleutel) ? MAX_KB[sleutel] * factor : MAX_KB[sleutel]
 }
 
@@ -61,10 +61,11 @@ function grens(sleutel: keyof typeof MAX_KB, beelden: number): number {
  * (glute bridge, 120 beelden, is de zwaarste met samen 10 MB).
  * Het script laat 1080 weg boven 6 MB.
  */
-const MAX_FRAMES_MB = { 480: 2, 720: 3.5, 1080: 6 } as const
+// golf 4 (05-11-2026): 20 procent ruimer, een kabeltoren in beeld geeft meer detail per beeld
+const MAX_FRAMES_MB = { 480: 2.4, 720: 4.2, 1080: 6 } as const
 /** Boven 120 beelden (lange wisselende lussen) groeit de grens per maat mee, net als in het script (framesBudget). */
 const FRAMES_BUDGET_BEELDEN = 120
-const MAX_FRAMES_TOTAAL_MB = 11
+const MAX_FRAMES_TOTAAL_MB = 12 // golf 4: kabelstation in beeld
 /**
  * Renders die nog geen losse beelden en vloerlijn hebben. Alleen back-squat:
  * die wordt opnieuw gerenderd (24-10-2026); haal hem hier weg na
@@ -130,7 +131,7 @@ describe('oefenrenders', () => {
         const som = bestanden.reduce((s, b) => s + statSync(join(map, b)).size, 0)
         expect(som, `${r.slug} ${m.maat}`).toBe(m.bytes)
         expect(m.bytes / 1048576, `${r.slug} ${m.maat}`).toBeLessThan(
-          MAX_FRAMES_MB[m.maat as keyof typeof MAX_FRAMES_MB] * Math.max(1, f.aantal / FRAMES_BUDGET_BEELDEN),
+          MAX_FRAMES_MB[m.maat as keyof typeof MAX_FRAMES_MB] * (f.aantal > FRAMES_BUDGET_BEELDEN ? (f.aantal / FRAMES_BUDGET_BEELDEN) * 1.12 : 1),
         )
         expect(m.breedte / m.hoogte).toBeCloseTo(r.lus.breedte / r.lus.hoogte)
         totaal += m.bytes

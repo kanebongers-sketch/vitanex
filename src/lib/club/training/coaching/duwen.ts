@@ -687,7 +687,7 @@ export const COACHING_DUWEN: CoachingBoek = {
       { punt: 'Rustig omhoog', uitleg: 'Laat de stang gecontroleerd terugkomen tot je onderarmen ongeveer horizontaal zijn.' },
     ],
     opstelling: [
-      'Zet de kabel in de hoogste stand met een rechte stang of V-stang.',
+      'Zet de kabel in de hoogste stand met een rechte stang.',
       'Pak de stang op schouderbreedte, sta dicht bij het toestel met je voeten op heupbreedte en je knieen licht gebogen.',
     ],
     stappen: [

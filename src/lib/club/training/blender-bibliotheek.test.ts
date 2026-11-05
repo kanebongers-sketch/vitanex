@@ -86,6 +86,15 @@ describe('koppeling render en oefening', () => {
     for (const naam of golf3) expect(isStandaardOefening(naam), naam).toBe(true)
   })
 
+  it('golf 4 (05-11-2026): de 15 kabelrenders zijn kiesbaar, en migratie 493 haalt precies die uit het archief', () => {
+    const sql = readFileSync(join(process.cwd(), 'supabase/lifeos-migrations/493_club_oefeningen_golf4_uit_archief.sql'), 'utf8')
+    const golf4 = [...sql.matchAll(/^\s*\('((?:[^']|'')+)'\)/gm)].map((m) => m[1].replace(/''/g, "'"))
+    expect(golf4).toHaveLength(15)
+    expect(sql).not.toMatch(/(delete|drop|truncate)/i)
+    expect(golf4.filter((n) => !isBlenderOefening(n))).toEqual([])
+    for (const naam of golf4) expect(isStandaardOefening(naam), naam).toBe(true)
+  })
+
   it('onbekend of geen tekst is geen Blender-oefening', () => {
     expect(isBlenderOefening('Bestaat niet')).toBe(false)
     expect(isBlenderOefening(null)).toBe(false)
