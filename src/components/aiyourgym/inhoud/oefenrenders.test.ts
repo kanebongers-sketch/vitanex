@@ -144,7 +144,7 @@ describe('oefenrenders', () => {
       }
       expect(totaal / 1048576, `${r.slug} totaal losse beelden`).toBeLessThan(MAX_FRAMES_TOTAAL_MB)
     }
-  })
+  }, 30_000) // 142 renders met duizenden losse beelden: bij een volle testronde duurt het lezen langer dan 5 seconden
 
   it('fasen sluiten aan, lopen op en vallen binnen de lus', () => {
     for (const r of OEFENRENDERS) {

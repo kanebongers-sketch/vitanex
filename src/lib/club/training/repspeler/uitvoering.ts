@@ -145,6 +145,17 @@ export const UITVOERING: Readonly<Record<string, UitvoeringRegel>> = {
   'reverse-fly-machine': t(2, 0, 1, 0.5, 'Reverse fly machine: 1 sec naar achteren, kort vast, 2 sec terug.'),
   'dips-machine': t(2, 0, 1, 0.5, 'Dips machine: 1 sec omlaag duwen, kort vast, 2 sec terug.'),
   'crunch-machine': t(2, 0, 1, 0.5, 'Crunch machine: 1 sec oprollen, kort vast, 2 sec terug.'),
+
+  // Golf 6, elastiek en overige materialen (05-11-2026): tellen gelijk aan de coaching.
+  'band-pull-apart': t(2, 0, 1, 0.5, 'Band pull-apart: 1 sec open, kort vast, 2 sec terug.'),
+  'zijwaarts-stappen-met-elastiek': t(1, 0, 1, 0.5, 'Zijwaarts stappen: 1 sec stap opzij, kort neerzetten, 1 sec aansluiten; elke kant een herhaling.'),
+  'adductie-staand-met-elastiek': t(2, 0, 1, 0.5, 'Adductie met elastiek: 1 sec naar binnen, kort vast, 2 sec terug; elke kant een herhaling.'),
+  'squat-met-elastiek-boven-de-knieen': t(2, 0, 1, 0, 'Squat met elastiek: 2 sec omlaag met de knieen naar buiten, 1 sec omhoog.'),
+  'back-extension': t(2, 0, 1, 0.5, 'Back extension: 2 sec omlaag, 1 sec omhoog tot een rechte lijn, kort stil bovenin.'),
+  'ab-wheel-rollout': t(3, 0.5, 2, 0, 'Ab wheel rollout: 3 sec naar voren rollen, kort stil, 2 sec terug.'),
+  'trx-row': t(2, 0, 1, 0.5, 'TRX row: 1 sec omhoog trekken, kort vast, 2 sec terug.'),
+  'medicine-ball-slam': t(1.5, 0.5, 0.4, 0.5, 'Medicine ball slam: explosief slaan in 0,4 sec, oppakken en in 1,5 sec rustig weer boven het hoofd.'),
+  'wall-ball': t(1, 0.3, 0.6, 1.2, 'Wall ball: 1 sec squat omlaag, explosief omhoog en gooien in 0,6 sec, de bal vangen; ongeveer 3 sec per herhaling.'),
   'nordic-hamstring-curl': t(3.5, 0.5, 1.5, 0.5, 'Nordic: 3 tot 4 sec remmend voorover zakken, opvangen op de handen, in 1,5 sec terug omhoog.'),
 
   // Duwen
@@ -209,6 +220,17 @@ export const UITVOERING: Readonly<Record<string, UitvoeringRegel>> = {
   'hollow-hold': HOUDEN('Houdoefening: de speler telt seconden.'),
   'wall-sit': HOUDEN('Houdoefening tegen de muur: de speler telt seconden, de lus is alleen ademen.'),
   'farmer-walk': HOUDEN('Dragen op tijd: rustig wandeltempo, twee passen per lus, de speler telt seconden.'),
+  // Golf 6 (05-11-2026): op tijd. De lus is een volle cyclus op een gangbaar tempo, de speler telt seconden.
+  'battle-ropes': HOUDEN('Battle ropes op tijd: de armen slaan om de beurt, ongeveer 2 slagen per seconde, de speler telt seconden.'),
+  'slee-duwen': HOUDEN('Slee duwen op tijd of afstand: korte krachtige passen, de speler telt seconden.'),
+  'wandelen-op-de-loopband': HOUDEN('Wandelen op tijd: twee passen per lus (ongeveer 90 per minuut), de speler telt seconden.'),
+  'hardlopen-op-de-loopband': HOUDEN('Hardlopen op tijd: twee passen per lus (ongeveer 160 per minuut), de speler telt seconden.'),
+  touwtjespringen: HOUDEN('Touwtjespringen op tijd: twee sprongen per lus (ongeveer 120 per minuut), de speler telt seconden.'),
+  hometrainer: HOUDEN('Hometrainer op tijd: een omwenteling per lus (ongeveer 60 per minuut), de speler telt seconden.'),
+  airbike: HOUDEN('Airbike op tijd: een omwenteling per lus (ongeveer 60 per minuut), de speler telt seconden.'),
+  crosstrainer: HOUDEN('Crosstrainer op tijd: een omwenteling per lus, de speler telt seconden.'),
+  traploper: HOUDEN('Traploper op tijd: twee stappen per lus, de speler telt seconden.'),
+  roeiergometer: HOUDEN('Roeiergometer op tijd: een haal per lus (ongeveer 24 per minuut), de speler telt seconden.'),
 }
 
 export function isHoudregel(r: UitvoeringRegel): r is Houdregel {

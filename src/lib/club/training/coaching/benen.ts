@@ -86,7 +86,7 @@ export const COACHING_BENEN: CoachingBoek = {
 
   'Adductie staand met elastiek': {
     kernpunten: [
-      { punt: 'Hand tegen de muur', uitleg: 'Steun licht met een hand. Dan hoeft je standbeen niet te balanceren en werkt de binnenkant van je dij.' },
+      { punt: 'Stevig op je standbeen', uitleg: 'Je gewicht staat op je standbeen en je handen rusten in je zij. Wiebel je, steun dan licht met een hand tegen een muur.' },
       { punt: 'Romp blijft recht', uitleg: 'Leun niet weg van het anker. Je schouders staan boven je heupen, alleen het werkbeen beweegt.' },
       { punt: 'Been langs je standbeen', uitleg: 'Trek je been gestrekt naar binnen tot net voor je standbeen. Daar voel je de binnenkant van je dij het best.' },
       { punt: 'Remmen op de weg terug', uitleg: 'Laat het elastiek je been niet terugschieten. Langzaam terug is de helft van het werk.' },
@@ -101,7 +101,7 @@ export const COACHING_BENEN: CoachingBoek = {
       'Laat het rustig terugkomen tot je weer de beginspanning voelt.',
     ],
     fouten: [
-      { fout: 'Bovenlichaam hangt naar de kant', beter: 'Steun met je hand en houd je schouders recht boven je heupen.' },
+      { fout: 'Bovenlichaam hangt naar de kant', beter: 'Houd je schouders recht boven je heupen. Lukt dat niet, steun dan licht met een hand tegen een muur.' },
       { fout: 'Zwaaien met het been', beter: 'Kies een lichter elastiek of sta dichter bij het anker. Rustig tempo, volle controle.' },
       { fout: 'Tenen draaien naar buiten', beter: 'Houd je tenen naar voren gericht, zo blijft het werk bij de binnenkant van je bovenbeen.' },
     ],

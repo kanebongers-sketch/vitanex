@@ -93,6 +93,7 @@ const BOVEN_ONDER: BasisSjabloon = {
         r('Lateral raise', 3, '12-15', 0, { groep: 1 }),
         r('Barbell curl', 3, '10-12', 75, { groep: 1 }),
         r('Schouders ophalen met dumbbells', 3, '10-12', 60),
+        r('Band pull-apart', 2, '15-20', 45, { tempo: '2011' }),
       ],
     },
     {
@@ -127,6 +128,7 @@ const BOVEN_ONDER: BasisSjabloon = {
         r('Front squat', 3, '6-8', 150, { rir: 2 }),
         r('Leg press', 3, '10-12', 120, { rir: 2 }),
         r('Lunge met dumbbells', 3, '8-10', 90, { rir: 2, notitie: 'Per been.' }),
+        r('Back extension', 3, '10-12', 60, { tempo: '2011' }),
         r('Glute bridge op een been', 3, '10-12', 0, { groep: 1, notitie: 'Per been.' }),
         t('Zijplank', 3, 30, 60, { groep: 1, notitie: 'Per kant.' }),
       ],

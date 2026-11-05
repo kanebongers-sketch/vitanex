@@ -249,6 +249,28 @@ const BEWEGING = {
   'reverse-fly-machine': { heen_is: 'concentrisch', soort: 'herhaling' },
   'dips-machine': { heen_is: 'concentrisch', soort: 'herhaling' },
   'crunch-machine': { heen_is: 'concentrisch', soort: 'herhaling' },
+  // Golf 6, elastiek en overige materialen (05-11-2026). Squat met band, back extension, ab wheel en wall ball zakken of rollen eerst; de rest trekt, stapt of slaat eerst.
+  'band-pull-apart': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'zijwaarts-stappen-met-elastiek': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'adductie-staand-met-elastiek': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'squat-met-elastiek-boven-de-knieen': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'back-extension': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'ab-wheel-rollout': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'trx-row': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'medicine-ball-slam': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'wall-ball': { heen_is: 'excentrisch', soort: 'herhaling' },
+  // Op tijd, zoals de farmer walk: de lus speelt op eigen snelheid en de speler telt seconden.
+  'battle-ropes': { heen_is: 'concentrisch', soort: 'vasthouden' },
+  'slee-duwen': { heen_is: 'concentrisch', soort: 'vasthouden' },
+  // Golf 6, cardio (05-11-2026): op tijd. Een lus is een volle cyclus (twee passen, twee sprongen, een omwenteling of een haal).
+  'wandelen-op-de-loopband': { heen_is: 'concentrisch', soort: 'vasthouden' },
+  'hardlopen-op-de-loopband': { heen_is: 'concentrisch', soort: 'vasthouden' },
+  touwtjespringen: { heen_is: 'concentrisch', soort: 'vasthouden' },
+  hometrainer: { heen_is: 'concentrisch', soort: 'vasthouden' },
+  airbike: { heen_is: 'concentrisch', soort: 'vasthouden' },
+  crosstrainer: { heen_is: 'concentrisch', soort: 'vasthouden' },
+  traploper: { heen_is: 'concentrisch', soort: 'vasthouden' },
+  roeiergometer: { heen_is: 'concentrisch', soort: 'vasthouden' },
 }
 
 /** Instellingen per bestand: kwaliteit en inspanning van libwebp. */

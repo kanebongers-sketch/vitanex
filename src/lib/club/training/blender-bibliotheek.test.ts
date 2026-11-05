@@ -104,6 +104,15 @@ describe('koppeling render en oefening', () => {
     for (const naam of golf5) expect(isStandaardOefening(naam), naam).toBe(true)
   })
 
+  it('golf 6 (05-11-2026): elastiek, overige materialen en cardio zijn kiesbaar, en migratie 495 haalt precies die uit het archief', () => {
+    const sql = readFileSync(join(process.cwd(), 'supabase/lifeos-migrations/495_club_oefeningen_golf6_uit_archief.sql'), 'utf8')
+    const golf6 = [...sql.matchAll(/^\s*\('((?:[^']|'')+)'\)/gm)].map((m) => m[1].replace(/''/g, "'"))
+    expect(golf6).toHaveLength(19)
+    expect(sql).not.toMatch(/(delete|drop|truncate)/i)
+    expect(golf6.filter((n) => !isBlenderOefening(n))).toEqual([])
+    for (const naam of golf6) expect(isStandaardOefening(naam), naam).toBe(true)
+  })
+
   it('onbekend of geen tekst is geen Blender-oefening', () => {
     expect(isBlenderOefening('Bestaat niet')).toBe(false)
     expect(isBlenderOefening(null)).toBe(false)
