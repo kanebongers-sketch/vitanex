@@ -21,6 +21,7 @@ import { COACHING_EN_GOLF5 } from './coaching-en-golf5'
 import { COACHING_EN_GOLF6 } from './coaching-en-golf6'
 import { COACHING_EN_GOLF7 } from './coaching-en-golf7'
 import { COACHING_EN_GOLF8 } from './coaching-en-golf8'
+import { COACHING_EN_GOLF9 } from './coaching-en-golf9'
 
 const SITE = SITE_COACHING.en
 
@@ -176,6 +177,7 @@ export const COACHING_EN: Readonly<Record<string, Coaching>> = {
   ...COACHING_EN_GOLF6,
   ...COACHING_EN_GOLF7,
   ...COACHING_EN_GOLF8,
+  ...COACHING_EN_GOLF9,
 }
 
 /** De namen met Engelse coaching. */

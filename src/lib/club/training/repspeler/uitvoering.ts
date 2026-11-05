@@ -177,6 +177,13 @@ export const UITVOERING: Readonly<Record<string, UitvoeringRegel>> = {
   'preacher-curl-met-barbell': t(3, 0, 1, 0.5, 'Preacher curl: 1 sec omhoog, kort stil, 3 sec omlaag tot de armen bijna gestrekt zijn.'),
   'hip-thrust-met-dumbbell': t(2, 0, 1, 1, 'Hip thrust met dumbbell: 1 sec omhoog, 1 sec bovenin vasthouden, 2 sec omlaag.'),
   't-bar-row': t(2, 0, 1, 0.5, 'T-bar row: 1 sec naar de borst trekken, kort stil, 2 sec terug.'),
+
+  // Golf 9 (05-11-2026): eenarmig en wisselend (rechts is het spiegelbeeld van links); elke kant telt als een herhaling.
+  'eenarmige-dumbbell-row': t(2, 0, 1, 0.5, 'Eenarmige dumbbell row: 1 sec naar de heup trekken, kort stil, 2 sec laten zakken; elke kant een herhaling.'),
+  'eenarmige-triceps-extension-boven-het-hoofd': t(3, 0.5, 1, 0, 'Eenarmige triceps extension: 3 sec achter het hoofd laten zakken, kort stil, 1 sec strekken; elke kant een herhaling.'),
+  'eenarmige-lat-pulldown': t(2, 0, 1, 0.5, 'Eenarmige lat pulldown: 1 sec omlaag trekken, kort vast, 2 sec terug; elke kant een herhaling.'),
+  'landmine-press': t(2, 0, 1, 0, 'Landmine press: 1 sec schuin omhoog duwen, 2 sec terug naar de schouder; elke kant een herhaling.'),
+  'pallof-press': t(2, 0, 2, 2, 'Pallof press: 2 sec uitduwen, 2 sec vasthouden zonder te draaien, 2 sec terug; elke kant een herhaling.'),
   'nordic-hamstring-curl': t(3.5, 0.5, 1.5, 0.5, 'Nordic: 3 tot 4 sec remmend voorover zakken, opvangen op de handen, in 1,5 sec terug omhoog.'),
 
   // Duwen

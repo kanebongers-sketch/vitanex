@@ -303,8 +303,8 @@ export const COACHING_TREKKEN: CoachingBoek = {
       { punt: 'Onderin laten rekken', uitleg: 'Laat je schouderblad onderin iets naar voren zakken. Je voelt dan rek in je rug.' },
     ],
     opstelling: [
-      'Zet je linkerknie en linkerhand op de bank, je rechtervoet staat ernaast op de grond.',
-      'Je steunhand staat onder je schouder, rug vlak, nek in het verlengde van je rug. Pak de dumbbell met je rechterhand.',
+      'Zet een knie en de hand aan dezelfde kant op een vlakke bank. Je andere voet staat ernaast op de grond.',
+      'Je steunhand staat onder je schouder, rug vlak, nek in het verlengde van je rug. Pak de dumbbell met je vrije hand.',
     ],
     stappen: [
       'Laat de dumbbell met een gestrekte arm onder je schouder hangen.',

@@ -223,7 +223,8 @@ export const COACHING_SCHOUDERS_CARDIO: CoachingBoek = {
       { punt: 'Billen en buik vast', uitleg: 'Een stevige basis zorgt dat je niet achterover leunt als de stang omhoog gaat.' },
     ],
     opstelling: [
-      'Zet een uiteinde van de stang in een landmine of in een hoek. Pak het andere uiteinde met een hand en breng het naar je schouder.',
+      'Zet een uiteinde van de stang in een landmine of in een hoek. Pak het andere uiteinde met een hand in een neutrale greep, duim naar je toe, en breng het naar je schouder.',
+      'Je andere hand rust in je zij.',
       'Sta met je voeten op heupbreedte of zet het been aan de kant van je drukarm een stap naar achteren.',
     ],
     stappen: [

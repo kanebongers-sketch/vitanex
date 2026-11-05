@@ -4339,6 +4339,313 @@ export const OEFENRENDER_DATA = [
     }
   },
   {
+    "slug": "eenarmige-dumbbell-row",
+    "naam": "Eenarmige dumbbell row",
+    "spieren": [
+      "rug"
+    ],
+    "spierenSecundair": [
+      "bovenarm",
+      "schouder"
+    ],
+    "breedte": 1319,
+    "hoogte": 1319,
+    "fps": 24,
+    "beelden": 144,
+    "maten": {
+      "lus-hd": 1319,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1319,
+      "piek": 1319,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9598,
+    "versie": "76c099aa",
+    "bytes": {
+      "lus-hd": 2679462,
+      "lus": 1849640,
+      "lus-klein": 972884,
+      "begin": 65848,
+      "piek": 66398,
+      "begin-klein": 24870,
+      "piek-klein": 25482
+    },
+    "frames": {
+      "aantal": 144,
+      "fps": 24,
+      "versie": "07ece287",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 3269386
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 5829032
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          6
+        ],
+        "heen": [
+          6,
+          30
+        ],
+        "houden_ver": [
+          30,
+          38
+        ],
+        "terug": [
+          38,
+          72
+        ],
+        "rust_eind": [
+          72,
+          72
+        ]
+      },
+      "wisselend": true,
+      "fasen_rechts": {
+        "rust_begin": [
+          72,
+          78
+        ],
+        "heen": [
+          78,
+          102
+        ],
+        "houden_ver": [
+          102,
+          110
+        ],
+        "terug": [
+          110,
+          144
+        ],
+        "rust_eind": [
+          144,
+          144
+        ]
+      },
+      "heen_is": "concentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
+    "slug": "eenarmige-lat-pulldown",
+    "naam": "Eenarmige lat pulldown",
+    "spieren": [
+      "rug",
+      "bovenarm",
+      "schouder"
+    ],
+    "spierenSecundair": [],
+    "breedte": 1329,
+    "hoogte": 1329,
+    "fps": 24,
+    "beelden": 192,
+    "maten": {
+      "lus-hd": 1329,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1329,
+      "piek": 1329,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9601,
+    "versie": "0877d3b9",
+    "bytes": {
+      "lus-hd": 4358154,
+      "lus": 2988320,
+      "lus-klein": 1682110,
+      "begin": 50408,
+      "piek": 48400,
+      "begin-klein": 18076,
+      "piek-klein": 17514
+    },
+    "frames": {
+      "aantal": 192,
+      "fps": 24,
+      "versie": "e4b5d521",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 3425226
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 5845058
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          6
+        ],
+        "heen": [
+          6,
+          30
+        ],
+        "houden_ver": [
+          30,
+          42
+        ],
+        "terug": [
+          42,
+          96
+        ],
+        "rust_eind": [
+          96,
+          96
+        ]
+      },
+      "wisselend": true,
+      "fasen_rechts": {
+        "rust_begin": [
+          96,
+          102
+        ],
+        "heen": [
+          102,
+          126
+        ],
+        "houden_ver": [
+          126,
+          138
+        ],
+        "terug": [
+          138,
+          192
+        ],
+        "rust_eind": [
+          192,
+          192
+        ]
+      },
+      "heen_is": "concentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
+    "slug": "eenarmige-triceps-extension-boven-het-hoofd",
+    "naam": "Eenarmige triceps extension boven het hoofd",
+    "spieren": [
+      "bovenarm"
+    ],
+    "spierenSecundair": [
+      "romp"
+    ],
+    "breedte": 1340,
+    "hoogte": 1340,
+    "fps": 24,
+    "beelden": 96,
+    "maten": {
+      "lus-hd": 1340,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1340,
+      "piek": 1340,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9597,
+    "versie": "feea50cb",
+    "bytes": {
+      "lus-hd": 1417218,
+      "lus": 1009672,
+      "lus-klein": 582552,
+      "begin": 27840,
+      "piek": 30060,
+      "begin-klein": 10134,
+      "piek-klein": 11294
+    },
+    "frames": {
+      "aantal": 96,
+      "fps": 24,
+      "versie": "635e9635",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 1026992
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 1775294
+        },
+        "1080": {
+          "pad": "frames/1080/f{nnn}.webp",
+          "breedte": 1080,
+          "hoogte": 1080,
+          "bytes": 2867446
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          1
+        ],
+        "heen": [
+          1,
+          24
+        ],
+        "houden_ver": [
+          24,
+          25
+        ],
+        "terug": [
+          25,
+          48
+        ],
+        "rust_eind": [
+          48,
+          48
+        ]
+      },
+      "wisselend": true,
+      "fasen_rechts": {
+        "rust_begin": [
+          48,
+          49
+        ],
+        "heen": [
+          49,
+          72
+        ],
+        "houden_ver": [
+          72,
+          73
+        ],
+        "terug": [
+          73,
+          96
+        ],
+        "rust_eind": [
+          96,
+          96
+        ]
+      },
+      "heen_is": "concentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
     "slug": "exorotatie-aan-de-kabel",
     "naam": "Exorotatie aan de kabel",
     "spieren": [
@@ -6325,6 +6632,106 @@ export const OEFENRENDER_DATA = [
     }
   },
   {
+    "slug": "landmine-press",
+    "naam": "Landmine press",
+    "spieren": [
+      "schouder",
+      "borst",
+      "bovenarm"
+    ],
+    "spierenSecundair": [],
+    "breedte": 1356,
+    "hoogte": 1356,
+    "fps": 24,
+    "beelden": 144,
+    "maten": {
+      "lus-hd": 1356,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1356,
+      "piek": 1356,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.9602,
+    "versie": "830eff3d",
+    "bytes": {
+      "lus-hd": 4207748,
+      "lus": 3109728,
+      "lus-klein": 1805390,
+      "begin": 45948,
+      "piek": 51116,
+      "begin-klein": 17024,
+      "piek-klein": 18960
+    },
+    "frames": {
+      "aantal": 144,
+      "fps": 24,
+      "versie": "36658075",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 2583936
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 4471954
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          6
+        ],
+        "heen": [
+          6,
+          26
+        ],
+        "houden_ver": [
+          26,
+          32
+        ],
+        "terug": [
+          32,
+          72
+        ],
+        "rust_eind": [
+          72,
+          72
+        ]
+      },
+      "wisselend": true,
+      "fasen_rechts": {
+        "rust_begin": [
+          72,
+          78
+        ],
+        "heen": [
+          78,
+          98
+        ],
+        "houden_ver": [
+          98,
+          104
+        ],
+        "terug": [
+          104,
+          144
+        ],
+        "rust_eind": [
+          144,
+          144
+        ]
+      },
+      "heen_is": "concentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
     "slug": "lat-pulldown",
     "naam": "Lat pulldown",
     "spieren": [
@@ -7897,6 +8304,104 @@ export const OEFENRENDER_DATA = [
         "rust_eind": [
           66,
           72
+        ]
+      },
+      "heen_is": "concentrisch",
+      "soort": "herhaling"
+    }
+  },
+  {
+    "slug": "pallof-press",
+    "naam": "Pallof press",
+    "spieren": [
+      "romp"
+    ],
+    "spierenSecundair": [],
+    "breedte": 1350,
+    "hoogte": 1350,
+    "fps": 24,
+    "beelden": 144,
+    "maten": {
+      "lus-hd": 1350,
+      "lus": 720,
+      "lus-klein": 480,
+      "begin": 1350,
+      "piek": 1350,
+      "begin-klein": 480,
+      "piek-klein": 480
+    },
+    "vloer_y": 0.96,
+    "versie": "14cfbc31",
+    "bytes": {
+      "lus-hd": 3424920,
+      "lus": 2188676,
+      "lus-klein": 1148008,
+      "begin": 65882,
+      "piek": 66156,
+      "begin-klein": 24924,
+      "piek-klein": 24884
+    },
+    "frames": {
+      "aantal": 144,
+      "fps": 24,
+      "versie": "9f6d00f5",
+      "maten": {
+        "480": {
+          "pad": "frames/480/f{nnn}.webp",
+          "breedte": 480,
+          "hoogte": 480,
+          "bytes": 3275230
+        },
+        "720": {
+          "pad": "frames/720/f{nnn}.webp",
+          "breedte": 720,
+          "hoogte": 720,
+          "bytes": 5517184
+        }
+      },
+      "fasen": {
+        "rust_begin": [
+          0,
+          6
+        ],
+        "heen": [
+          6,
+          26
+        ],
+        "houden_ver": [
+          26,
+          40
+        ],
+        "terug": [
+          40,
+          72
+        ],
+        "rust_eind": [
+          72,
+          72
+        ]
+      },
+      "wisselend": true,
+      "fasen_rechts": {
+        "rust_begin": [
+          72,
+          78
+        ],
+        "heen": [
+          78,
+          98
+        ],
+        "houden_ver": [
+          98,
+          112
+        ],
+        "terug": [
+          112,
+          144
+        ],
+        "rust_eind": [
+          144,
+          144
         ]
       },
       "heen_is": "concentrisch",

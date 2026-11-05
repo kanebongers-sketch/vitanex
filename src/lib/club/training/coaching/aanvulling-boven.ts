@@ -255,7 +255,7 @@ export const COACHING_AANVULLING_BOVEN: CoachingBoek = {
     ],
     opstelling: [
       'Zet een losse handgreep aan de kabel en klem je bovenbenen onder de rollen.',
-      'Pak de handgreep met een hand, arm gestrekt boven je.',
+      'Pak de handgreep met een hand, arm gestrekt boven je. Je vrije hand blijft ontspannen naast je, los van je dij.',
     ],
     stappen: [
       'Trek je schouder omlaag en daarna je elleboog naar je zij.',

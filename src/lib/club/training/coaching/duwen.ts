@@ -304,13 +304,13 @@ export const COACHING_DUWEN: CoachingBoek = {
   'Eenarmige triceps extension boven het hoofd': {
     kernpunten: [
       { punt: 'Elleboog naar het plafond', uitleg: 'Je bovenarm staat verticaal naast je hoofd en blijft daar. Alleen je onderarm beweegt.' },
-      { punt: 'Rechtop zitten', uitleg: 'Zit met je rug recht en je buik licht vast. Ga je achterover hangen, dan neemt je onderrug het over.' },
+      { punt: 'Rechtop staan', uitleg: 'Sta met je rug recht en je buik licht vast. Ga je achterover hangen, dan neemt je onderrug het over.' },
       { punt: 'Rustig achter je hoofd', uitleg: 'Laat de dumbbell gecontroleerd achter je hoofd zakken tot je een rek in de achterkant van je arm voelt.' },
       { punt: 'Strek helemaal uit', uitleg: 'Duw tot je arm gestrekt is en voel je triceps bovenin aanspannen.' },
     ],
     opstelling: [
-      'Ga rechtop op een bank zitten, liefst met rugleuning, voeten plat op de grond.',
-      'Houd de dumbbell in een hand boven je hoofd en ondersteun je bovenarm eventueel met je andere hand.',
+      'Sta rechtop met je voeten op heupbreedte en je knieen licht gebogen.',
+      'Houd de dumbbell in een hand boven je hoofd, bovenarm verticaal naast je oor.',
     ],
     stappen: [
       'Buig je elleboog en laat de dumbbell achter je hoofd zakken.',
@@ -319,13 +319,13 @@ export const COACHING_DUWEN: CoachingBoek = {
     ],
     fouten: [
       { fout: 'Elleboog zwaait naar buiten', beter: 'Houd je elleboog naast je hoofd. Pak hem vast met je andere hand als hij steeds wegdraait.' },
-      { fout: 'Holle rug', beter: 'Span je buik aan en zit tegen een rugleuning. Te zwaar? Kies een lichtere dumbbell.' },
+      { fout: 'Holle rug', beter: 'Span je buik en billen aan en houd je ribben omlaag. Te zwaar? Kies een lichtere dumbbell.' },
       { fout: 'Te snel naar beneden', beter: 'Laat de dumbbell in 2 tot 3 tellen zakken. Te snel trekt hard aan je elleboog.' },
     ],
     ademhaling: 'Adem in terwijl de dumbbell zakt en adem uit terwijl je strekt.',
     tempo: '3 tellen omlaag, kort stil, 1 tel omhoog.',
-    makkelijker: 'Gebruik een lichtere dumbbell en houd je bovenarm vast met je andere hand.',
-    zwaarder: 'Doe hem staand, dan moet je romp ook stabiliseren, of houd onderin 2 tellen stil.',
+    makkelijker: 'Doe hem zittend op een bank met rugleuning en houd je bovenarm vast met je andere hand.',
+    zwaarder: 'Houd onderin 2 tellen stil of laat de dumbbell in 4 tellen zakken.',
   },
 
   'Pec deck': {

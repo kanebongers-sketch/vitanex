@@ -296,6 +296,12 @@ const BEWEGING = {
   'preacher-curl-met-barbell': { heen_is: 'concentrisch', soort: 'herhaling' },
   'hip-thrust-met-dumbbell': { heen_is: 'concentrisch', soort: 'herhaling' },
   't-bar-row': { heen_is: 'concentrisch', soort: 'herhaling' },
+  // Golf 9 (05-11-2026): eenarmig en wisselend met "wissel": "beeld" (rechts is het gespiegelde beeld van links).
+  'eenarmige-dumbbell-row': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'eenarmige-triceps-extension-boven-het-hoofd': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'eenarmige-lat-pulldown': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'landmine-press': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'pallof-press': { heen_is: 'concentrisch', soort: 'herhaling' },
 }
 
 /** Instellingen per bestand: kwaliteit en inspanning van libwebp. */

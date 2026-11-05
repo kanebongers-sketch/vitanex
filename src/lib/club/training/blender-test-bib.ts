@@ -178,4 +178,10 @@ export const BLENDER_BIB: readonly Oefening[] = [
   oef('Preacher curl met barbell', 'isolatie', 'biceps', 'barbell', 2, ['elleboog'], ['biceps']),
   oef('Hip thrust met dumbbell', 'heupscharnier', 'billen', 'dumbbell', 1, [], ['bilspieren']),
   oef('T-bar row', 'trekken_horizontaal', 'rug', 'barbell', 2, ['rug'], ['latissimus', 'rhomboideus']),
+  // Golf 9 (05-11-2026), kenmerken gelezen uit club_oefeningen. Alle vijf wisselend (rechts gespiegeld).
+  oef('Eenarmige dumbbell row', 'trekken_horizontaal', 'rug', 'dumbbell', 1, [], ['latissimus', 'rhomboideus']),
+  oef('Eenarmige triceps extension boven het hoofd', 'isolatie', 'triceps', 'dumbbell', 2, ['elleboog', 'schouder'], ['triceps']),
+  oef('Eenarmige lat pulldown', 'trekken_verticaal', 'rug', 'kabel', 2, ['schouder'], ['latissimus']),
+  oef('Landmine press', 'duwen_verticaal', 'schouders', 'barbell', 2, ['schouder'], ['voorste_schouder']),
+  oef('Pallof press', 'core', 'buik', 'kabel', 1, [], ['schuine_buikspieren', 'diepe_buikspier']),
 ]

@@ -277,7 +277,7 @@ export const COACHING_BUIK: CoachingBoek = {
     opstelling: [
       'Zet de katrol op borsthoogte met een enkel handvat.',
       'Ga zijwaarts naast de kabel staan, een grote pas weg, met je voeten op heupbreedte.',
-      'Houd het handvat met beide handen tegen je borstbeen.',
+      'Pak het handvat met een hand en vouw je andere hand om die vuist. Houd het zo tegen je borstbeen.',
     ],
     stappen: [
       'Span je buik en billen aan en sta stevig.',
