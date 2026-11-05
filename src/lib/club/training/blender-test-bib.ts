@@ -83,4 +83,17 @@ export const BLENDER_BIB: readonly Oefening[] = [
   oef('Row op een schuine bank', 'trekken_horizontaal', 'rug', 'dumbbell', 1, [], ['rhomboideus', 'latissimus']),
   oef('Reverse fly', 'isolatie', 'schouders', 'dumbbell', 1, [], ['achterste_schouder']),
   oef('Farmer walk', 'core', 'hele_lichaam', 'dumbbell', 1, [], ['onderarmen', 'trapezius']),
+  // Golf 3 (04-11-2026), kenmerken gelezen uit club_oefeningen; materiaal overig
+  // voor rek en dipstation volgens migratie 490.
+  oef('Pull-up', 'trekken_verticaal', 'rug', 'overig', 3, ['schouder', 'elleboog'], ['latissimus']),
+  oef('Chin-up', 'trekken_verticaal', 'biceps', 'overig', 3, ['schouder', 'elleboog'], ['latissimus', 'biceps']),
+  oef('Pull-up met neutrale greep', 'trekken_verticaal', 'rug', 'overig', 3, ['schouder', 'elleboog'], ['latissimus']),
+  oef('Negatieve pull-up', 'trekken_verticaal', 'rug', 'overig', 2, ['schouder', 'elleboog'], ['latissimus']),
+  oef('Hanging knee raise', 'core', 'buik', 'overig', 2, ['schouder'], ['rechte_buikspier', 'heupbuigers']),
+  oef('Inverted row', 'trekken_horizontaal', 'rug', 'overig', 2, [], ['rhomboideus', 'latissimus']),
+  oef('Dips voor de borst', 'duwen_verticaal', 'borst', 'overig', 3, ['schouder', 'elleboog'], ['borstspieren']),
+  oef('Step-up', 'lunge', 'benen', 'bank', 1, ['knie'], ['quadriceps', 'bilspieren']),
+  oef('Box jump', 'explosief', 'benen', 'overig', 3, ['knie', 'enkel'], ['quadriceps', 'bilspieren']),
+  oef('Wall sit', 'isolatie', 'benen', 'geen', 1, ['knie'], ['quadriceps']),
+  oef('Nordic hamstring curl', 'isolatie', 'benen', 'geen', 3, ['knie'], ['hamstrings']),
 ]

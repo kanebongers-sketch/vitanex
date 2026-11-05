@@ -88,6 +88,7 @@ const BOVEN_ONDER: BasisSjabloon = {
       regels: [
         r('Overhead press', 4, '6-8', 150, { rir: 2 }),
         r('Barbell row', 4, '8-10', 120, { rir: 2 }),
+        r('Pull-up', 3, '5-8', 120, { rir: 2, notitie: 'Lukt het nog niet, doe dan de negatieve pull-up.' }),
         r('Dumbbell fly', 3, '10-12', 75, { rir: 2, tempo: '3010' }),
         r('Lateral raise', 3, '12-15', 0, { groep: 1 }),
         r('Barbell curl', 3, '10-12', 75, { groep: 1 }),
@@ -100,6 +101,7 @@ const BOVEN_ONDER: BasisSjabloon = {
         r('Back squat', 4, '6-8', 180, { rir: 2, tempo: '3110' }),
         r('Roemeense deadlift met barbell', 3, '8-10', 120, { rir: 2, tempo: '3110' }),
         r('Bulgarian split squat', 3, '8-10', 90, { rir: 2, notitie: 'Per been.' }),
+        r('Step-up', 2, '8-10', 75, { notitie: 'Per been.' }),
         r('Calf raise met lichaamsgewicht', 3, '15-20', 0, { groep: 1, tempo: '1130' }),
         t('Plank', 3, 40, 60, { groep: 1 }),
       ],
@@ -109,6 +111,7 @@ const BOVEN_ONDER: BasisSjabloon = {
       regels: [
         r('Barbell row met onderhandse greep', 4, '6-8', 120, { rir: 2 }),
         r('Push-up', 4, '8-15', 90, { tempo: '3110' }),
+        r('Dips voor de borst', 3, '6-10', 90, { rir: 2, tempo: '3010' }),
         r('Arnold press', 3, '8-10', 90, { rir: 2 }),
         r('Skull crusher', 3, '10-12', 0, { groep: 1 }),
         r('Hammer curl', 3, '10-12', 75, { groep: 1 }),
@@ -152,6 +155,7 @@ const PPL: BasisSjabloon = {
       regels: [
         r('Deadlift', 4, '3-5', 180, { rir: 2 }),
         r('Barbell row', 4, '6-8', 120, { rir: 2 }),
+        r('Chin-up', 3, '5-8', 120, { rir: 2 }),
         r('Reverse fly', 3, '12-15', 60),
         r('Schouders ophalen met barbell', 3, '8-10', 75),
         r('Barbell curl', 3, '8-10', 75),
@@ -164,6 +168,7 @@ const PPL: BasisSjabloon = {
         r('Back squat', 5, '3-5', 180, { rir: 2, tempo: '3110' }),
         r('Roemeense deadlift met barbell', 3, '6-8', 150, { rir: 2 }),
         r('Lunge met barbell', 3, '6-8', 120, { notitie: 'Per been.' }),
+        r('Nordic hamstring curl', 3, '4-6', 120, { notitie: 'Zo langzaam mogelijk zakken.' }),
         r('Calf raise met lichaamsgewicht', 3, '15-20', 60, { tempo: '1130' }),
       ],
     },

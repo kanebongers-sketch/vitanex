@@ -66,6 +66,7 @@ const CURL = 'Curl: 1 sec omhoog, kort knijpen, 2,5 sec laten zakken; remmen gee
 const SCHOUDER_TIL = 'Heffen met losse gewichten: 1 sec omhoog, kort stil, 2 sec rustig omlaag zonder zwaaien.'
 const ROW = 'Roeien: 1 sec trekken, kort vasthouden, 2 sec gecontroleerd laten zakken.'
 const LUNGE = 'Lunge: 2 sec zakken, 1 sec terug; elke kant telt als een herhaling.'
+const OPTREK = 'Optrekken: 1 sec omhoog tot de kin boven de stang, kort stil, 2,5 sec gecontroleerd zakken tot gestrekte armen.'
 const FLY = 'Fly: 3 sec open (rek op de borst), kort stil, 2 sec terug.'
 
 export const UITVOERING: Readonly<Record<string, UitvoeringRegel>> = {
@@ -87,6 +88,7 @@ export const UITVOERING: Readonly<Record<string, UitvoeringRegel>> = {
   'split-squat': t(2, 0.5, 1, 0, 'Split squat: 2 sec zakken, kort stil, 1 sec omhoog.'),
   'split-squat-met-dumbbells': t(2, 0.5, 1, 0, 'Split squat: 2 sec zakken, kort stil, 1 sec omhoog.'),
   'bulgarian-split-squat': t(3, 0.5, 1, 0, 'Bulgarian split squat: 3 sec zakken voor balans en controle, kort stil, 1 sec omhoog.'),
+  'step-up': t(2, 0, 1, 0.5, 'Step-up: 1 sec opstappen via het voorste been, kort rechtop, 2 sec gecontroleerd afstappen; elke kant telt als een herhaling.'),
   'calf-raise-met-lichaamsgewicht': t(3, 0, 1, 1, 'Kuit: 1 sec omhoog, 1 sec vast bovenop, 3 sec langzaam zakken (kuiten veren anders mee).'),
 
   // Heupscharnier en billen
@@ -101,7 +103,10 @@ export const UITVOERING: Readonly<Record<string, UitvoeringRegel>> = {
   'glute-bridge-op-een-been': t(2, 0, 1, 2, 'Glute bridge op een been: 1 sec omhoog, 2 sec vast, 2 sec omlaag per kant.'),
   superman: t(2, 0, 1, 2, 'Superman: 1 sec optillen, 2 sec vasthouden voor de rugstrekkers, 2 sec omlaag.'),
 
+  'nordic-hamstring-curl': t(3.5, 0.5, 1.5, 0.5, 'Nordic: 3 tot 4 sec remmend voorover zakken, opvangen op de handen, in 1,5 sec terug omhoog.'),
+
   // Duwen
+  'dips-voor-de-borst': t(2.5, 0.5, 1, 0, 'Dips: 2 tot 3 sec zakken met de romp voorover, kort stil zonder te veren, 1 sec omhoog duwen.'),
   'push-up': t(2, 0.5, 1, 0, 'Push-up: 2 sec zakken, kort stil, 1 sec omhoog duwen.'),
   'push-up-met-smalle-handen': t(2, 0.5, 1, 0, 'Push-up: 2 sec zakken, kort stil, 1 sec omhoog duwen.'),
   'push-up-op-knieen': t(2, 0, 1, 0, 'Push-up op knieen: 2 sec zakken, 1 sec omhoog.'),
@@ -118,6 +123,11 @@ export const UITVOERING: Readonly<Record<string, UitvoeringRegel>> = {
   'triceps-kickback': t(2, 0, 1, 1, 'Kickback: 1 sec strekken, 1 sec vast met de arm gestrekt, 2 sec terug.'),
 
   // Trekken en armen
+  'pull-up': t(2.5, 0, 1, 0.5, OPTREK),
+  'chin-up': t(2.5, 0, 1, 0.5, OPTREK),
+  'pull-up-met-neutrale-greep': t(2.5, 0, 1, 0.5, OPTREK),
+  'negatieve-pull-up': t(4, 0, 1.5, 0.5, 'Negatieve pull-up: 4 sec zo langzaam mogelijk zakken, daarna in 1,5 sec via de box terug naar de bovenstand.'),
+  'inverted-row': t(2, 0, 1, 0.5, 'Inverted row: 1 sec de borst naar de stang, kort vasthouden, 2 sec zakken tot gestrekte armen.'),
   'barbell-row': t(2, 0, 1, 0.5, ROW),
   'barbell-row-met-onderhandse-greep': t(2, 0, 1, 0.5, ROW),
   'voorovergebogen-row-met-dumbbells': t(2, 0, 1, 0.5, ROW),
@@ -143,16 +153,19 @@ export const UITVOERING: Readonly<Record<string, UitvoeringRegel>> = {
   'leg-raise-liggend': t(3, 0, 2, 0, 'Leg raise: 2 sec omhoog, 3 sec langzaam omlaag met de onderrug op de vloer.'),
   'dead-bug': t(3, 0.5, 2, 0, 'Dead bug: 3 sec arm en been uitstrekken, kort stil, 2 sec terug; elke kant een herhaling.'),
   'bird-dog': t(2, 0, 2, 2, 'Bird dog: 2 sec strekken, 2 sec vasthouden voor balans, 2 sec terug; elke kant een herhaling.'),
+  'hanging-knee-raise': t(3, 0, 1, 0.5, 'Hanging knee raise: 1 sec knieen op en bekken oprollen, kort stil, 3 sec rustig laten zakken zonder zwaai.'),
   'mountain-climber': t(0.35, 0, 0.35, 0, 'Mountain climber: vlot, ongeveer 0,7 sec per knie; elke knie telt als een herhaling.'),
 
   // Sprongen en conditie
   'squat-jump': t(0.8, 0, 0.4, 1.2, 'Squat jump: snel inzakken, explosief afzetten, zacht landen en beheerst opnieuw; ongeveer 2,4 sec per sprong.', { rust: 'springen' }),
+  'box-jump': t(1.2, 0.4, 0.6, 0.8, 'Box jump: kort inzakken, explosief springen en zacht landen op de box (0,6 sec), kort rechtop, in 1,2 sec rustig afstappen; ongeveer 3 sec per sprong.'),
   burpee: t(0.7, 2, 0.6, 1, 'Burpee: vlot naar de grond, voeten naar achteren en terug, explosief omhoog in de sprong; ongeveer 4 sec per herhaling.', { houden: 'omlaag', rust: 'springen' }),
 
   // Houdoefeningen en dragen: lus op eigen snelheid, de speler telt seconden.
   plank: HOUDEN('Houdoefening: de speler telt seconden, de lus is alleen ademen.'),
   zijplank: HOUDEN('Houdoefening per kant: de speler telt seconden.'),
   'hollow-hold': HOUDEN('Houdoefening: de speler telt seconden.'),
+  'wall-sit': HOUDEN('Houdoefening tegen de muur: de speler telt seconden, de lus is alleen ademen.'),
   'farmer-walk': HOUDEN('Dragen op tijd: rustig wandeltempo, twee passen per lus, de speler telt seconden.'),
 }
 

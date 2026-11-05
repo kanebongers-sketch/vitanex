@@ -189,6 +189,22 @@ const BEWEGING = {
     soort: 'vasthouden',
     tempo: [[0, 0], [1, 0], [24, 1], [25, 1], [47, 0], [48, 0]],
   },
+  // Golf 3, optrekstang, dipstation, box, muur en anker (04-11-2026).
+  // Hangen en trekken: de render begint hangend of liggend met gestrekte armen.
+  'pull-up': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'chin-up': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'pull-up-met-neutrale-greep': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'hanging-knee-raise': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'inverted-row': { heen_is: 'concentrisch', soort: 'herhaling' },
+  // Negatieve pull-up en dips beginnen bovenin: eerst zakken.
+  'negatieve-pull-up': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'dips-voor-de-borst': { heen_is: 'excentrisch', soort: 'herhaling' },
+  // Step-up en box jump: eerst omhoog op de box, dan afstappen.
+  'step-up': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'box-jump': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'wall-sit': { heen_is: 'concentrisch', soort: 'vasthouden' },
+  // Nordic: eerst remmend voorover zakken.
+  'nordic-hamstring-curl': { heen_is: 'excentrisch', soort: 'herhaling' },
 }
 
 /** Instellingen per bestand: kwaliteit en inspanning van libwebp. */

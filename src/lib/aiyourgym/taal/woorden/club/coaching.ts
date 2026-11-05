@@ -15,6 +15,7 @@ import { COACHING_EN_ONDER } from './coaching-en-onder'
 import { COACHING_EN_BUIK } from './coaching-en-buik'
 import { COACHING_EN_GOLF2_ONDER } from './coaching-en-golf2-onder'
 import { COACHING_EN_GOLF2_BOVEN } from './coaching-en-golf2-boven'
+import { COACHING_EN_GOLF3 } from './coaching-en-golf3'
 
 const SITE = SITE_COACHING.en
 
@@ -164,6 +165,7 @@ export const COACHING_EN: Readonly<Record<string, Coaching>> = {
   // Golf 2 (31-10-2026): dumbbells, kettlebell en banken.
   ...COACHING_EN_GOLF2_ONDER,
   ...COACHING_EN_GOLF2_BOVEN,
+  ...COACHING_EN_GOLF3,
 }
 
 /** De namen met Engelse coaching. */

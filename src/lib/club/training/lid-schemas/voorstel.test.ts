@@ -97,7 +97,7 @@ describe('andere materiaalfilters (lid-voorstel)', () => {
   })
 
   it('een oude oefening zonder render blijft onkiesbaar', () => {
-    const oud = oefeningUitRij({ id: 'x', naam: 'Wall sit', spiergroep: 'benen', materiaal: 'geen', patroon: 'isolatie', actief: true, gearchiveerd: true })
+    const oud = oefeningUitRij({ id: 'x', naam: 'Lat pulldown', spiergroep: 'rug', materiaal: 'kabel', patroon: 'trekken_verticaal', actief: true, gearchiveerd: true })
     expect(oud && kiesbaarVoorLid(oud)).toBe(false)
   })
 })
@@ -124,11 +124,14 @@ describe('filters in de bibliotheek van de ledenapp (echte Blender-set)', () => 
 describe('migratie 475 (Blender-oefeningen uit het archief)', () => {
   const sql = readFileSync(join(process.cwd(), 'supabase/lifeos-migrations/475_club_oefeningen_blender_uit_archief.sql'), 'utf8')
   const namen = [...sql.matchAll(/^\s*\('((?:[^']|'')+)'\)/gm)].map((m) => m[1].replace(/''/g, "'"))
+  // Golf 3 (04-11-2026) haalt wall sit en nordic (lichaamsgewicht) uit het archief met migratie 490.
+  const sql490 = readFileSync(join(process.cwd(), 'supabase/lifeos-migrations/490_club_oefeningen_golf3_uit_archief.sql'), 'utf8').split('-- Materiaal')[0]
+  const golf3 = [...sql490.matchAll(/^\s*\('((?:[^']|'')+)'\)/gm)].map((m) => m[1].replace(/''/g, "'"))
 
   it('haalt alleen Blender-oefeningen uit het archief, en alle lichaamsgewicht-oefeningen', () => {
     expect(namen.length).toBeGreaterThan(0)
     for (const n of namen) expect(isBlenderOefening(n), n).toBe(true)
-    for (const o of ZONDER_MATERIAAL) expect(namen, o.naam).toContain(o.naam)
+    for (const o of ZONDER_MATERIAAL) expect([...namen, ...golf3], o.naam).toContain(o.naam)
   })
 
   it('verwijdert niets', () => {

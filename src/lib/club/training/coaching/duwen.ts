@@ -229,7 +229,7 @@ export const COACHING_DUWEN: CoachingBoek = {
     ],
     opstelling: [
       'Pak de leggers iets breder dan je schouders als het toestel dat toelaat en duw jezelf omhoog met gestrekte armen.',
-      'Buig je knieen, kruis je enkels en leun je romp licht voorover.',
+      'Buig je knieen met je voeten achter je en leun je romp licht voorover.',
     ],
     stappen: [
       'Zak gecontroleerd met je romp licht voorover tot je een rek in je borst voelt.',

@@ -777,19 +777,19 @@ export const COACHING_BENEN: CoachingBoek = {
 
   'Step-up': {
     kernpunten: [
-      { punt: 'Hele voet op de bank', uitleg: 'Zet je hele voet op de bank, niet alleen je voorvoet. Zo kun je via je hiel duwen.' },
+      { punt: 'Hele voet op de box', uitleg: 'Zet je hele voet op de box, niet alleen je voorvoet. Zo kun je via je hiel duwen.' },
       { punt: 'Duw met het voorste been', uitleg: 'Het been op de bank tilt je omhoog. Zet zo min mogelijk af met je achterste voet.' },
       { punt: 'Knie boven je voet', uitleg: 'Je knie wijst naar je tenen en valt niet naar binnen als je opstapt.' },
       { punt: 'Gecontroleerd afstappen', uitleg: 'Laat jezelf rustig zakken. Niet terugvallen naar de grond.' },
     ],
     opstelling: [
-      'Kies een stevige bank of opstapje waarbij je knie niet hoger komt dan je heup.',
-      'Sta recht voor de bank en zet een voet er volledig op.',
+      'Kies een stevige box, bank of opstapje waarbij je knie niet hoger komt dan je heup.',
+      'Sta recht voor de box met je handen in je zij en zet een voet er volledig op.',
     ],
     stappen: [
       'Leun licht naar voren en duw via de hiel van je voorste voet.',
-      'Strek je been en kom rechtop op de bank staan.',
-      'Laat je andere voet gecontroleerd terug naar de grond zakken. Je werkbeen blijft op de bank en remt.',
+      'Strek je been en kom rechtop op de box staan, je andere voet sluit aan.',
+      'Stap met je andere voet gecontroleerd terug naar de grond en zet daarna je werkbeen ernaast. Wissel van been.',
     ],
     fouten: [
       { fout: 'Afzetten met het onderste been', beter: 'Til je achterste tenen bewust licht op, zo doet je voorste been het werk.' },
@@ -915,11 +915,11 @@ export const COACHING_BENEN: CoachingBoek = {
       { punt: 'Rug plat tegen de muur', uitleg: 'Je hele rug en je achterhoofd raken de muur. Zo houd je je romp stil en je rug neutraal.' },
       { punt: 'Knieen boven je enkels', uitleg: 'Zet je voeten ver genoeg van de muur zodat je knieen recht boven je enkels staan.' },
       { punt: 'Gewicht op je hielen', uitleg: 'Duw je hielen in de grond. Je voelt je bovenbenen branden, niet je knieen.' },
-      { punt: 'Handen niet op je benen', uitleg: 'Leg je handen niet op je dijen om te steunen. Laat ze hangen of kruis ze voor je borst.' },
+      { punt: 'Handen niet op je benen', uitleg: 'Leg je handen niet op je dijen om te steunen. Strek ze voor je uit of kruis ze voor je borst.' },
     ],
     opstelling: [
       'Sta met je rug tegen een muur en zet je voeten ongeveer twee voetlengtes naar voren, op heupbreedte.',
-      'Leg je armen gekruist voor je borst of laat ze ontspannen langs je lichaam hangen.',
+      'Strek je armen voor je uit, of kruis ze voor je borst.',
     ],
     stappen: [
       'Glijd langs de muur omlaag tot je knieen ongeveer een rechte hoek maken.',

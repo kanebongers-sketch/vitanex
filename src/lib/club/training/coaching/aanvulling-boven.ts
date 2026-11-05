@@ -224,7 +224,7 @@ export const COACHING_AANVULLING_BOVEN: CoachingBoek = {
       { punt: 'Begin bovenin', uitleg: 'Stap of spring naar de bovenstand, je kin boven de stang. Je trekt jezelf niet op.' },
       { punt: 'Zo langzaam mogelijk', uitleg: 'Het werk zit in het zakken. Probeer 3 tot 5 tellen te remmen, de hele weg omlaag.' },
       { punt: 'Schouders laag', uitleg: 'Houd je schouders weg van je oren, ook bovenin. Dan blijft je rug actief.' },
-      { punt: 'Lichaam stil', uitleg: 'Benen licht naar voren en buik aan, zodat je niet gaat schommelen.' },
+      { punt: 'Lichaam stil', uitleg: 'Knieen gebogen en buik aan, zodat je niet gaat schommelen.' },
     ],
     opstelling: [
       'Zet een bank of box onder de stang, zodat je bovenin kunt beginnen.',
@@ -233,7 +233,7 @@ export const COACHING_AANVULLING_BOVEN: CoachingBoek = {
     stappen: [
       'Stap omhoog tot je kin boven de stang is en til je voeten op.',
       'Laat jezelf zo langzaam mogelijk zakken tot je armen gestrekt zijn.',
-      'Stap terug op de bank en begin opnieuw bovenin.',
+      'Zet je voeten terug op de box en stap of spring opnieuw naar de bovenstand.',
     ],
     fouten: [
       { fout: 'Te snel zakken', beter: 'Tel hardop mee. Lukt 3 tellen niet, gebruik dan eerst de assisted pull-up.' },

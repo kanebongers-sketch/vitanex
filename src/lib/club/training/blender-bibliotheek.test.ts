@@ -77,6 +77,15 @@ describe('koppeling render en oefening', () => {
     }
   })
 
+  it('golf 3 (04-11-2026): de renders met optrekstang, dipstation, box, muur en anker zijn kiesbaar, en migratie 490 haalt precies die uit het archief', () => {
+    const sql = readFileSync(join(process.cwd(), 'supabase/lifeos-migrations/490_club_oefeningen_golf3_uit_archief.sql'), 'utf8').split('-- Materiaal')[0]
+    const golf3 = [...sql.matchAll(/^\s*\('((?:[^']|'')+)'\)/gm)].map((m) => m[1].replace(/''/g, "'"))
+    expect(golf3).toHaveLength(11)
+    expect(sql).not.toMatch(/\b(delete|drop|truncate)\b/i)
+    expect(golf3.filter((n) => !isBlenderOefening(n))).toEqual([])
+    for (const naam of golf3) expect(isStandaardOefening(naam), naam).toBe(true)
+  })
+
   it('onbekend of geen tekst is geen Blender-oefening', () => {
     expect(isBlenderOefening('Bestaat niet')).toBe(false)
     expect(isBlenderOefening(null)).toBe(false)
