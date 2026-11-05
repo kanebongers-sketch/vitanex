@@ -172,6 +172,11 @@ export const UITVOERING: Readonly<Record<string, UitvoeringRegel>> = {
   'lat-pulldown-met-onderhandse-greep': t(2.5, 0, 1, 0.5, 'Lat pulldown onderhands: 1 sec omlaag, kort stil, 2 tot 3 sec omhoog.'),
   'trap-bar-deadlift': t(2, 0, 1, 0.5, 'Trap bar deadlift: 1 sec omhoog, kort stil, 2 sec terug naar de grond.'),
   'face-pull': t(2, 0, 1, 1, 'Face pull: 1 sec trekken, 1 sec vasthouden, 2 sec terug.'),
+
+  // Golf 8 (05-11-2026): tellen gelijk aan de coaching.
+  'preacher-curl-met-barbell': t(3, 0, 1, 0.5, 'Preacher curl: 1 sec omhoog, kort stil, 3 sec omlaag tot de armen bijna gestrekt zijn.'),
+  'hip-thrust-met-dumbbell': t(2, 0, 1, 1, 'Hip thrust met dumbbell: 1 sec omhoog, 1 sec bovenin vasthouden, 2 sec omlaag.'),
+  't-bar-row': t(2, 0, 1, 0.5, 'T-bar row: 1 sec naar de borst trekken, kort stil, 2 sec terug.'),
   'nordic-hamstring-curl': t(3.5, 0.5, 1.5, 0.5, 'Nordic: 3 tot 4 sec remmend voorover zakken, opvangen op de handen, in 1,5 sec terug omhoog.'),
 
   // Duwen

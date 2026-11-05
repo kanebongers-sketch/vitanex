@@ -292,6 +292,10 @@ const BEWEGING = {
     soort: 'vasthouden',
     tempo: [[0, 0], [1, 0], [24, 1], [25, 1], [47, 0], [48, 0]],
   },
+  // Golf 8 (05-11-2026): preacherbank, hip thrust met dumbbell en landmine. Alle drie trekken of strekken eerst.
+  'preacher-curl-met-barbell': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'hip-thrust-met-dumbbell': { heen_is: 'concentrisch', soort: 'herhaling' },
+  't-bar-row': { heen_is: 'concentrisch', soort: 'herhaling' },
 }
 
 /** Instellingen per bestand: kwaliteit en inspanning van libwebp. */

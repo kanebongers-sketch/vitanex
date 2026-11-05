@@ -122,14 +122,14 @@ export const COACHING_AANVULLING_ONDER: CoachingBoek = {
       'Zet je voeten op heupbreedte zo dat je schenen bovenin verticaal staan.',
     ],
     stappen: [
-      'Houd de dumbbell met twee handen vast en duw je heupen omhoog.',
+      'Leg je handen plat op de koppen van de dumbbell en duw je heupen omhoog.',
       'Stop als je lichaam recht is van knie tot schouder en houd kort vast.',
-      'Laat je heupen rustig zakken tot je billen net boven de grond zijn.',
+      'Laat je heupen rustig zakken, niet te diep: je billen blijven ruim boven de grond.',
     ],
     fouten: [
       { fout: 'Holle rug bovenin', beter: 'Kin naar je borst en ribben omlaag. Je stopt als je recht bent, niet verder.' },
       { fout: 'Voeten te ver weg', beter: 'Zet je voeten dichterbij tot je schenen bovenin recht omhoog staan. Dan voel je je billen meer dan je hamstrings.' },
-      { fout: 'Dumbbell rolt weg', beter: 'Leg hem in de plooi van je heupen en houd hem met twee handen vast. Een matje eronder maakt het prettiger.' },
+      { fout: 'Dumbbell rolt weg', beter: 'Leg hem in de plooi van je heupen en houd hem met je handen plat op de koppen op zijn plek. Een matje eronder maakt het prettiger.' },
     ],
     ademhaling: 'Adem uit terwijl je je heupen omhoog duwt, adem in als je zakt.',
     tempo: '1 tel omhoog, 1 tel vasthouden, 2 tellen omlaag.',

@@ -481,23 +481,23 @@ export const COACHING_TREKKEN: CoachingBoek = {
 
   'Preacher curl met barbell': {
     kernpunten: [
-      { punt: 'Bovenarmen plat op het kussen', uitleg: 'Je oksels zitten tegen de bovenrand en je bovenarmen liggen helemaal op het kussen.' },
+      { punt: 'Bovenarmen op de kussens', uitleg: 'Je bovenarmen liggen schuin op de armkussens, met je ellebogen erop. Ze blijven daar de hele herhaling liggen.' },
       { punt: 'Onderin niet op slot', uitleg: 'Stop net voordat je armen gestrekt zijn. Gestrekt met gewicht trekt hard aan je elleboog.' },
       { punt: 'Langzaam zakken', uitleg: 'Neem 3 tellen voor de weg naar beneden. Zo blijft je biceps in controle.' },
       { punt: 'Polsen recht', uitleg: 'Je polsen blijven in het verlengde van je onderarm. Niet krullen met je handen.' },
     ],
     opstelling: [
-      'Stel de zitting zo in dat je bovenarmen plat op het kussen liggen en je oksels tegen de bovenrand komen.',
-      'Pak de stang op schouderbreedte met je handpalmen naar boven. Een EZ-stang kan prettiger zijn voor je polsen.',
+      'Stel de zitting zo in dat je bovenarmen schuin op de armkussens liggen en je ellebogen erop rusten.',
+      'Pak de rechte stang op schouderbreedte met je handpalmen naar boven. Een EZ-stang kan prettiger zijn voor je polsen.',
     ],
     stappen: [
-      'Pak de stang uit de houder en begin met je armen bijna gestrekt op het kussen.',
+      'Pak de stang uit de houder en begin met je armen bijna gestrekt op de kussens.',
       'Krul de stang omhoog tot je onderarmen bijna verticaal staan.',
       'Laat hem in 3 tellen zakken tot je armen bijna gestrekt zijn.',
     ],
     fouten: [
       { fout: 'Stang valt de laatste centimeters', beter: 'Rem juist onderin extra af. Daar is je elleboog het kwetsbaarst.' },
-      { fout: 'Romp komt los van het kussen', beter: 'Borst tegen het kussen houden. Til je jezelf mee, neem dan minder gewicht.' },
+      { fout: 'Ellebogen komen los van de kussens', beter: 'Houd je bovenarmen op de kussens en je romp stil. Til je jezelf mee, neem dan minder gewicht.' },
       { fout: 'Bovenin helemaal doorkrullen', beter: 'Stop als je onderarmen bijna verticaal staan. Verder haalt de spanning eraf.' },
     ],
     ademhaling: 'Adem uit als je de stang omhoog krult en adem in terwijl hij zakt.',
@@ -696,22 +696,22 @@ export const COACHING_TREKKEN: CoachingBoek = {
     kernpunten: [
       { punt: 'Rug recht, ook als je moe bent', uitleg: 'Je onderrug blijft neutraal van stuit tot nek. Bij de laatste herhalingen gaat dit vaak mis.' },
       { punt: 'Buig vanuit je heupen', uitleg: 'Billen naar achteren en knieen licht gebogen tot je romp ongeveer 45 graden voorover staat.' },
-      { punt: 'Trek naar je borst', uitleg: 'Trek de grepen naar je onderste borst met je ellebogen langs je zij naar achteren.' },
+      { punt: 'Trek naar je borst', uitleg: 'Trek de greep naar je onderste borst met je ellebogen langs je zij naar achteren.' },
       { punt: 'Romp blijft stil', uitleg: 'Je romp houdt dezelfde hoek. Kom je omhoog om het gewicht te halen, dan is het te zwaar.' },
     ],
     opstelling: [
-      'Sta over de stang met je voeten op heupbreedte, de schijven voor je en de greep onder je borst.',
-      'Buig je knieen licht, duw je heupen naar achteren en pak de greep met een rechte rug en je buik vast.',
+      'Zet het ene eind van de stang in een landmine en schuif een schijf op het vrije eind. Sta over de stang met je voeten op heupbreedte, de schijf voor je.',
+      'Haak een V-greep onder de stang vlak achter de schijf. Buig je knieen licht, duw je heupen naar achteren en pak de greep met een rechte rug en je buik vast.',
     ],
     stappen: [
       'Til de stang een klein stukje op en laat je armen gestrekt hangen.',
       'Trek de greep naar je borst en breng je schouderbladen samen.',
-      'Laat hem gecontroleerd zakken tot je armen gestrekt zijn, zonder dat de schijven de grond raken.',
+      'Laat hem gecontroleerd zakken tot je armen gestrekt zijn, zonder dat de schijf de grond raakt.',
     ],
     fouten: [
       { fout: 'Onderrug wordt rond', beter: 'Borst iets naar voren, buik vast en minder gewicht. Bij een gevoelige onderrug kies je de versie met borststeun.' },
       { fout: 'Rechtop komen bij elke herhaling', beter: 'Blijf op dezelfde hoek staan. Je armen en rug bewegen, je romp niet.' },
-      { fout: 'Schijven tikken op de grond', beter: 'Stop net voor de grond. Zo blijft de spanning op je rug en raak je niet uit je houding.' },
+      { fout: 'Schijf tikt op de grond', beter: 'Stop net voor de grond. Zo blijft de spanning op je rug en raak je niet uit je houding.' },
     ],
     ademhaling: 'Adem in en zet je buik vast voor je trekt, adem uit als de greep bij je borst is.',
     tempo: '1 tel omhoog, kort stil, 2 tellen omlaag.',

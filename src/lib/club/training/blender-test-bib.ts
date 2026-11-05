@@ -174,4 +174,8 @@ export const BLENDER_BIB: readonly Oefening[] = [
   oef('Lat pulldown met onderhandse greep', 'trekken_verticaal', 'rug', 'kabel', 1, ['schouder', 'elleboog'], ['latissimus']),
   oef('Trap bar deadlift', 'heupscharnier', 'benen', 'barbell', 2, ['rug', 'knie'], ['bilspieren', 'quadriceps']),
   oef('Face pull', 'isolatie', 'schouders', 'kabel', 1, [], ['achterste_schouder']),
+  // Golf 8 (05-11-2026), kenmerken gelezen uit club_oefeningen (T-bar row na migratie 497 op barbell).
+  oef('Preacher curl met barbell', 'isolatie', 'biceps', 'barbell', 2, ['elleboog'], ['biceps']),
+  oef('Hip thrust met dumbbell', 'heupscharnier', 'billen', 'dumbbell', 1, [], ['bilspieren']),
+  oef('T-bar row', 'trekken_horizontaal', 'rug', 'barbell', 2, ['rug'], ['latissimus', 'rhomboideus']),
 ]
