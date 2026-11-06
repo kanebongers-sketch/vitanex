@@ -132,7 +132,7 @@ export const COACHING_EN_500_B: Readonly<Record<string, Coaching>> = {
     ],
     opstelling: [
       'Stand very wide with your toes turned out a little.',
-      'Hold your hands together in front of your chest.',
+      'Reach your arms forward for balance.',
     ],
     stappen: [
       'Sink to one side by bending that leg.',
@@ -156,7 +156,7 @@ export const COACHING_EN_500_B: Readonly<Record<string, Coaching>> = {
     ],
     opstelling: [
       'Stand tall with your feet hip width apart.',
-      'Keep your hands on your hips or in front of your chest.',
+      'Reach your arms forward or keep your hands on your hips.',
     ],
     stappen: [
       'Step one foot back at an angle behind your other leg.',
@@ -203,8 +203,8 @@ export const COACHING_EN_500_B: Readonly<Record<string, Coaching>> = {
       { punt: 'Only tap', uitleg: 'Your other heel only taps the floor. You put no weight on it.' },
     ],
     opstelling: [
-      'Stand with one leg on a box, your other foot hanging next to the box.',
-      'Keep your hands on your hips or in front of your chest.',
+      'Stand with one leg on a box, your other foot hanging in front of the box.',
+      'Reach your arms forward or keep your hands on your hips.',
     ],
     stappen: [
       'Bend your standing leg slowly until your other heel taps the floor.',
@@ -227,7 +227,7 @@ export const COACHING_EN_500_B: Readonly<Record<string, Coaching>> = {
       { punt: 'Slowly down', uitleg: 'Lower calmly until your heel is just above the floor.' },
     ],
     opstelling: [
-      'Stand on one leg with one hand against the wall for balance.',
+      'Stand on one leg with your hands on your hips.',
       'Lift your other foot a little.',
     ],
     stappen: [

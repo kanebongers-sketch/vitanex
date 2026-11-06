@@ -149,6 +149,15 @@ describe('koppeling render en oefening', () => {
     for (const naam of golf10) expect(isStandaardOefening(naam), naam).toBe(true)
   })
 
+  it('golf 11 tot en met 13 (06-11-2026): 32 nieuwe oefeningen uit migratie 500 zijn kiesbaar, en migratie 501 haalt precies die uit het archief', () => {
+    const sql = readFileSync(join(process.cwd(), 'supabase/lifeos-migrations/501_club_oefeningen_golf11_13_uit_archief.sql'), 'utf8')
+    const golf = [...sql.matchAll(/^\s*\('((?:[^']|'')+)'\)/gm)].map((m) => m[1].replace(/''/g, "'"))
+    expect(golf).toHaveLength(32)
+    expect(sql).not.toMatch(/(delete|drop|truncate)/i)
+    expect(golf.filter((n) => !isBlenderOefening(n))).toEqual([])
+    for (const naam of golf) expect(isStandaardOefening(naam), naam).toBe(true)
+  })
+
   it('onbekend of geen tekst is geen Blender-oefening', () => {
     expect(isBlenderOefening('Bestaat niet')).toBe(false)
     expect(isBlenderOefening(null)).toBe(false)
@@ -165,7 +174,9 @@ describe('archief (migratie 465)', () => {
   it('elke standaardoefening zonder render staat in de migratie', () => {
     const zonder = REPDB_ALLE_KOPPELINGEN.map((k) => k.naam).filter(hoortInArchief)
     expect(zonder.filter((n) => !IN_MIGRATIE.has(n))).toEqual([])
-    expect(zonder.length + BLENDER_OEFENINGEN.length).toBe(REPDB_ALLE_KOPPELINGEN.length)
+    // Sinds migratie 500 (06-11-2026) zijn er ook Blender-oefeningen buiten de RepDB-lijst; hier tellen alleen die van de lijst.
+    const repdb = new Set(REPDB_ALLE_KOPPELINGEN.map((k) => k.naam))
+    expect(zonder.length + BLENDER_OEFENINGEN.filter((b) => repdb.has(b.naam)).length).toBe(REPDB_ALLE_KOPPELINGEN.length)
   })
 
   it('een render haalt een oefening vanzelf uit het archief', () => {

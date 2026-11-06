@@ -187,7 +187,7 @@ export const COACHING_UITBREIDING_500_A: CoachingBoek = {
     ],
     stappen: [
       'Trek de stang langs je lichaam omhoog terwijl je ellebogen naar achteren gaan.',
-      'Stop als de stang op borsthoogte is en span kort aan.',
+      'Stop als de stang bij je onderste ribben is en span kort aan.',
       'Laat de stang langs je lichaam rustig zakken.',
     ],
     fouten: [

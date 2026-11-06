@@ -36,7 +36,7 @@ export const COACHING_EN_500_C: Readonly<Record<string, Coaching>> = {
     ],
     opstelling: [
       'Lean your upper back against a bench.',
-      'Place one foot flat on the floor and lift your other leg with your knee bent.',
+      'Place one foot flat on the floor and extend your other leg upwards.',
     ],
     stappen: [
       'Push your hips up until you are straight from knee to shoulder.',
@@ -155,9 +155,9 @@ export const COACHING_EN_500_C: Readonly<Record<string, Coaching>> = {
       'Lift your knees a few centimetres off the floor.',
     ],
     stappen: [
-      'Move one hand and the opposite foot a little forward at the same time.',
+      'Lift one hand and the opposite foot a few centimetres at the same time and put them down again.',
       'Do the same with the other hand and foot.',
-      'Keep crawling like this without putting your knees down.',
+      'Crawl like this on the spot or a little forward, without putting your knees down.',
     ],
     fouten: [
       { fout: 'Hips rise', beter: 'Keep your knees low and your back flat.' },
@@ -247,7 +247,7 @@ export const COACHING_EN_500_C: Readonly<Record<string, Coaching>> = {
     ],
     opstelling: [
       'Lie on your side next to a bench with your forearm under your shoulder.',
-      'Place your top leg on the bench, with your knee or your foot on it.',
+      'Place the inside of your top ankle on the bench, or your knee if it needs to be easier.',
     ],
     stappen: [
       'Lift your hips until your body is straight.',

@@ -187,7 +187,7 @@ export const COACHING_EN_500_A: Readonly<Record<string, Coaching>> = {
     ],
     stappen: [
       'Drag the bar up along your body while your elbows move back.',
-      'Stop when the bar reaches chest height and squeeze briefly.',
+      'Stop when the bar reaches your lower ribs and squeeze briefly.',
       'Lower the bar slowly along your body.',
     ],
     fouten: [

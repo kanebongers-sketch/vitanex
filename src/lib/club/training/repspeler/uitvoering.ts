@@ -265,6 +265,44 @@ export const UITVOERING: Readonly<Record<string, UitvoeringRegel>> = {
   roeiergometer: HOUDEN('Roeiergometer op tijd: een haal per lus (ongeveer 24 per minuut), de speler telt seconden.'),
   // Golf 7 (05-11-2026): op tijd, zoals de farmer walk.
   'suitcase-carry': HOUDEN('Dragen op tijd: rustig wandeltempo met een kettlebell aan een kant, twee passen per lus, de speler telt seconden.'),
+
+  // Golf 11 (06-11-2026): nieuwe oefeningen uit migratie 500, barbell en dumbbell. Gelijk aan de tellen in de coaching.
+  'pendlay-row': t(1.5, 0.5, 0.5, 0, 'Pendlay row: explosief omhoog naar de onderste ribben, 1 tot 2 sec terug naar de vloer, kort stil op de vloer.'),
+  'push-press': t(2, 0, 0.8, 0.5, 'Push press: snelle dip en explosief boven het hoofd in ongeveer 0,8 sec, kort boven, 2 sec terug naar de schouders.'),
+  'squeeze-press-met-dumbbells': t(2, 0, 1, 0, 'Squeeze press: 2 sec samen zakken naar de borst, 1 sec omhoog drukken zonder de druk los te laten.'),
+  'reverse-curl-met-ez-stang': t(2, 0, 1, 0.5, CURL),
+  'jm-press': t(2, 0, 1, 0, 'JM press: 2 sec zakken richting de kin met de ellebogen naar voren, 1 sec terug omhoog.'),
+  'tate-press': t(2, 0, 1, 0, 'Tate press: 2 sec de koppen naar de borst laten kantelen, 1 sec strekken.'),
+  'spider-curl': t(2, 0, 1, 1, 'Spider curl: 1 sec omhoog, 1 sec vast, 2 sec laten zakken.'),
+  'y-raise-op-een-schuine-bank': t(2, 0, 2, 1, 'Y-raise: 2 sec omhoog in een Y, 1 sec vast, 2 sec rustig omlaag.'),
+  'drag-curl-met-barbell': t(2, 0, 1, 0.5, 'Drag curl: 1 sec langs het lichaam omhoog, kort aanspannen, 2 sec rustig zakken.'),
+
+  // Golf 12 (06-11-2026): kettlebell, staand lichaamsgewicht en sprongen.
+  'jumping-jack': HOUDEN('Jumping jack op tijd: ongeveer een sprong per seconde, de speler telt seconden.'),
+  'cossack-squat': t(2, 0, 1, 0, 'Cossack squat: 2 sec naar de kant zakken, 1 sec terug; elke kant een herhaling.'),
+  'curtsy-lunge': t(2, 0, 1, 0, 'Curtsy lunge: 2 sec zakken, 1 sec omhoog; elke kant een herhaling.'),
+  'skater-jump': HOUDEN('Skater jump op tijd: vloeiend van been naar been, de speler telt seconden.'),
+  'high-knees': HOUDEN('High knees op tijd: snel op de plaats, twee passen per lus, de speler telt seconden.'),
+  'calf-raise-op-een-been': t(2, 0, 1, 1, 'Calf raise op een been: 1 sec omhoog, 1 sec vast, 2 sec langzaam omlaag; elke kant een herhaling.'),
+  'broad-jump': t(0.5, 2.3, 0.5, 0.7, 'Broad jump: explosief vooruit springen, stil landen, rechtop komen en rustig teruglopen (samen ongeveer 4 sec).'),
+  'step-down': t(3, 0, 1, 0, 'Step-down: 3 sec langzaam zakken tot de hiel de vloer aantikt, 1 sec omhoog; elke kant een herhaling.'),
+  'tibialis-raise': t(1, 0, 1, 1, 'Tibialis raise: 1 sec tenen omhoog, 1 sec vast, 1 sec omlaag.'),
+  'wall-slide': t(3, 0, 3, 0.5, 'Wall slide: 3 sec langs de muur omhoog naar een Y, kort vast, 3 sec terug naar de W.'),
+  'pistol-squat-naar-een-bank': t(3, 0.5, 1, 0, 'Pistol squat naar een bank: 3 sec zakken, kort zitten, 1 sec omhoog op hetzelfde been; elke kant een herhaling.'),
+  'kettlebell-press': t(2, 0, 1, 0, 'Kettlebell press: 1 sec omhoog drukken, 2 sec gecontroleerd terug naar de schouder; elke kant een herhaling.'),
+
+  // Golf 13 (06-11-2026): vloer, billen en romp.
+  'flutter-kicks': HOUDEN('Flutter kicks op tijd: vlotte kleine slagen, de speler telt seconden.'),
+  'hollow-rock': HOUDEN('Hollow rock op tijd: rustig heen en weer schommelen, de speler telt seconden.'),
+  'v-up': t(2, 0, 1, 0, 'V-up: 1 sec omhoog tot een V, 2 sec rustig terug zonder helemaal te ontspannen.'),
+  'frog-pump': t(1, 0, 1, 1, 'Frog pump: 1 sec heupen omhoog, 1 sec vast, 1 sec omlaag.'),
+  'bear-crawl': HOUDEN('Bear crawl op tijd: rustig en vast kruipen op de plaats, de speler telt seconden.'),
+  'plank-shoulder-tap': t(0.6, 0.5, 0.6, 0.3, 'Plank shoulder tap: ongeveer een tik per 2 sec, romp en heupen stil; elke tik een herhaling.'),
+  'archer-push-up': t(2, 0, 1, 0, 'Archer push-up: 2 sec naar een hand zakken, 1 sec terug naar het midden; elke kant een herhaling.'),
+  'donkey-kick': t(1, 0, 1, 1, 'Donkey kick: 1 sec omhoog, 1 sec vast, 1 sec omlaag; elke kant een herhaling.'),
+  'fire-hydrant': t(1, 0, 1, 1, 'Fire hydrant: 1 sec zijwaarts omhoog, 1 sec vast, 1 sec omlaag; elke kant een herhaling.'),
+  'hip-thrust-op-een-been': t(2, 0, 1, 1, 'Hip thrust op een been: 1 sec omhoog, 1 sec vast, 2 sec rustig omlaag; elke kant een herhaling.'),
+  'copenhagen-plank': HOUDEN('Houdoefening per kant: de speler telt seconden, de lus is alleen ademen.'),
 }
 
 export function isHoudregel(r: UitvoeringRegel): r is Houdregel {

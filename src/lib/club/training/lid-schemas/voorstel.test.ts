@@ -135,11 +135,14 @@ describe('migratie 475 (Blender-oefeningen uit het archief)', () => {
   // Golf 3 (04-11-2026) haalt wall sit en nordic (lichaamsgewicht) uit het archief met migratie 490.
   const sql490 = readFileSync(join(process.cwd(), 'supabase/lifeos-migrations/490_club_oefeningen_golf3_uit_archief.sql'), 'utf8').split('-- Materiaal')[0]
   const golf3 = [...sql490.matchAll(/^\s*\('((?:[^']|'')+)'\)/gm)].map((m) => m[1].replace(/''/g, "'"))
+  // Golf 11 tot en met 13 (06-11-2026): nieuwe oefeningen met lichaamsgewicht uit migratie 500, uit het archief met migratie 501.
+  const sql501 = readFileSync(join(process.cwd(), 'supabase/lifeos-migrations/501_club_oefeningen_golf11_13_uit_archief.sql'), 'utf8')
+  const golf11tot13 = [...sql501.matchAll(/^\s*\('((?:[^']|'')+)'\)/gm)].map((m) => m[1].replace(/''/g, "'"))
 
   it('haalt alleen Blender-oefeningen uit het archief, en alle lichaamsgewicht-oefeningen', () => {
     expect(namen.length).toBeGreaterThan(0)
     for (const n of namen) expect(isBlenderOefening(n), n).toBe(true)
-    for (const o of ZONDER_MATERIAAL) expect([...namen, ...golf3], o.naam).toContain(o.naam)
+    for (const o of ZONDER_MATERIAAL) expect([...namen, ...golf3, ...golf11tot13], o.naam).toContain(o.naam)
   })
 
   it('verwijdert niets', () => {

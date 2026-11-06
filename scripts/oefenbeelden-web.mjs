@@ -304,6 +304,41 @@ const BEWEGING = {
   'pallof-press': { heen_is: 'concentrisch', soort: 'herhaling' },
   // Golf 10 (05-11-2026): wisselend met "wissel": "beeld", een herhaling is een keer op en neer.
   'turkish-get-up': { heen_is: 'concentrisch', soort: 'herhaling' },
+  // Golf 11 (06-11-2026): nieuwe oefeningen uit migratie 500, barbell en dumbbell, K3-figuur.
+  'pendlay-row': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'push-press': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'squeeze-press-met-dumbbells': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'reverse-curl-met-ez-stang': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'jm-press': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'tate-press': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'spider-curl': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'y-raise-op-een-schuine-bank': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'drag-curl-met-barbell': { heen_is: 'concentrisch', soort: 'herhaling' },
+  // Golf 12 (06-11-2026): kettlebell, staand lichaamsgewicht en sprongen. Cardio en de skater jump op tijd.
+  'jumping-jack': { heen_is: 'concentrisch', soort: 'vasthouden' },
+  'cossack-squat': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'curtsy-lunge': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'skater-jump': { heen_is: 'concentrisch', soort: 'vasthouden' },
+  'high-knees': { heen_is: 'concentrisch', soort: 'vasthouden' },
+  'calf-raise-op-een-been': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'broad-jump': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'step-down': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'tibialis-raise': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'wall-slide': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'pistol-squat-naar-een-bank': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'kettlebell-press': { heen_is: 'concentrisch', soort: 'herhaling' },
+  // Golf 13 (06-11-2026): vloer, billen en romp. Looplussen en de copenhagen plank op tijd.
+  'flutter-kicks': { heen_is: 'concentrisch', soort: 'vasthouden' },
+  'hollow-rock': { heen_is: 'concentrisch', soort: 'vasthouden' },
+  'v-up': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'frog-pump': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'bear-crawl': { heen_is: 'concentrisch', soort: 'vasthouden' },
+  'plank-shoulder-tap': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'archer-push-up': { heen_is: 'excentrisch', soort: 'herhaling' },
+  'donkey-kick': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'fire-hydrant': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'hip-thrust-op-een-been': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'copenhagen-plank': { heen_is: 'concentrisch', soort: 'vasthouden' },
 }
 
 /** Instellingen per bestand: kwaliteit en inspanning van libwebp. */
@@ -419,7 +454,8 @@ const LUS_MAX_BYTES = { hd: 3072 * 1024, middel: 2304 * 1024, klein: 1330 * 1024
 const LUS_MIN_KWALITEIT = 56
 const LUS_BEELDEN_BASIS = 120
 // boven 120 beelden naar rato, met 12 procent ruimte (golf 4: lateral raise aan de kabel) (de glute bridge op een been, 136 beelden met een wissel van het been, is per beeld het zwaarst)
-const lusFactor = (beelden) => (beelden > LUS_BEELDEN_BASIS ? (beelden / LUS_BEELDEN_BASIS) * 1.12 : 1)
+// vanaf 120 beelden met 25 procent ruimte (golf 13: hip thrust op een been, 120 beelden wisselend met bank in beeld, ongeveer 31 KB per beeld)
+const lusFactor = (beelden) => (beelden >= LUS_BEELDEN_BASIS ? (beelden / LUS_BEELDEN_BASIS) * 1.25 : 1)
 const lusGrens = (bytes, beelden) => Math.round(bytes * lusFactor(beelden))
 
 async function maakLus(frames, snij, maat, opties, doel, maxBytes = Infinity) {

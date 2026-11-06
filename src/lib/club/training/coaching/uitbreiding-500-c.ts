@@ -37,7 +37,7 @@ export const COACHING_UITBREIDING_500_C: CoachingBoek = {
     ],
     opstelling: [
       'Leun met je bovenrug tegen een bank.',
-      'Zet een voet plat op de vloer en til je andere been op met je knie gebogen.',
+      'Zet een voet plat op de vloer en strek je andere been omhoog.',
     ],
     stappen: [
       'Duw je heupen omhoog tot je recht bent van knie tot schouder.',
@@ -156,9 +156,9 @@ export const COACHING_UITBREIDING_500_C: CoachingBoek = {
       'Til je knieen een paar centimeter van de vloer.',
     ],
     stappen: [
-      'Zet tegelijk je ene hand en je andere voet een klein stukje vooruit.',
+      'Til tegelijk je ene hand en je andere voet een paar centimeter op en zet ze weer neer.',
       'Doe hetzelfde met de andere hand en voet.',
-      'Kruip zo verder zonder je knieen neer te zetten.',
+      'Kruip zo op de plaats of een stukje vooruit, zonder je knieen neer te zetten.',
     ],
     fouten: [
       { fout: 'Heupen gaan omhoog', beter: 'Houd je knieen laag en je rug plat.' },
@@ -248,7 +248,7 @@ export const COACHING_UITBREIDING_500_C: CoachingBoek = {
     ],
     opstelling: [
       'Ga op je zij liggen naast een bank met je onderarm onder je schouder.',
-      'Leg je bovenste been op de bank, met je knie of je voet erop.',
+      'Leg de binnenkant van je bovenste enkel op de bank, of je knie als dat lichter moet.',
     ],
     stappen: [
       'Til je heupen op tot je lichaam recht is.',

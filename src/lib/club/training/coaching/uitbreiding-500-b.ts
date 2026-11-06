@@ -133,7 +133,7 @@ export const COACHING_UITBREIDING_500_B: CoachingBoek = {
     ],
     opstelling: [
       'Sta heel breed met je tenen licht naar buiten.',
-      'Houd je handen voor je borst bij elkaar.',
+      'Strek je armen naar voren voor je evenwicht.',
     ],
     stappen: [
       'Zak naar een kant door dat been te buigen.',
@@ -157,7 +157,7 @@ export const COACHING_UITBREIDING_500_B: CoachingBoek = {
     ],
     opstelling: [
       'Sta rechtop met je voeten op heupbreedte.',
-      'Houd je handen in je zij of voor je borst.',
+      'Strek je armen naar voren of houd je handen in je zij.',
     ],
     stappen: [
       'Zet een voet schuin achter je andere been.',
@@ -204,8 +204,8 @@ export const COACHING_UITBREIDING_500_B: CoachingBoek = {
       { punt: 'Alleen aantikken', uitleg: 'Je andere hiel tikt de vloer alleen aan. Je zet er geen gewicht op.' },
     ],
     opstelling: [
-      'Sta met een been op een box, je andere voet hangt naast de box.',
-      'Houd je handen in je zij of voor je borst.',
+      'Sta met een been op een box, je andere voet hangt voor de box.',
+      'Strek je armen naar voren of houd je handen in je zij.',
     ],
     stappen: [
       'Buig je standbeen langzaam tot je andere hiel de vloer aantikt.',
@@ -228,7 +228,7 @@ export const COACHING_UITBREIDING_500_B: CoachingBoek = {
       { punt: 'Langzaam omlaag', uitleg: 'Zak rustig terug tot je hiel net boven de grond is.' },
     ],
     opstelling: [
-      'Sta op een been met een hand tegen de muur voor je evenwicht.',
+      'Sta op een been met je handen in je zij.',
       'Til je andere voet een stukje op.',
     ],
     stappen: [

@@ -264,6 +264,7 @@ const MOBILITEIT_CORE: BasisSjabloon = {
         r('Dead bug', 3, '6-8', 45, { tempo: '3120', notitie: 'Per kant.' }),
         r('Glute bridge op een been', 2, '8-10', 45, { notitie: 'Per been.' }),
         r('Superman', 2, '8-10', 45),
+        r('Wall slide', 2, '8-10', 45, { notitie: 'Rug en armen blijven tegen de muur.' }),
         t('Hollow hold', 3, 20, 40),
         t('Zijplank', 2, 20, 30, { notitie: 'Per kant.' }),
       ],
