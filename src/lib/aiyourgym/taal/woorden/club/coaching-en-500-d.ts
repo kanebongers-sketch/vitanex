@@ -7,21 +7,21 @@ export const COACHING_EN_500_D: Readonly<Record<string, Coaching>> = {
   'Cable fly van laag naar hoog': {
     kernpunten: [
       { punt: 'Fixed slight bend', uitleg: 'Your elbows keep the same slight bend the whole movement. Your arms do not straighten or bend.' },
-      { punt: 'Arc upwards', uitleg: 'Your hands travel in an arc from next to your hips up to in front of your chest.' },
+      { punt: 'Arc upwards', uitleg: 'Your hands travel in an arc from low next to your hips up to in front of your upper chest.' },
       { punt: 'Chest open', uitleg: 'Your chest stays open and your shoulders down. That works mostly the upper part of your chest.' },
     ],
     opstelling: [
       'Set both cables to the lowest position and take a handle in each hand.',
-      'Step a small pace forward between the towers, one foot slightly in front of the other.',
+      'Step a small pace forward between the towers, your feet side by side at shoulder width.',
     ],
     stappen: [
-      'Start with your arms low next to your hips, palms facing forward.',
-      'Bring your hands up in an arc until they meet in front of your chest.',
+      'Start with your arms low and wide next to your hips, palms angled down.',
+      'Bring your hands up in an arc until they meet in front of your upper chest.',
       'Lower them calmly along the same arc.',
     ],
     fouten: [
       { fout: 'Arms bend and press', beter: 'Hold the bend in your elbows. It is an arc, not a press.' },
-      { fout: 'Shoulders shrug up', beter: 'Push your shoulders down and stop at chest height.' },
+      { fout: 'Shoulders shrug up', beter: 'Push your shoulders down and stop at shoulder height.' },
     ],
     ademhaling: 'Breathe out as you bring the handles up and in as you lower them.',
     tempo: '1 count up, 1 count hold, 2 counts back.',
@@ -36,7 +36,7 @@ export const COACHING_EN_500_D: Readonly<Record<string, Coaching>> = {
     ],
     opstelling: [
       'Set both cables high and take a handle in each hand.',
-      'Step forward with one foot slightly in front of the other and lean slightly forward.',
+      'Step forward, your feet side by side at shoulder width, and lean slightly forward.',
     ],
     stappen: [
       'Start with your arms high and wide to the sides.',
@@ -83,7 +83,7 @@ export const COACHING_EN_500_D: Readonly<Record<string, Coaching>> = {
       { punt: 'Arms slightly bent', uitleg: 'Your elbows are slightly bent and stay at that angle.' },
     ],
     opstelling: [
-      'Set both cables at shoulder height and stand in the middle.',
+      'Set both cables at shoulder height and stand in the middle, about a metre from the towers and facing them.',
       'Take the right cable with your left hand and the left cable with your right hand, arms crossed in front of you.',
     ],
     stappen: [
@@ -108,12 +108,12 @@ export const COACHING_EN_500_D: Readonly<Record<string, Coaching>> = {
     ],
     opstelling: [
       'Set the cable high with a D handle.',
-      'Stand facing the tower with the handle in one hand and your elbow against your side.',
+      'Stand facing the tower with the handle in one hand and your elbow against your side. Your other hand rests on your hip.',
     ],
     stappen: [
       'Push the handle down until your arm is straight.',
       'Squeeze briefly.',
-      'Let the handle come back calmly and switch arms after the set.',
+      'Let the handle come back calmly and then do the other arm.',
     ],
     fouten: [
       { fout: 'Elbow moves forward', beter: 'Keep your elbow against your side. Use less weight.' },
@@ -132,12 +132,12 @@ export const COACHING_EN_500_D: Readonly<Record<string, Coaching>> = {
     ],
     opstelling: [
       'Set the cable low with a D handle and stand with your back to the tower.',
-      'Grip the handle with one hand and step half a pace forward, your arm slightly behind you.',
+      'Grip the handle with one hand and step half a pace forward, your arm slightly behind you. Your other hand rests on your hip.',
     ],
     stappen: [
-      'Curl the handle up towards your shoulder.',
+      'Curl the handle up until your forearm is about horizontal.',
       'Squeeze briefly at the top.',
-      'Lower the handle calmly until your arm hangs behind you again and switch after the set.',
+      'Lower the handle calmly until your arm hangs behind you again and then do the other arm.',
     ],
     fouten: [
       { fout: 'Elbow shoots forward', beter: 'Keep your elbow behind your torso. Use less weight.' },
@@ -150,22 +150,22 @@ export const COACHING_EN_500_D: Readonly<Record<string, Coaching>> = {
   },
   'Woodchop aan de kabel': {
     kernpunten: [
-      { punt: 'Rotate from torso and hips', uitleg: 'The movement comes from your torso and hips. Your arms stay long and only guide.' },
-      { punt: 'Back foot pivots', uitleg: 'Your back foot pivots on the ball of your foot. That keeps your knee free.' },
+      { punt: 'Rotate from torso and hips', uitleg: 'The movement comes from your torso and hips. Your arms keep the same bend and only guide.' },
+      { punt: 'Feet wide and still', uitleg: 'Your feet stay wide on the floor and your knees bend slightly along. That lets your hips rotate.' },
       { punt: 'Back with control', uitleg: 'Let the cable come back calmly. You do not let it pull you back.' },
     ],
     opstelling: [
-      'Set the cable high and stand side on next to it with your feet slightly wider than your hips.',
+      'Set the cable high and stand side on next to it with your feet wider than your shoulders.',
       'Grip the handle with both hands above your shoulder.',
     ],
     stappen: [
-      'Pull the handle diagonally down across your body towards your opposite knee.',
-      'Rotate your torso and hips along.',
-      'Let the handle rise calmly and switch sides after the set.',
+      'Pull the handle diagonally down across your body to in front of your opposite hip.',
+      'Rotate your torso and hips along and bend your knees slightly.',
+      'Let the handle rise calmly and then do the other side.',
     ],
     fouten: [
-      { fout: 'Pulling with the arms', beter: 'Keep your arms long and rotate from your torso.' },
-      { fout: 'Feet stay locked', beter: 'Let your back foot pivot along.' },
+      { fout: 'Pulling with the arms', beter: 'Keep your elbows at the same angle and rotate from your torso.' },
+      { fout: 'Knees locked', beter: 'Bend your knees slightly, then your hips can rotate along.' },
     ],
     ademhaling: 'Breathe out as you pull down and in as you come back.',
     tempo: '1 count down, 2 counts back.',
@@ -174,22 +174,22 @@ export const COACHING_EN_500_D: Readonly<Record<string, Coaching>> = {
   },
   'Eenarmige seated cable row': {
     kernpunten: [
-      { punt: 'Torso does not rotate', uitleg: 'Your torso keeps facing forward. Only your arm and shoulder blade move.' },
+      { punt: 'Torso does not rotate', uitleg: 'Your shoulders keep facing forward. Your torso only tilts a little, from slightly forward to upright.' },
       { punt: 'Elbow along your body', uitleg: 'Pull the handle to your side with your elbow close to your torso.' },
       { punt: 'Shoulder blade back', uitleg: 'At the end you pull your shoulder blade back. That is where you feel your back.' },
     ],
     opstelling: [
       'Sit at the row station with your feet against the plate and your knees slightly bent.',
-      'Grip a D handle with one hand and sit tall.',
+      'Grip a D handle with one hand. Your other hand rests on your thigh.',
     ],
     stappen: [
-      'Pull the handle to your side.',
+      'Start slightly forward with a long arm and pull the handle to your side until you sit upright.',
       'Pull your shoulder blade back and hold briefly.',
-      'Let your arm straighten calmly and switch after the set.',
+      'Let your arm straighten calmly and then do the other arm.',
     ],
     fouten: [
       { fout: 'Torso rotates along', beter: 'Use less weight and keep your shoulders square.' },
-      { fout: 'Leaning back', beter: 'Sit tall. Your torso does not move.' },
+      { fout: 'Leaning back', beter: 'Stop when you sit upright. Going further back does not help.' },
     ],
     ademhaling: 'Breathe out as you pull and in as you come back.',
     tempo: '1 count pull, 1 count hold, 2 counts back.',

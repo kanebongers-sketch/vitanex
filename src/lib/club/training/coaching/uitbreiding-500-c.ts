@@ -42,7 +42,7 @@ export const COACHING_UITBREIDING_500_C: CoachingBoek = {
     stappen: [
       'Duw je heupen omhoog tot je recht bent van knie tot schouder.',
       'Span je bil bovenin aan.',
-      'Zak rustig terug en wissel na de set van been.',
+      'Zak rustig terug en doe daarna je andere been.',
     ],
     fouten: [
       { fout: 'Heup zakt aan de vrije kant', beter: 'Span je buik aan en ga minder hoog.' },
@@ -65,7 +65,7 @@ export const COACHING_UITBREIDING_500_C: CoachingBoek = {
     stappen: [
       'Duw een voet met gebogen knie omhoog naar het plafond.',
       'Stop als je bovenbeen in lijn is met je romp en span je bil aan.',
-      'Laat je been rustig zakken en wissel na de set.',
+      'Laat je been rustig zakken en doe daarna je andere been.',
     ],
     fouten: [
       { fout: 'Holle onderrug', beter: 'Span je buik aan en til je been minder hoog.' },
@@ -88,7 +88,7 @@ export const COACHING_UITBREIDING_500_C: CoachingBoek = {
     stappen: [
       'Til een gebogen been zijwaarts op tot je knie op heuphoogte is.',
       'Houd kort vast.',
-      'Laat je been rustig zakken en wissel na de set.',
+      'Laat je been rustig zakken en doe daarna je andere been.',
     ],
     fouten: [
       { fout: 'Romp leunt weg', beter: 'Houd je schouders recht en til je been minder hoog.' },
@@ -253,7 +253,7 @@ export const COACHING_UITBREIDING_500_C: CoachingBoek = {
     stappen: [
       'Til je heupen op tot je lichaam recht is.',
       'Laat je onderste been los hangen of til het naar de bank.',
-      'Houd vast en wissel na de tijd van kant.',
+      'Houd vast en doe daarna de andere kant.',
     ],
     fouten: [
       { fout: 'Heupen zakken', beter: 'Leg je knie op de bank in plaats van je voet.' },

@@ -219,4 +219,17 @@ export const BLENDER_BIB: readonly Oefening[] = [
   oef('Fire hydrant', 'isolatie', 'billen', 'geen', 1, ['heup'], ['abductoren', 'bilspieren']),
   oef('Hip thrust op een been', 'heupscharnier', 'billen', 'geen', 2, [], ['bilspieren']),
   oef('Copenhagen plank', 'core', 'buik', 'bank', 3, ['knie', 'heup'], ['adductoren', 'schuine_buikspieren']),
+  // Golf 14 (08-11-2026), kenmerken uit standaard-500.json (migratie 500). Kabel, latstation en optrekstang.
+  oef('Bayesian curl aan de kabel', 'isolatie', 'biceps', 'kabel', 2, [], ['biceps']),
+  oef('Cable fly van hoog naar laag', 'isolatie', 'borst', 'kabel', 2, ['schouder'], ['borstspieren']),
+  oef('Cable fly van laag naar hoog', 'isolatie', 'borst', 'kabel', 2, ['schouder'], ['borstspieren']),
+  oef('Dead hang', 'isolatie', 'rug', 'overig', 1, ['schouder'], ['onderarmen', 'latissimus']),
+  oef('Eenarmige seated cable row', 'trekken_horizontaal', 'rug', 'kabel', 2, [], ['latissimus', 'rhomboideus']),
+  oef('Front raise aan de kabel', 'isolatie', 'schouders', 'kabel', 1, ['schouder'], ['voorste_schouder']),
+  oef('Hanging leg raise', 'core', 'buik', 'overig', 3, ['schouder', 'rug'], ['rechte_buikspier', 'heupbuigers']),
+  oef('Lat pulldown met brede greep', 'trekken_verticaal', 'rug', 'kabel', 1, ['schouder'], ['latissimus']),
+  oef('Reverse fly aan de kabel', 'isolatie', 'schouders', 'kabel', 2, ['schouder'], ['achterste_schouder']),
+  oef('Scapula pull-up', 'trekken_verticaal', 'rug', 'overig', 1, ['schouder'], ['trapezius', 'latissimus']),
+  oef('Triceps pushdown met een arm', 'isolatie', 'triceps', 'kabel', 1, ['elleboog'], ['triceps']),
+  oef('Woodchop aan de kabel', 'core', 'buik', 'kabel', 2, ['rug'], ['schuine_buikspieren']),
 ]

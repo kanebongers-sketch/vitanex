@@ -23,6 +23,8 @@ import { LessenTab } from '@/components/club/app/LessenTab'
 import { SchemaTab } from '@/components/club/app/SchemaTab'
 import { ProfielTab } from '@/components/club/app/ProfielTab'
 import { LedenApiProvider } from '@/components/club/app/LedenappApi'
+import { OefenFiguurProvider } from '@/components/club/training/repspeler/oefen-figuur'
+import { figuurVanSportschool } from '@/lib/club/training/oefen-figuur'
 import { LedenappAfspraken } from '@/components/club/afspraken/LedenappAfspraken'
 import { LedenappVoortgang } from '@/components/club/voortgang/LedenappVoortgang'
 import { LedenappChallenges } from '@/components/club/challenges/LedenappChallenges'
@@ -167,6 +169,7 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
 
   return (
     <LedenappSchil organisatie={org}>
+      <OefenFiguurProvider figuur={figuurVanSportschool(userId)}>
       <LedenApiProvider voor={l.voorvertoning ? lid.id : null}>
         <LedenappScherm
           tab={apart ? null : scherm.balk}
@@ -305,6 +308,7 @@ export default async function MijnLedenapp({ searchParams }: { searchParams: Zoe
         </LedenappScherm>
         {!l.voorvertoning && <InstalleerHulp naam={org.naam} />}
       </LedenApiProvider>
+      </OefenFiguurProvider>
     </LedenappSchil>
   )
 }

@@ -221,6 +221,7 @@ const INHOUD_WAARDEN: Record<string, string> = {
   renderVoor: 'kiest een render (beeld) bij een oefening',
   srcSetVan: 'bouwt een srcset (beeld)',
   OEFENRENDERS: 'de Blender-renders (beelden en slugs) voor het schemascherm; namen gaan via PRODUCTSCHERMEN.schema.naam, spierlabels worden niet getoond',
+  OEFENRENDERS_NEUTRAAL: 'dezelfde renders met het neutrale figuur, voor het schemascherm op de website; geen eigen tekst',
   frameUrl: 'bouwt de URL van een frame van een render (beeld)',
   toonBereik: 'toont een getallenbereik (8 tot 12) via de taal van de aanroeper',
   voorbeeldOefeningen: 'oefennamen (blijven gelijk) met de coaching in de taal die de aanroeper meegeeft (siteCoaching)',

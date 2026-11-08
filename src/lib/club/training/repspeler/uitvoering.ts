@@ -303,6 +303,20 @@ export const UITVOERING: Readonly<Record<string, UitvoeringRegel>> = {
   'fire-hydrant': t(1, 0, 1, 1, 'Fire hydrant: 1 sec zijwaarts omhoog, 1 sec vast, 1 sec omlaag; elke kant een herhaling.'),
   'hip-thrust-op-een-been': t(2, 0, 1, 1, 'Hip thrust op een been: 1 sec omhoog, 1 sec vast, 2 sec rustig omlaag; elke kant een herhaling.'),
   'copenhagen-plank': HOUDEN('Houdoefening per kant: de speler telt seconden, de lus is alleen ademen.'),
+
+  // Golf 14 (06-11-2026): kabel, latstation en optrekstang.
+  'cable-fly-van-laag-naar-hoog': t(2, 0, 1, 1, 'Cable fly van laag naar hoog: 1 sec in een boog omhoog, 1 sec vast, 2 sec terug.'),
+  'cable-fly-van-hoog-naar-laag': t(2, 0, 1, 1, 'Cable fly van hoog naar laag: 1 sec in een boog omlaag, 1 sec vast, 2 sec terug.'),
+  'reverse-fly-aan-de-kabel': t(2, 0, 1, 1, 'Reverse fly aan de kabel: 1 sec wijd open, 1 sec vast, 2 sec terug.'),
+  'lat-pulldown-met-brede-greep': t(2, 0, 1, 1, 'Lat pulldown met brede greep: 1 sec naar de borst, 1 sec vast, 2 sec gecontroleerd omhoog.'),
+  'hanging-leg-raise': t(2, 0, 1, 1, 'Hanging leg raise: 1 sec de benen omhoog, 1 sec vast, 2 sec langzaam omlaag zonder te zwaaien.'),
+  'dead-hang': HOUDEN('Dead hang op tijd: stil hangen, de speler telt seconden, de lus is alleen ademen.'),
+  'scapula-pull-up': t(1, 0, 1, 2, 'Scapula pull-up: 1 sec de schouderbladen omlaag, 2 sec vast, 1 sec terug.'),
+  'front-raise-aan-de-kabel': t(2, 0, 1, 1, 'Front raise aan de kabel: 1 sec omhoog, 1 sec vast, 2 sec omlaag.'),
+  'eenarmige-seated-cable-row': t(2, 0, 1, 1, 'Eenarmige seated cable row: 1 sec trekken, 1 sec vast, 2 sec terug; elke kant een herhaling.'),
+  'triceps-pushdown-met-een-arm': t(2, 0, 1, 1, 'Triceps pushdown met een arm: 1 sec omlaag, 1 sec vast, 2 sec terug; elke kant een herhaling.'),
+  'bayesian-curl-aan-de-kabel': t(2, 0, 1, 1, 'Bayesian curl: 1 sec omhoog, 1 sec vast, 2 sec omlaag; elke kant een herhaling.'),
+  'woodchop-aan-de-kabel': t(2, 0, 1, 0, 'Woodchop: 1 sec diagonaal omlaag, 2 sec terug; elke kant een herhaling.'),
 }
 
 export function isHoudregel(r: UitvoeringRegel): r is Houdregel {

@@ -200,12 +200,12 @@ export const COACHING_AANVULLING_BOVEN: CoachingBoek = {
       { punt: 'Rustig terugzakken', uitleg: 'Laat jezelf gecontroleerd terugzakken tot je armen gestrekt zijn.' },
     ],
     opstelling: [
-      'Stel de banden in op middellengte en pak de handvatten met je handpalmen naar elkaar.',
+      'Stel de banden in op middellengte en pak de handvatten bovenhands: handvatten dwars, handpalmen naar beneden.',
       'Loop met je voeten naar voren en leun achterover tot je armen gestrekt zijn en je lichaam recht is.',
     ],
     stappen: [
       'Span je buik en billen aan.',
-      'Trek je borst naar de handvatten tot je handen naast je ribben zijn.',
+      'Trek je borst naar de handvatten tot je handen vlak voor je borst zijn.',
       'Laat jezelf rustig terugzakken tot je armen gestrekt zijn.',
     ],
     fouten: [

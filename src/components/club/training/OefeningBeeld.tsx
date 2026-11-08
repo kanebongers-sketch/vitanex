@@ -2,7 +2,8 @@ import type { CSSProperties, ReactNode } from 'react'
 import { ImageOff } from 'lucide-react'
 import { BEELD_BRON, isBeeldPad, type BeeldBronSoort, type OefeningBeelden } from '@/lib/club/training/beeld'
 import { REPDB_BRON } from '@/lib/club/training/beelden-repdb'
-import { repRenderVoor, type RepRender } from './repspeler/render-bron'
+import { useRepRender } from './repspeler/oefen-figuur'
+import type { RepRender } from './repspeler/render-bron'
 import { useTekst } from '@/lib/aiyourgym/taal/client'
 import { CLUB_TRAINING } from '@/lib/aiyourgym/taal/woorden/club/training'
 import './oefening-beeld.css'
@@ -71,7 +72,7 @@ function RenderPoster({ render, naam, formaat, decoratief }: { render: RepRender
 
 export function OefeningBeeld({ naam, beeld, formaat = 'middel', accent = false, decoratief = false }: OefeningBeeldProps) {
   const t = useTekst(CLUB_TRAINING).beeld
-  const render = repRenderVoor(naam)
+  const render = useRepRender(naam)
   if (render) return <RenderPoster render={render} naam={naam} formaat={formaat} decoratief={decoratief} />
   const basis = `club-training-beeld club-training-beeld--${formaat}`
   if (!beeld) {

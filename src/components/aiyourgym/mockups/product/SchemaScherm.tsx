@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { OEFENRENDERS, srcSetVan, type OefenRender } from '@/components/aiyourgym/inhoud/oefenrenders'
+import { OEFENRENDERS_NEUTRAAL, srcSetVan, type OefenRender } from '@/components/aiyourgym/inhoud/oefenrenders'
 import { coachingVoor } from '@/lib/club/training/coaching'
 import { formatGetal } from '@/lib/aiyourgym/taal/formaat'
 import { getSiteTaal } from '@/lib/aiyourgym/taal/server'
@@ -29,7 +29,7 @@ import {
 // op het zwaarste punt, de kernpunten uit de oefenbibliotheek van Club en de
 // zwaarste set met sparklijn. Een nieuwe render verschijnt vanzelf bij dag C.
 // Beelden zijn de kleine stilstaande webp's (480 px), lazy geladen; geen video,
-// geen JavaScript in de browser.
+// geen JavaScript in de browser. De openbare website toont altijd het neutrale figuur.
 
 type Teksten = (typeof PRODUCTSCHERMEN)['nl']['schema']
 
@@ -41,7 +41,7 @@ const LID = 'Sanne Bakker'
 export async function SchemaScherm() {
   const taal = await getSiteTaal()
   const t = PRODUCTSCHERMEN[taal].schema
-  const blokken = schemaBlokken(DAG_B, OEFENRENDERS)
+  const blokken = schemaBlokken(DAG_B, OEFENRENDERS_NEUTRAAL)
   const aantal = blokken.reduce((s, b) => s + b.regels.length, 0)
   const uitgelicht = blokken.flatMap((b) => b.regels).find((r) => r.slug === UITGELICHT.slug) ?? blokken[0]?.regels[0]
   return (
@@ -57,7 +57,7 @@ export async function SchemaScherm() {
           </div>
           <span className="aygp-knop">{t.opslaan}</span>
         </div>
-        <Week t={t} dagB={t.dagSamen(aantal, totaalSets(blokken))} volgende={volgendeDag(DAG_B, OEFENRENDERS)} />
+        <Week t={t} dagB={t.dagSamen(aantal, totaalSets(blokken))} volgende={volgendeDag(DAG_B, OEFENRENDERS_NEUTRAAL)} />
         <div className="aygs-raam">
           <div className="aygs-lijst">
             <div className="aygs-kolommen" aria-hidden>

@@ -8,21 +8,21 @@ export const COACHING_UITBREIDING_500_D: CoachingBoek = {
   'Cable fly van laag naar hoog': {
     kernpunten: [
       { punt: 'Vaste kleine buiging', uitleg: 'Je ellebogen houden de hele beweging dezelfde kleine buiging. Je armen strekken of buigen niet.' },
-      { punt: 'Boog naar boven', uitleg: 'Je handen gaan in een boog van naast je heupen omhoog tot voor je borst.' },
+      { punt: 'Boog naar boven', uitleg: 'Je handen gaan in een boog van laag naast je heupen omhoog tot voor je bovenste borst.' },
       { punt: 'Borst open', uitleg: 'Je borst blijft open en je schouders laag. Zo werkt vooral het bovenste deel van je borst.' },
     ],
     opstelling: [
       'Zet beide kabels op de laagste stand en pak een handvat in elke hand.',
-      'Stap een kleine pas naar voren tussen de torens, een voet iets voor de andere.',
+      'Stap een kleine pas naar voren tussen de torens, je voeten op schouderbreedte naast elkaar.',
     ],
     stappen: [
-      'Begin met je armen laag naast je heupen, handpalmen naar voren.',
-      'Breng je handen in een boog omhoog tot ze voor je borst bij elkaar komen.',
+      'Begin met je armen laag en wijd naast je heupen, handpalmen schuin naar beneden.',
+      'Breng je handen in een boog omhoog tot ze voor je bovenste borst bij elkaar komen.',
       'Laat ze langs dezelfde boog rustig terug zakken.',
     ],
     fouten: [
       { fout: 'Armen buigen en drukken', beter: 'Houd de buiging in je ellebogen vast. Het is een boog, geen duw.' },
-      { fout: 'Schouders trekken op', beter: 'Duw je schouders laag en stop op borsthoogte.' },
+      { fout: 'Schouders trekken op', beter: 'Duw je schouders laag en stop op schouderhoogte.' },
     ],
     ademhaling: 'Adem uit tijdens het omhoog brengen en in tijdens het terug zakken.',
     tempo: '1 tel omhoog, 1 tel vast, 2 tellen terug.',
@@ -37,7 +37,7 @@ export const COACHING_UITBREIDING_500_D: CoachingBoek = {
     ],
     opstelling: [
       'Zet beide kabels hoog en pak een handvat in elke hand.',
-      'Stap een pas naar voren met een voet iets voor de andere en leun licht voorover.',
+      'Stap een pas naar voren, je voeten op schouderbreedte naast elkaar, en leun licht voorover.',
     ],
     stappen: [
       'Begin met je armen hoog en wijd opzij.',
@@ -84,7 +84,7 @@ export const COACHING_UITBREIDING_500_D: CoachingBoek = {
       { punt: 'Armen licht gebogen', uitleg: 'Je ellebogen zijn licht gebogen en blijven in die hoek.' },
     ],
     opstelling: [
-      'Zet beide kabels op schouderhoogte en ga in het midden staan.',
+      'Zet beide kabels op schouderhoogte en ga in het midden staan, ongeveer een meter van de torens met je gezicht ernaartoe.',
       'Pak met je linkerhand de rechterkabel en met je rechterhand de linker, armen gekruist voor je.',
     ],
     stappen: [
@@ -109,12 +109,12 @@ export const COACHING_UITBREIDING_500_D: CoachingBoek = {
     ],
     opstelling: [
       'Zet de kabel hoog met een D-handvat.',
-      'Sta voor de toren met het handvat in een hand en je elleboog tegen je zij.',
+      'Sta voor de toren met het handvat in een hand en je elleboog tegen je zij. Je andere hand rust op je heup.',
     ],
     stappen: [
       'Duw het handvat omlaag tot je arm gestrekt is.',
       'Span kort aan.',
-      'Laat het handvat rustig terugkomen en wissel na de set van arm.',
+      'Laat het handvat rustig terugkomen en doe daarna de andere arm.',
     ],
     fouten: [
       { fout: 'Elleboog gaat naar voren', beter: 'Houd je elleboog tegen je zij. Kies minder gewicht.' },
@@ -133,12 +133,12 @@ export const COACHING_UITBREIDING_500_D: CoachingBoek = {
     ],
     opstelling: [
       'Zet de kabel laag met een D-handvat en sta met je rug naar de toren.',
-      'Pak het handvat met een hand en stap een halve pas naar voren, je arm licht achter je.',
+      'Pak het handvat met een hand en stap een halve pas naar voren, je arm licht achter je. Je andere hand rust op je heup.',
     ],
     stappen: [
-      'Curl het handvat omhoog naar je schouder.',
+      'Curl het handvat omhoog tot je onderarm ongeveer horizontaal is.',
       'Span bovenin kort aan.',
-      'Laat het handvat rustig zakken tot je arm weer achter je hangt en wissel na de set.',
+      'Laat het handvat rustig zakken tot je arm weer achter je hangt en doe daarna de andere arm.',
     ],
     fouten: [
       { fout: 'Elleboog schiet naar voren', beter: 'Houd je elleboog achter je romp. Kies minder gewicht.' },
@@ -151,22 +151,22 @@ export const COACHING_UITBREIDING_500_D: CoachingBoek = {
   },
   'Woodchop aan de kabel': {
     kernpunten: [
-      { punt: 'Draai uit romp en heupen', uitleg: 'De beweging komt uit je romp en heupen. Je armen blijven lang en sturen alleen.' },
-      { punt: 'Achterste voet draait mee', uitleg: 'Je achterste voet draait mee op je voorvoet. Zo blijft je knie vrij.' },
+      { punt: 'Draai uit romp en heupen', uitleg: 'De beweging komt uit je romp en heupen. Je armen houden dezelfde buiging en sturen alleen.' },
+      { punt: 'Voeten breed en stil', uitleg: 'Je voeten blijven breed op de vloer staan en je knieen buigen licht mee. Zo kunnen je heupen draaien.' },
       { punt: 'Gecontroleerd terug', uitleg: 'Laat de kabel rustig terugkomen. Je laat je niet terugtrekken.' },
     ],
     opstelling: [
-      'Zet de kabel hoog en sta er zijwaarts naast met je voeten iets breder dan je heupen.',
+      'Zet de kabel hoog en sta er zijwaarts naast met je voeten breder dan je schouders.',
       'Pak het handvat met beide handen boven je schouder.',
     ],
     stappen: [
-      'Trek het handvat diagonaal omlaag over je lichaam naar je andere knie.',
-      'Draai je romp en heupen mee.',
-      'Laat het handvat rustig terug omhoog gaan en wissel na de set van kant.',
+      'Trek het handvat diagonaal omlaag over je lichaam tot voor je andere heup.',
+      'Draai je romp en heupen mee en buig je knieen licht.',
+      'Laat het handvat rustig terug omhoog gaan en doe daarna de andere kant.',
     ],
     fouten: [
-      { fout: 'Trekken met de armen', beter: 'Houd je armen lang en draai vanuit je romp.' },
-      { fout: 'Voeten staan vast', beter: 'Laat je achterste voet meedraaien.' },
+      { fout: 'Trekken met de armen', beter: 'Houd je ellebogen in dezelfde hoek en draai vanuit je romp.' },
+      { fout: 'Knieen op slot', beter: 'Buig je knieen licht, dan kunnen je heupen meedraaien.' },
     ],
     ademhaling: 'Adem uit tijdens het omlaag trekken en in tijdens het terugkomen.',
     tempo: '1 tel omlaag, 2 tellen terug.',
@@ -175,22 +175,22 @@ export const COACHING_UITBREIDING_500_D: CoachingBoek = {
   },
   'Eenarmige seated cable row': {
     kernpunten: [
-      { punt: 'Romp draait niet mee', uitleg: 'Je romp blijft recht naar voren. Alleen je arm en schouderblad bewegen.' },
+      { punt: 'Romp draait niet mee', uitleg: 'Je schouders blijven recht naar voren. Je romp kantelt alleen een klein stukje, van licht voorover naar rechtop.' },
       { punt: 'Elleboog langs je lichaam', uitleg: 'Trek het handvat naar je zij met je elleboog dicht langs je romp.' },
       { punt: 'Schouderblad naar achteren', uitleg: 'Aan het eind trek je je schouderblad naar achteren. Daar voel je je rug.' },
     ],
     opstelling: [
       'Zit aan het roeistation met je voeten tegen de plaat en je knieen licht gebogen.',
-      'Pak een D-handvat met een hand en zit rechtop.',
+      'Pak een D-handvat met een hand. Je andere hand rust op je bovenbeen.',
     ],
     stappen: [
-      'Trek het handvat naar je zij.',
+      'Begin licht voorover met je arm lang en trek het handvat naar je zij tot je rechtop zit.',
       'Trek je schouderblad naar achteren en houd kort vast.',
-      'Laat je arm rustig terug strekken en wissel na de set.',
+      'Laat je arm rustig terug strekken en doe daarna de andere arm.',
     ],
     fouten: [
       { fout: 'Romp draait mee', beter: 'Kies minder gewicht en houd je schouders recht.' },
-      { fout: 'Achterover leunen', beter: 'Zit rechtop. Je romp beweegt niet.' },
+      { fout: 'Achterover leunen', beter: 'Stop als je rechtop zit. Verder naar achteren helpt niet.' },
     ],
     ademhaling: 'Adem uit tijdens het trekken en in tijdens het terugkomen.',
     tempo: '1 tel trekken, 1 tel vast, 2 tellen terug.',

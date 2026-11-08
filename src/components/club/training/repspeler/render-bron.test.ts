@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import fc from 'fast-check'
-import { OEFENRENDERS } from '@/components/aiyourgym/inhoud/oefenrenders'
+import { OEFENRENDERS, metNeutraal } from '@/components/aiyourgym/inhoud/oefenrenders'
 import { planVoor } from '@/lib/club/training/repspeler/plan'
 import { standOp } from '@/lib/club/training/repspeler/tijdlijn'
 import { frameSrc, inclusief, kiesMaat, leesRepRender, repRenderVoor } from './render-bron'
@@ -55,7 +55,7 @@ describe('renders uit de website', () => {
   })
 
   it.each(metFrames.map((r) => [r.naam, r] as const))('%s: frames, fasen en adressen kloppen', (naam, r) => {
-    const rep = repRenderVoor(naam)
+    const rep = repRenderVoor(naam, 'kane')
     expect(rep).not.toBeNull()
     if (!rep) return
     expect(rep.maten.length).toBeGreaterThan(0)
@@ -86,6 +86,28 @@ describe('renders uit de website', () => {
   })
 })
 
+describe('figuur (besluit Kane 06-11-2026)', () => {
+  const basis = OEFENRENDERS.find((r) => r.frames) as (typeof OEFENRENDERS)[number]
+
+  it('per figuur een eigen render, zonder keuze neutraal', () => {
+    expect(repRenderVoor(basis.naam, 'kane')?.bron.figuur).toBe('kane')
+    expect(repRenderVoor(basis.naam)).toBe(repRenderVoor(basis.naam, 'neutraal'))
+  })
+
+  it('de speler laadt de beelden en posters van het neutrale figuur', () => {
+    const maten = { 'lus-hd': 1200, lus: 720, 'lus-klein': 480, begin: 1200, piek: 1200, 'begin-klein': 480, 'piek-klein': 480 }
+    const rep = leesRepRender(metNeutraal(basis, {
+      versie: 'aaaaaaaa', breedte: 1200, hoogte: 1200, maten, bytes: maten, vloer_y: 1,
+      frames: { versie: 'bbbbbbbb', maten: { 480: { breedte: 480, hoogte: 480, bytes: 1 } } },
+    }))
+    expect(rep?.versie).toBe('bbbbbbbb')
+    expect(rep?.poster).toContain(`/oefenbeelden/neutraal/${basis.slug}/begin.webp`)
+    expect(rep?.lusKlein).toContain(`/oefenbeelden/neutraal/${basis.slug}/lus-klein.webp`)
+    expect(rep && frameSrc(rep, { breedte: 480 }, 0)).toContain(`/oefenbeelden/neutraal/${basis.slug}/frames/480/f000.webp`)
+    expect(rep?.fases).toEqual(leesRepRender(basis)?.fases)
+  })
+})
+
 describe('wisselende render (besluit Kane 30-10-2026)', () => {
   const basis = OEFENRENDERS.find((r) => r.frames !== null && r.frames.fasenRechts === null)
   const fasenRechts = {
@@ -111,7 +133,9 @@ describe('wisselende render (besluit Kane 30-10-2026)', () => {
       expect(f.fasenRechts.rust_begin[0]).toBe(half)
       expect(f.fasenRechts.rust_eind[1]).toBe(f.aantal)
       const plan = planVoor(leesRepRender(r)!, { herhalingen: '10', tijdSec: null, tempo: null })
-      expect(plan.soort === 'herhaling' && plan.segmentenRechts !== undefined).toBe(true)
+      // Een oefening op tijd (Copenhagen plank, battle ropes, slee duwen) telt seconden, geen herhalingen per kant.
+      if (f.soort === 'vasthouden') expect(plan.soort).not.toBe('herhaling')
+      else expect(plan.soort === 'herhaling' && plan.segmentenRechts !== undefined).toBe(true)
     },
   )
 })

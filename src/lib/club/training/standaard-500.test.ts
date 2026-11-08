@@ -7,6 +7,7 @@ import { hoortInArchief, isBlenderOefening, isGearchiveerd } from './blender-bib
 import { coachingVoor } from './coaching'
 import { SPIEREN } from './spieren'
 import STANDAARD_500 from './standaard-500.json'
+import { UITVOERING } from './repspeler/uitvoering'
 import { STANDAARD_500_NAMEN } from './standaard-500-namen'
 import { MATERIALEN, NIVEAUS, PATRONEN, SPIERGROEPEN, ZONES } from './typen'
 
@@ -19,6 +20,15 @@ const MIGRATIE = readFileSync(join(process.cwd(), 'supabase/lifeos-migrations/50
 const sleutel = (n: string): string => n.trim().toLowerCase()
 
 describe('uitbreiding standaardbibliotheek (migratie 500)', () => {
+  it('migratie 502 (golf 14) noemt alleen namen uit de lijst met een tempo en verwijdert niets', () => {
+    const sql = readFileSync(join(process.cwd(), 'supabase/lifeos-migrations/502_club_oefeningen_golf14_uit_archief.sql'), 'utf8')
+    const namen = [...sql.matchAll(/^\s*\('((?:[^']|'')+)'\)/gm)].map((m) => m[1].replace(/''/g, "'"))
+    expect(namen).toHaveLength(12)
+    expect(namen.filter((n) => !(STANDAARD_500_NAMEN as readonly string[]).includes(n))).toEqual([])
+    for (const o of STANDAARD_500.filter((x) => namen.includes(x.naam))) expect(UITVOERING[o.slug], o.slug).toBeDefined()
+    expect(sql).not.toMatch(/\b(delete|drop|truncate)\b/i)
+  })
+
   it('de namenlijst is precies de gegevensbron', () => {
     expect([...STANDAARD_500_NAMEN]).toEqual(STANDAARD_500.map((o) => o.naam))
     expect(STANDAARD_500.length).toBeGreaterThanOrEqual(50)

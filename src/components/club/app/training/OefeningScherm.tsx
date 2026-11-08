@@ -10,7 +10,7 @@ import { TRAINING } from '@/lib/aiyourgym/taal/woorden/ledenapp/training'
 import { OefeningSpeler } from '@/components/club/training/coaching/OefeningSpeler'
 import { RepCoaching } from '@/components/club/training/repspeler/RepCoaching'
 import { RepSpeler } from '@/components/club/training/repspeler/RepSpeler'
-import { repRenderVoor } from '@/components/club/training/repspeler/render-bron'
+import { useRepRender } from '@/components/club/training/repspeler/oefen-figuur'
 import { TempoCurve } from '@/components/club/training/TempoCurve'
 import { SetLijst, SetPaneel } from './SetPaneel'
 
@@ -46,7 +46,7 @@ export function OefeningScherm(p: OefeningSchermProps) {
   const actief = gekozen ?? open
   const regel = voorschrift(o, taal)
   const titelId = `oefening-${o.id}`
-  const render = repRenderVoor(o.naam)
+  const render = useRepRender(o.naam)
 
   function klaar(sleutel: string, rustVanaf?: number) {
     setGekozen(null)

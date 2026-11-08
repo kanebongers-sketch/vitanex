@@ -26,6 +26,8 @@ import { tellerRechten, welkeTellers } from '@/lib/club/menu/tellers'
 import { magTestRol } from '@/lib/club/rollen/testrol'
 import { TestRolBalk } from '@/components/club/testrol/TestRolBalk'
 import { TweestapsMelding } from '@/components/club/platform/TweestapsMelding'
+import { OefenFiguurProvider } from '@/components/club/training/repspeler/oefen-figuur'
+import { figuurVanSportschool } from '@/lib/club/training/oefen-figuur'
 import './club.css'
 import '@/components/club/ontwerp/ontwerp.css'
 
@@ -92,6 +94,7 @@ export default async function ClubLayout({ children }: { children: ReactNode }) 
         </Suspense>
       )}
       <MerkProvider merk={merk}>
+        <OefenFiguurProvider figuur={figuurVanSportschool(org.id)}>
         <VestigingenProvider vestigingen={t.vestigingen}>
           {poortDicht ? (
             <StartBalk naam={org.naam} logoUrl={merk.logoUrl} wizard={eigenaar} />
@@ -114,6 +117,7 @@ export default async function ClubLayout({ children }: { children: ReactNode }) 
           )}
           <main className="club-werkvlak">{!poortDicht ? children : eigenaar ? <WizardPoort>{children}</WizardPoort> : <WizardWacht naam={org.naam} />}</main>
         </VestigingenProvider>
+        </OefenFiguurProvider>
       </MerkProvider>
       {/* De voet houdt alleen de naam; de links van het master account staan onder je naam rechtsboven. */}
       <footer className="club-voet">

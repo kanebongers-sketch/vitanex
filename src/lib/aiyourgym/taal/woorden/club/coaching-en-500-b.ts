@@ -209,7 +209,7 @@ export const COACHING_EN_500_B: Readonly<Record<string, Coaching>> = {
     stappen: [
       'Bend your standing leg slowly until your other heel taps the floor.',
       'Push back up through your standing leg.',
-      'Do all reps and then switch legs.',
+      'Then do the same with your other leg.',
     ],
     fouten: [
       { fout: 'Knee caves in', beter: 'Choose a lower box and push your knee out.' },
@@ -233,7 +233,7 @@ export const COACHING_EN_500_B: Readonly<Record<string, Coaching>> = {
     stappen: [
       'Push up onto your toes as high as you can.',
       'Hold briefly at the top.',
-      'Lower slowly and switch legs after the set.',
+      'Lower slowly and then do your other leg.',
     ],
     fouten: [
       { fout: 'Ankle rolls out', beter: 'Push up through your big toe.' },

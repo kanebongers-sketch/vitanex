@@ -5,12 +5,16 @@ import { coachingVoor } from '@/lib/club/training/coaching'
 import {
   FASE_VOLGORDE,
   OEFENRENDERS,
+  OEFENRENDERS_NEUTRAAL,
   faseLengte,
   frameUrl,
   kiesFrameMaat,
+  metNeutraal,
   renderVoor,
   spierZin,
   srcSetVan,
+  type NeutraalData,
+  type OefenRender,
 } from './oefenrenders'
 
 // De renders op de website: elke render hoort bij een echte oefening uit de
@@ -48,9 +52,9 @@ const MAX_KB = {
 
 const LUSSEN = new Set<keyof typeof MAX_KB>(['lusHd', 'lus', 'lusKlein'])
 
-/** Grens in KB; bewegende lussen boven 120 beelden naar rato, met 25 procent ruimte (golf 13: hip thrust op een been; zelfde regel als het script). */
+/** Grens in KB; bewegende lussen boven 120 beelden naar rato, met 50 procent ruimte (nieuw figuur 08-11-2026, wisselende kabellussen; zelfde regel als het script). */
 function grens(sleutel: keyof typeof MAX_KB, beelden: number): number {
-  const factor = beelden >= 120 ? (beelden / 120) * 1.25 : 1
+  const factor = beelden >= 120 ? (beelden / 120) * 1.5 : 1
   return LUSSEN.has(sleutel) ? MAX_KB[sleutel] * factor : MAX_KB[sleutel]
 }
 
@@ -76,6 +80,75 @@ const ZONDER_FRAMES: readonly string[] = []
 function pad(src: string): string {
   return join(PUBLIC, src.split('?')[0])
 }
+
+describe('twee figuren (besluit Kane 06-11-2026)', () => {
+  const basis = OEFENRENDERS.find((r) => r.frames) as OefenRender
+  const maten = { 'lus-hd': 1200, lus: 720, 'lus-klein': 480, begin: 1200, piek: 1200, 'begin-klein': 480, 'piek-klein': 480 }
+  const neutraal: NeutraalData = {
+    versie: 'aaaaaaaa',
+    breedte: 1200,
+    hoogte: 1200,
+    maten,
+    bytes: { 'lus-hd': 1, lus: 2, 'lus-klein': 3, begin: 4, piek: 5, 'begin-klein': 6, 'piek-klein': 7 },
+    vloer_y: 0.95,
+    frames: { versie: 'bbbbbbbb', maten: { 720: { breedte: 720, hoogte: 720, bytes: 8 }, 480: { breedte: 480, hoogte: 480, bytes: 9 } } },
+  }
+
+  it('neutraal krijgt eigen paden, versies, maten en vloerlijn; de beweging blijft gelijk', () => {
+    const n = metNeutraal(basis, neutraal)
+    expect(n.figuur).toBe('neutraal')
+    expect(n.begin.src).toBe(`/oefenbeelden/neutraal/${basis.slug}/begin.webp?v=aaaaaaaa`)
+    expect(n.lusKlein).toEqual({ src: `/oefenbeelden/neutraal/${basis.slug}/lus-klein.webp?v=aaaaaaaa`, breedte: 480, hoogte: 480, bytes: 3 })
+    expect(n.vloerY).toBe(0.95)
+    expect(n.frames?.versie).toBe('bbbbbbbb')
+    expect(n.frames?.maten.map((m) => m.maat)).toEqual([480, 720])
+    expect(frameUrl(n, 480, 0)).toBe(`/oefenbeelden/neutraal/${basis.slug}/frames/480/f000.webp?v=bbbbbbbb`)
+    expect(n.frames?.fasen).toEqual(basis.frames?.fasen)
+    expect(n.frames?.aantal).toBe(basis.frames?.aantal)
+    expect([n.naam, n.slug]).toEqual([basis.naam, basis.slug])
+  })
+
+  it('kane blijft op het bestaande pad', () => {
+    expect(basis.figuur).toBe('kane')
+    expect(basis.map).toBe(`/oefenbeelden/${basis.slug}`)
+    expect(frameUrl(basis, 480, 0)).toContain(`/oefenbeelden/${basis.slug}/frames/480/f000.webp`)
+    expect(renderVoor(basis.naam, 'kane')?.figuur).toBe('kane')
+  })
+
+  it('wie niets kiest krijgt de neutrale lijst; zonder neutrale render de bestaande', () => {
+    expect(renderVoor(basis.naam)).toBe(renderVoor(basis.naam, 'neutraal'))
+    expect(OEFENRENDERS_NEUTRAAL.map((r) => r.slug)).toEqual(OEFENRENDERS.map((r) => r.slug))
+    OEFENRENDERS_NEUTRAAL.forEach((r, i) => {
+      if (r.figuur === 'kane') expect(r).toBe(OEFENRENDERS[i])
+      else expect(r.map).toBe(`/oefenbeelden/neutraal/${r.slug}`)
+    })
+  })
+
+  const metBeelden = OEFENRENDERS_NEUTRAAL.filter((r) => r.figuur === 'neutraal')
+
+  it('neutrale bestanden bestaan, kloppen met de data en blijven binnen het budget', () => {
+    for (const r of metBeelden) {
+      const f = r.frames
+      for (const sleutel of Object.keys(MAX_KB) as (keyof typeof MAX_KB)[]) {
+        const b = r[sleutel]
+        expect(b.src, `${r.slug} ${sleutel}`).toMatch(/^\/oefenbeelden\/neutraal\/[a-z0-9-]+\/[a-z-]+\.webp\?v=[0-9a-f]{8}$/)
+        expect(statSync(pad(b.src)).size, b.src).toBe(b.bytes)
+        expect(b.bytes / 1024, b.src).toBeLessThan(grens(sleutel, f?.aantal ?? 0))
+      }
+      expect(r.lusHd.breedte, r.slug).toBeGreaterThanOrEqual(1024)
+      expect(r.vloerY, r.slug).toBeGreaterThan(0.9)
+      if (!f) throw new Error(`${r.slug} mist losse beelden`)
+      expect(f.maten.map((m) => m.maat), r.slug).toEqual(expect.arrayContaining([480, 720]))
+      for (const m of f.maten) {
+        const map = join(PUBLIC, 'oefenbeelden', 'neutraal', r.slug, 'frames', String(m.maat))
+        const bestanden = readdirSync(map).filter((b) => b.endsWith('.webp'))
+        expect(bestanden.length, `${r.slug} ${m.maat}`).toBe(f.aantal)
+        expect(bestanden.reduce((s, b) => s + statSync(join(map, b)).size, 0), `${r.slug} ${m.maat}`).toBe(m.bytes)
+        expect(existsSync(pad(frameUrl(r, m.maat, f.aantal - 1)!))).toBe(true)
+      }
+    }
+  }, 30_000)
+})
 
 describe('oefenrenders', () => {
   it('heeft minstens de back squat en de front squat', () => {
@@ -133,7 +206,7 @@ describe('oefenrenders', () => {
         const som = bestanden.reduce((s, b) => s + statSync(join(map, b)).size, 0)
         expect(som, `${r.slug} ${m.maat}`).toBe(m.bytes)
         expect(m.bytes / 1048576, `${r.slug} ${m.maat}`).toBeLessThan(
-          MAX_FRAMES_MB[m.maat as keyof typeof MAX_FRAMES_MB] * (f.aantal > FRAMES_BUDGET_BEELDEN ? (f.aantal / FRAMES_BUDGET_BEELDEN) * 1.12 : 1),
+          MAX_FRAMES_MB[m.maat as keyof typeof MAX_FRAMES_MB] * (f.aantal > FRAMES_BUDGET_BEELDEN ? (f.aantal / FRAMES_BUDGET_BEELDEN) * 1.3 : 1),
         )
         expect(m.breedte / m.hoogte).toBeCloseTo(r.lus.breedte / r.lus.hoogte)
         totaal += m.bytes

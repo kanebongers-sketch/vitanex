@@ -26,8 +26,8 @@
 // Waarom sharp (libvips plus libwebp 1.6) en niet ffmpeg:
 // - sharp verkleint met voorvermenigvuldigde alfa, dus geen donkere of lichte
 //   rand (halo) langs het figuur op de doorzichtige achtergrond;
-// - smartSubsample (sharp YUV) houdt de oranje spierzones en dunne randen
-//   scherp, waar gewone 4:2:0 ze blokkerig maakte;
+// - smartSubsample (sharp YUV) houdt kleurovergangen en dunne randen scherp,
+//   waar gewone 4:2:0 ze blokkerig maakte;
 // - de geanimeerde encoder slaat pixels over die niet veranderen en voegt
 //   gelijke beelden samen, zodat 24 beelden per seconde betaalbaar blijft.
 // Lossless is gemeten en valt af: ruim 7 MB voor een lus van 940 px.
@@ -41,12 +41,23 @@
 // erin vervaagt. Daarna schrijft het script
 // src/components/aiyourgym/inhoud/oefenrenders.data.ts opnieuw.
 //
+// Twee figuren (besluit Kane 06-11-2026): "kane" uit uit/<slug>/frames en
+// "neutraal" uit uit/neutraal/<slug>/frames, zelfde beweging en zelfde aantal
+// beelden. Neutraal komt in public/oefenbeelden/neutraal/<slug>/ met dezelfde
+// bestandsnamen; die map staat bewust onder oefenbeelden, want een nieuwe map
+// direct onder public moet in GERESERVEERD (subdomein.ts). In de data krijgt een
+// oefening een blok "neutraal" met alleen wat per figuur verschilt: maten, bytes,
+// vloerlijn en versies. Naam, spieren en fasen zijn van de oefening zelf. Zonder
+// blok valt de app terug op de bestaande render. Draai eerst kane, dan neutraal.
+//
 // Gebruik:   node scripts/oefenbeelden-web.mjs              (alle oefeningen)
 //            node scripts/oefenbeelden-web.mjs back-squat   (een of meer)
+//            node scripts/oefenbeelden-web.mjs --figuur neutraal [slug ...]
 //            node scripts/oefenbeelden-web.mjs --bron D:\renders
+// --bron is de map uit/; poses staat ernaast en is voor beide figuren hetzelfde.
 
 import { createHash } from 'node:crypto'
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import sharp from 'sharp'
@@ -56,6 +67,9 @@ const DOEL = join(REPO, 'public', 'oefenbeelden')
 const BIBLIOTHEEK = join(REPO, 'src', 'lib', 'club', 'training', '3d', 'bibliotheek')
 const DATA = join(REPO, 'src', 'components', 'aiyourgym', 'inhoud', 'oefenrenders.data.ts')
 const STANDAARD_BRON = 'C:\\Users\\Kaneb\\oefenbeelden\\uit'
+export const FIGUREN = ['kane', 'neutraal']
+/** Submap voor het neutrale figuur, zowel in uit/ als in public/oefenbeelden/. */
+const NEUTRAAL_MAP = 'neutraal'
 
 /** Bovengrens van de HD-maat; kleiner als de uitsnede van de bron kleiner is (nooit opschalen). */
 const HD_MAX = 1440
@@ -85,8 +99,8 @@ const FRAMES_BUDGET_BEELDEN = 120
 
 /** Het budget voor een maat bij dit aantal beelden. */
 function framesBudget(m, aantal) {
-  // boven 120 beelden naar rato met 12 procent ruimte, zoals de lussen (golf 4: lateral raise aan de kabel)
-  return FRAMES_MAX_BYTES[m] * (aantal > FRAMES_BUDGET_BEELDEN ? (aantal / FRAMES_BUDGET_BEELDEN) * 1.12 : 1)
+  // boven 120 beelden naar rato met 30 procent ruimte (golf 4: lateral raise aan de kabel; 08-11-2026 ruimer voor het nieuwe figuur)
+  return FRAMES_MAX_BYTES[m] * (aantal > FRAMES_BUDGET_BEELDEN ? (aantal / FRAMES_BUDGET_BEELDEN) * 1.3 : 1)
 }
 
 /**
@@ -98,7 +112,7 @@ function framesBudget(m, aantal) {
  * heen_is is daar de inademing en telt voor de speler niet als richting.
  */
 // Een nieuwe slug krijgt ook een uitvoeringstempo in src/lib/club/training/repspeler/uitvoering.ts (test).
-const BEWEGING = {
+export const BEWEGING = {
   'back-squat': { heen_is: 'excentrisch', soort: 'herhaling' },
   'front-squat': { heen_is: 'excentrisch', soort: 'herhaling' },
   'lunge-met-barbell': { heen_is: 'excentrisch', soort: 'herhaling' },
@@ -339,6 +353,19 @@ const BEWEGING = {
   'fire-hydrant': { heen_is: 'concentrisch', soort: 'herhaling' },
   'hip-thrust-op-een-been': { heen_is: 'concentrisch', soort: 'herhaling' },
   'copenhagen-plank': { heen_is: 'concentrisch', soort: 'vasthouden' },
+  // Golf 14 (06-11-2026): kabel en optrekstang. Elke render begint in de rek of hangend en trekt eerst; de dead hang is op tijd.
+  'cable-fly-van-laag-naar-hoog': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'cable-fly-van-hoog-naar-laag': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'reverse-fly-aan-de-kabel': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'lat-pulldown-met-brede-greep': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'hanging-leg-raise': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'dead-hang': { heen_is: 'concentrisch', soort: 'vasthouden' },
+  'scapula-pull-up': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'front-raise-aan-de-kabel': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'eenarmige-seated-cable-row': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'triceps-pushdown-met-een-arm': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'bayesian-curl-aan-de-kabel': { heen_is: 'concentrisch', soort: 'herhaling' },
+  'woodchop-aan-de-kabel': { heen_is: 'concentrisch', soort: 'herhaling' },
 }
 
 /** Instellingen per bestand: kwaliteit en inspanning van libwebp. */
@@ -356,13 +383,25 @@ const WEBP = {
 sharp.concurrency(2)
 sharp.cache(false)
 
-function leesArgs(argv) {
-  const uit = { bron: STANDAARD_BRON, slugs: [] }
+export function leesArgs(argv) {
+  const uit = { bron: STANDAARD_BRON, figuur: 'kane', slugs: [] }
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--bron') uit.bron = argv[++i] ?? uit.bron
+    else if (argv[i] === '--figuur') uit.figuur = argv[++i]
     else uit.slugs.push(argv[i])
   }
+  if (!FIGUREN.includes(uit.figuur)) throw new Error(`onbekend figuur ${uit.figuur}: kies ${FIGUREN.join(' of ')}`)
   return uit
+}
+
+/** Waar de bronframes van dit figuur staan, binnen de map uit/. */
+export function framesBronVan(bron, figuur) {
+  return figuur === 'neutraal' ? join(bron, NEUTRAAL_MAP) : bron
+}
+
+/** Waar de webbestanden van dit figuur komen, binnen public/oefenbeelden. */
+export function doelMapVan(doel, slug, figuur) {
+  return figuur === 'neutraal' ? join(doel, NEUTRAAL_MAP, slug) : join(doel, slug)
 }
 
 function framesVan(map) {
@@ -451,22 +490,30 @@ function wachttijden(aantal) {
  * rep-speler houden hun eigen kwaliteit.
  */
 const LUS_MAX_BYTES = { hd: 3072 * 1024, middel: 2304 * 1024, klein: 1330 * 1024 }
-const LUS_MIN_KWALITEIT = 56
+// 08-11-2026: het nieuwe figuur (tattoo, baard, shirt) maakt wisselende kabellussen zwaarder; daarom tot 40 en 50 procent ruimte
+const LUS_MIN_KWALITEIT = 40
 const LUS_BEELDEN_BASIS = 120
 // boven 120 beelden naar rato, met 12 procent ruimte (golf 4: lateral raise aan de kabel) (de glute bridge op een been, 136 beelden met een wissel van het been, is per beeld het zwaarst)
 // vanaf 120 beelden met 25 procent ruimte (golf 13: hip thrust op een been, 120 beelden wisselend met bank in beeld, ongeveer 31 KB per beeld)
-const lusFactor = (beelden) => (beelden >= LUS_BEELDEN_BASIS ? (beelden / LUS_BEELDEN_BASIS) * 1.25 : 1)
+const lusFactor = (beelden) => (beelden >= LUS_BEELDEN_BASIS ? (beelden / LUS_BEELDEN_BASIS) * 1.5 : 1)
 const lusGrens = (bytes, beelden) => Math.round(bytes * lusFactor(beelden))
 
 async function maakLus(frames, snij, maat, opties, doel, maxBytes = Infinity) {
   const bufs = []
   for (const f of frames) bufs.push(await beeld(f, snij, maat))
   for (let quality = opties.quality; ; quality -= 2) {
+    // Eerst naar een los bestand en dan hernoemen: Windows houdt een net geschreven groot bestand soms even vast (08-11-2026).
+    const tijdelijk = `${doel}.${quality}.tmp`
     await sharp(bufs, { join: { animated: true } })
       .webp({ ...opties, quality, loop: 0, delay: wachttijden(bufs.length) })
-      .toFile(doel)
-    const bytes = statSync(doel).size
-    if (bytes <= maxBytes) return
+      .toFile(tijdelijk)
+    const bytes = statSync(tijdelijk).size
+    if (bytes <= maxBytes) {
+      rmSync(doel, { force: true })
+      renameSync(tijdelijk, doel)
+      return
+    }
+    rmSync(tijdelijk, { force: true })
     if (quality - 2 < LUS_MIN_KWALITEIT) throw new Error(`${doel} blijft boven ${Math.round(maxBytes / 1024)} KB, ook op kwaliteit ${quality}`)
     console.log(`  ${doel.split(/[\\/]/).pop()}: ${Math.round(bytes / 1024)} KB te zwaar op kwaliteit ${quality}, opnieuw op ${quality - 2}`)
   }
@@ -609,8 +656,8 @@ function poseVan(bron, slug) {
   return JSON.parse(readFileSync(pose, 'utf8'))
 }
 
-async function maakBestanden(bron, slug, uit) {
-  const frames = framesVan(join(bron, slug))
+async function maakBestanden(bron, framesBron, slug, uit) {
+  const frames = framesVan(join(framesBron, slug))
   const { doos, maat } = await omhullende(frames)
   const snij = vierkant(doos, maat)
   const hd = Math.min(HD_MAX, snij.width)
@@ -655,12 +702,12 @@ function uitBibliotheek(slug, bron) {
   const lijst = (sleutel) =>
     [...(tekst.match(new RegExp(`${sleutel}:\\s*\\[([^\\]]*)\\]`))?.[1] ?? '').matchAll(/'([a-z]+)'/g)].map((m) => m[1])
   const spieren = lijst('spieren')
-  // Een bouwsteen (heupstrek, plank) rekent de spieren zelf uit; dan de oranje zones uit de pose.
+  // Een bouwsteen (heupstrek, plank) rekent de spieren zelf uit; dan de spieren uit de pose.
   if (spieren.length === 0) return { naam, spieren: uitPose(slug, bron), spierenSecundair: [] }
   return { naam, spieren, spierenSecundair: lijst('spierenSecundair') }
 }
 
-/** Oranje zones van de render (poses/<slug>.json) als lichaamsdelen van de 3D-bibliotheek. */
+/** Spieren uit poses/<slug>.json als lichaamsdelen van de 3D-bibliotheek. */
 const ZONE_DEEL = {
   quadriceps: 'dij', hamstrings: 'hamstring', bilspieren: 'bil', kuiten: 'kuit', borst: 'borst',
   voorste_schouder: 'schouder', zijschouder: 'schouder', triceps: 'bovenarm', biceps: 'bovenarm',
@@ -685,17 +732,8 @@ function uitPose(slug, bron) {
 
 const BESTANDEN = ['lus-hd', 'lus', 'lus-klein', 'begin', 'piek', 'begin-klein', 'piek-klein']
 
-async function verwerk(bron, slug) {
-  const uit = join(DOEL, slug)
-  mkdirSync(uit, { recursive: true })
-  const bib = uitBibliotheek(slug, bron)
-  const beweging = BEWEGING[slug]
-  if (!beweging) throw new Error(`${slug} staat niet in BEWEGING (heen_is en soort): voeg hem toe`)
-  const losePose = poseVan(bron, slug)
-  // Een pose zonder tempo of sleutels (farmer walk, suitcase carry met een leeg tempo) krijgt het tempo uit BEWEGING.
-  const pose = losePose.tempo?.length || losePose.sleutels || !beweging.tempo ? losePose : { ...losePose, tempo: beweging.tempo }
-  const { losseMaten, ...maat } = await maakBestanden(bron, slug, uit)
-  const fasen = fasenVoorPose(pose, maat.beelden)
+/** Versie (hash) van de lussen en stills, en die van de losse beelden, plus de bytes per bestand. */
+function versiesVan(uit, losseMaten) {
   const bytes = Object.fromEntries(BESTANDEN.map((b) => [b, statSync(join(uit, `${b}.webp`)).size]))
   const hash = createHash('sha1')
   for (const b of BESTANDEN) hash.update(readFileSync(join(uit, `${b}.webp`)))
@@ -704,16 +742,63 @@ async function verwerk(bron, slug) {
     const dir = join(uit, 'frames', m)
     for (const f of readdirSync(dir).sort()) frameHash.update(readFileSync(join(dir, f)))
   }
+  return { bytes, versie: hash.digest('hex').slice(0, 8), framesVersie: frameHash.digest('hex').slice(0, 8) }
+}
+
+/**
+ * Het neutrale figuur van een oefening die al in de data staat: alleen wat per
+ * figuur verschilt. De fasen horen bij de beweging, dus het aantal beelden moet
+ * gelijk zijn aan dat van de bestaande render (daarom eerst controleren).
+ */
+async function verwerkNeutraal(bron, slug, bestaand) {
+  if (!bestaand?.frames) throw new Error(`${slug} staat nog niet in de data: draai eerst het figuur kane`)
+  const framesBron = framesBronVan(bron, 'neutraal')
+  const aantal = framesVan(join(framesBron, slug)).length
+  if (aantal !== bestaand.frames.aantal) throw new Error(`${slug}: neutraal heeft ${aantal} beelden, kane ${bestaand.frames.aantal}: draai eerst kane opnieuw`)
+  const uit = doelMapVan(DOEL, slug, 'neutraal')
+  mkdirSync(uit, { recursive: true })
+  const { losseMaten, breedte, hoogte, maten, vloer_y } = await maakBestanden(bron, framesBron, slug, uit)
+  const { bytes, versie, framesVersie } = versiesVan(uit, losseMaten)
+  const frameMaten = Object.fromEntries(Object.entries(losseMaten).map(([m, { breedte: b, hoogte: h, bytes: g }]) => [m, { breedte: b, hoogte: h, bytes: g }]))
+  return { breedte, hoogte, maten, vloer_y, versie, bytes, frames: { versie: framesVersie, maten: frameMaten } }
+}
+
+/**
+ * Een nieuwe render van kane houdt het blok neutraal, tenzij het aantal beelden
+ * veranderde: dan passen de fasen niet meer en valt de app terug op kane tot
+ * neutraal opnieuw is gedraaid.
+ */
+export function behoudNeutraal(nieuw, oud) {
+  if (!oud?.neutraal) return nieuw
+  if (oud.frames?.aantal !== nieuw.frames?.aantal) {
+    console.log(`  ${nieuw.slug}: ander aantal beelden, blok neutraal vervalt: draai --figuur neutraal opnieuw`)
+    return nieuw
+  }
+  return { ...nieuw, neutraal: oud.neutraal }
+}
+
+async function verwerk(bron, slug) {
+  const uit = doelMapVan(DOEL, slug, 'kane')
+  mkdirSync(uit, { recursive: true })
+  const bib = uitBibliotheek(slug, bron)
+  const beweging = BEWEGING[slug]
+  if (!beweging) throw new Error(`${slug} staat niet in BEWEGING (heen_is en soort): voeg hem toe`)
+  const losePose = poseVan(bron, slug)
+  // Een pose zonder tempo of sleutels (farmer walk, suitcase carry met een leeg tempo) krijgt het tempo uit BEWEGING.
+  const pose = losePose.tempo?.length || losePose.sleutels || !beweging.tempo ? losePose : { ...losePose, tempo: beweging.tempo }
+  const { losseMaten, ...maat } = await maakBestanden(bron, bron, slug, uit)
+  const fasen = fasenVoorPose(pose, maat.beelden)
+  const { bytes, versie, framesVersie } = versiesVan(uit, losseMaten)
   const frames = {
     aantal: maat.beelden,
     fps: FPS,
-    versie: frameHash.digest('hex').slice(0, 8),
+    versie: framesVersie,
     maten: losseMaten,
     ...fasen,
     heen_is: beweging.heen_is,
     soort: beweging.soort,
   }
-  return { slug, ...bib, ...maat, versie: hash.digest('hex').slice(0, 8), bytes, frames }
+  return { slug, ...bib, ...maat, versie, bytes, frames }
 }
 
 function bestaandeData() {
@@ -733,22 +818,83 @@ function schrijfData(lijst) {
   writeFileSync(DATA, `${kop}export const OEFENRENDER_DATA = ${JSON.stringify(gesorteerd, null, 2)} as const\n`)
 }
 
-async function hoofd() {
-  const { bron, slugs } = leesArgs(process.argv.slice(2))
-  if (!existsSync(bron)) throw new Error(`bronmap ${bron} bestaat niet`)
-  const kies = slugs.length ? slugs : readdirSync(bron).filter((d) => existsSync(join(bron, d, 'frames', '000.png')))
-  const data = new Map(bestaandeData().map((d) => [d.slug, d]))
-  for (const slug of kies) {
-    const r = await verwerk(bron, slug)
-    data.set(slug, r)
-    const kb = Object.entries(r.bytes).map(([k, v]) => `${k} ${Math.round(v / 1024)} KB`).join(', ')
-    const fr = Object.entries(r.frames.maten).map(([m, v]) => `frames ${m} ${(v.bytes / 1048576).toFixed(2)} MB`).join(', ')
-    console.log(`${slug} (${r.naam}, ${r.breedte} px, ${r.beelden} beelden): ${kb}, ${fr}`)
-    console.log(`  fasen ${JSON.stringify(r.frames.fasen)}, vloer_y ${r.vloer_y}`)
-    if (r.frames.wisselend) console.log(`  wisselend, fasen rechts ${JSON.stringify(r.frames.fasen_rechts)}`)
+function meldBestanden(slug, r) {
+  const kb = Object.entries(r.bytes).map(([k, v]) => `${k} ${Math.round(v / 1024)} KB`).join(', ')
+  const fr = Object.entries(r.frames.maten).map(([m, v]) => `frames ${m} ${(v.bytes / 1048576).toFixed(2)} MB`).join(', ')
+  console.log(`${slug} (${r.naam ?? 'neutraal'}, ${r.breedte} px): ${kb}, ${fr}`)
+}
+
+function dataNu() {
+  return new Map(bestaandeData().map((d) => [d.slug, d]))
+}
+
+/**
+ * Na elke oefening de gegevens bijwerken: vers inlezen, een regel aanpassen en
+ * schrijven, met een slot (een map, atomair aan te maken). Zo kunnen meerdere
+ * runs naast elkaar draaien op verschillende oefeningen zonder elkaars regels te
+ * overschrijven, en houdt een run die halverwege stopt data en bestanden gelijk.
+ */
+function metSlot(doe) {
+  const slot = `${DATA}.slot`
+  const tot = Date.now() + 120000
+  const pauze = new Int32Array(new SharedArrayBuffer(4))
+  for (;;) {
+    try {
+      mkdirSync(slot)
+      break
+    } catch (fout) {
+      if (fout?.code !== 'EEXIST') throw fout
+      if (Date.now() > tot) throw new Error(`slot ${slot} blijft bezet: haal hem weg als er geen ander script draait`)
+      Atomics.wait(pauze, 0, 0, 50)
+    }
   }
-  schrijfData([...data.values()])
-  console.log(`Klaar: ${kies.length} oefening(en) in public/oefenbeelden, gegevens in ${DATA}`)
+  try {
+    return doe()
+  } finally {
+    rmSync(slot, { recursive: true, force: true })
+  }
+}
+
+function werkDataBij(pasAan) {
+  metSlot(() => {
+    const data = dataNu()
+    pasAan(data)
+    schrijfData([...data.values()])
+  })
+}
+
+async function hoofd() {
+  const { bron, figuur, slugs } = leesArgs(process.argv.slice(2))
+  if (!existsSync(bron)) throw new Error(`bronmap ${bron} bestaat niet`)
+  const framesBron = framesBronVan(bron, figuur)
+  const kies = slugs.length ? slugs : readdirSync(framesBron).filter((d) => existsSync(join(framesBron, d, 'frames', '000.png')))
+  const fouten = []
+  for (const slug of kies) {
+    try {
+      await verwerkEen(bron, figuur, slug)
+    } catch (fout) {
+      // Een oefening die faalt houdt de rest niet tegen; de fouten komen aan het eind.
+      const tekst = fout instanceof Error ? fout.message : String(fout)
+      console.error(`Fout bij ${slug}: ${tekst}`)
+      fouten.push(slug)
+    }
+  }
+  console.log(`Klaar: ${kies.length - fouten.length} van ${kies.length} oefening(en), figuur ${figuur}, in public/oefenbeelden, gegevens in ${DATA}`)
+  if (fouten.length) throw new Error(`${fouten.length} oefening(en) mislukt: ${fouten.join(', ')}`)
+}
+
+async function verwerkEen(bron, figuur, slug) {
+  if (figuur === 'neutraal') {
+    const n = await verwerkNeutraal(bron, slug, metSlot(() => dataNu().get(slug)))
+    werkDataBij((data) => data.set(slug, { ...data.get(slug), neutraal: n }))
+    meldBestanden(slug, n)
+    return
+  }
+  const r = await verwerk(bron, slug)
+  werkDataBij((data) => data.set(slug, behoudNeutraal(r, data.get(slug))))
+  meldBestanden(slug, r)
+  console.log(`  fasen ${JSON.stringify(r.frames.fasen)}, vloer_y ${r.vloer_y}`)
+  if (r.frames.wisselend) console.log(`  wisselend, fasen rechts ${JSON.stringify(r.frames.fasen_rechts)}`)
 }
 
 const direct = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)

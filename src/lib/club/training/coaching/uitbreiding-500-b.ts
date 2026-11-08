@@ -210,7 +210,7 @@ export const COACHING_UITBREIDING_500_B: CoachingBoek = {
     stappen: [
       'Buig je standbeen langzaam tot je andere hiel de vloer aantikt.',
       'Duw jezelf door je standbeen terug omhoog.',
-      'Doe alle herhalingen en wissel dan van been.',
+      'Doe daarna hetzelfde met je andere been.',
     ],
     fouten: [
       { fout: 'Knie zakt naar binnen', beter: 'Kies een lagere box en duw je knie naar buiten.' },
@@ -234,7 +234,7 @@ export const COACHING_UITBREIDING_500_B: CoachingBoek = {
     stappen: [
       'Duw jezelf zo hoog mogelijk op je tenen.',
       'Houd bovenin kort vast.',
-      'Zak langzaam terug en wissel na de set van been.',
+      'Zak langzaam terug en doe daarna je andere been.',
     ],
     fouten: [
       { fout: 'Enkel rolt naar buiten', beter: 'Duw door je grote teen omhoog.' },

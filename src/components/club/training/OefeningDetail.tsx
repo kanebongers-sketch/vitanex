@@ -5,7 +5,7 @@ import { CLUB_TRAINING } from '@/lib/aiyourgym/taal/woorden/club/training'
 import { TRAINING_LABELS } from '@/lib/aiyourgym/taal/woorden/club/training-labels'
 import { BeeldBron } from './OefeningBeeld'
 import { OefeningVoorbeeld } from './repspeler/OefeningVoorbeeld'
-import { repRenderVoor } from './repspeler/render-bron'
+import { useRepRender } from './repspeler/oefen-figuur'
 import { OefeningCoaching } from './coaching/OefeningCoaching'
 import { SpierBlok } from './SpierChips'
 
@@ -18,6 +18,7 @@ interface OefeningDetailProps {
 export function OefeningDetail({ oefening: o, onBewerk }: OefeningDetailProps) {
   const t = useTekst(CLUB_TRAINING).detail
   const l = useTekst(TRAINING_LABELS)
+  const render = useRepRender(o.naam)
   const kenmerken = [
     [t.spiergroep, l.spiergroep[o.spiergroep]],
     [t.materiaal, l.materiaal[o.materiaal]],
@@ -27,7 +28,7 @@ export function OefeningDetail({ oefening: o, onBewerk }: OefeningDetailProps) {
   return (
     <div className="club-training-oefdetail">
       <OefeningVoorbeeld key={o.id} naam={o.naam} beeld={o.beeld} />
-      {o.beeld && !repRenderVoor(o.naam) && <BeeldBron bronnen={[o.beeld.bron]} />}
+      {o.beeld && !render && <BeeldBron bronnen={[o.beeld.bron]} />}
       <OefeningCoaching key={o.id} naam={o.naam} uitleg={o.uitleg} aandachtspunten={o.aandachtspunten} leeg={t.leeg} oefeningId={o.id} />
       <dl className="club-training-defs club-training-defs--twee">
         {kenmerken.map(([label, waarde]) => (

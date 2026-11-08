@@ -6,7 +6,7 @@ import type { AppOefening } from '@/lib/club/app/schema'
 import { voorschrift } from '@/lib/club/app/schema'
 import { BeeldBron } from '@/components/club/training/OefeningBeeld'
 import { OefeningVoorbeeld } from '@/components/club/training/repspeler/OefeningVoorbeeld'
-import { repRenderVoor } from '@/components/club/training/repspeler/render-bron'
+import { useRepRender } from '@/components/club/training/repspeler/oefen-figuur'
 import { OefeningCoaching } from '@/components/club/training/coaching/OefeningCoaching'
 import { SpierBlok } from '@/components/club/training/SpierChips'
 import { useTaal } from '@/lib/aiyourgym/taal/client'
@@ -40,6 +40,7 @@ export function OefeningBlad({ oefening: o, onSluit }: OefeningBladProps) {
   }, [onSluit])
 
   const regel = voorschrift(o, taal)
+  const render = useRepRender(o.naam)
   return (
     <div className="club-lidapp-blad-scherm" onMouseDown={(e) => e.target === e.currentTarget && onSluit()}>
       <div ref={blad} className="club-lidapp-blad" role="dialog" aria-modal="true" aria-label={o.naam} tabIndex={-1}>
@@ -59,7 +60,7 @@ export function OefeningBlad({ oefening: o, onSluit }: OefeningBladProps) {
             <SpierBlok naam={o.naam} primair={o.spierenPrimair} secundair={o.spierenSecundair} />
           </section>
         )}
-        {o.beeld && !repRenderVoor(o.naam) && <BeeldBron bronnen={[o.beeld.bron]} />}
+        {o.beeld && !render && <BeeldBron bronnen={[o.beeld.bron]} />}
       </div>
     </div>
   )

@@ -10,6 +10,10 @@
 // getypeerde lijst van.
 // Daarnaast losse beelden plus fasen voor de rep-speler (frameUrl) en de
 // vloerlijn (vloerY) voor de schaduw.
+// Twee figuren (besluit Kane 06-11-2026): "kane" (Fit Factory) en "neutraal" (elke
+// andere sportschool en de openbare website), zelfde beweging en zelfde fasen, in
+// public/oefenbeelden/neutraal/<slug>/. Staat een oefening nog niet in neutraal,
+// dan valt ze terug op de bestaande render. Wie niets kiest krijgt neutraal.
 // Geen zware imports: dit bestand gaat mee naar de browser.
 
 import type { Lichaamsdeel } from '@/lib/club/training/3d/typen'
@@ -32,6 +36,9 @@ export const SPIER_LABEL: Record<Lichaamsdeel, string> = {
   onderarm: 'Onderarmen',
 }
 
+/** Welk figuur er in de render staat. */
+export type OefenFiguur = 'kane' | 'neutraal'
+
 export interface OefenRenderBestand {
   /** Pad vanaf de root van de site, met ?v= zodat een nieuwe render nooit uit de cache komt. */
   src: string
@@ -42,6 +49,10 @@ export interface OefenRenderBestand {
 
 export interface OefenRender {
   slug: string
+  /** Het figuur dat deze beelden echt tonen (kane bij terugval). */
+  figuur: OefenFiguur
+  /** Map van de bestanden vanaf de root van de site. */
+  map: string
   /** Naam exact zoals in de oefenbibliotheek van Club. */
   naam: string
   /** Werkende spieren (primair), als label. */
@@ -117,13 +128,40 @@ export interface OefenFrames {
 type Data = (typeof OEFENRENDER_DATA)[number]
 type Naam = keyof Data['bytes'] & keyof Data['maten']
 
-function bestand(d: Data, naam: Naam): OefenRenderBestand {
-  const breedte = d.maten[naam]
+/** Wat per figuur verschilt aan de lussen en stills. */
+interface BeeldSet {
+  versie: string
+  breedte: number
+  hoogte: number
+  maten: Readonly<Record<Naam, number>>
+  bytes: Readonly<Record<Naam, number>>
+}
+
+/** Het blok "neutraal" in de data (scripts/oefenbeelden-web.mjs --figuur neutraal). */
+export interface NeutraalData extends BeeldSet {
+  vloer_y: number
+  frames: { versie: string; maten: Readonly<Record<string, FrameMaatData>> }
+}
+
+function bestand(map: string, set: BeeldSet, naam: Naam): OefenRenderBestand {
+  const breedte = set.maten[naam]
   return {
-    src: `${OEFENRENDER_MAP}/${d.slug}/${naam}.webp?v=${d.versie}`,
+    src: `${map}/${naam}.webp?v=${set.versie}`,
     breedte,
-    hoogte: Math.round((breedte * d.hoogte) / d.breedte),
-    bytes: d.bytes[naam],
+    hoogte: Math.round((breedte * set.hoogte) / set.breedte),
+    bytes: set.bytes[naam],
+  }
+}
+
+function bestanden(map: string, set: BeeldSet) {
+  return {
+    lusHd: bestand(map, set, 'lus-hd'),
+    lus: bestand(map, set, 'lus'),
+    lusKlein: bestand(map, set, 'lus-klein'),
+    begin: bestand(map, set, 'begin'),
+    beginKlein: bestand(map, set, 'begin-klein'),
+    piek: bestand(map, set, 'piek'),
+    piekKlein: bestand(map, set, 'piek-klein'),
   }
 }
 
@@ -136,11 +174,17 @@ export function srcSetVan(bestanden: readonly OefenRenderBestand[]): string {
     .join(', ')
 }
 
+interface FrameMaatData {
+  breedte: number
+  hoogte: number
+  bytes: number
+}
+
 interface FramesData {
   aantal: number
   fps: number
   versie: string
-  maten: Readonly<Record<string, { breedte: number; hoogte: number; bytes: number }>>
+  maten: Readonly<Record<string, FrameMaatData>>
   fasen: Readonly<Record<FaseNaam, readonly number[]>>
   heen_is: string
   soort: string
@@ -152,6 +196,12 @@ function fasenVan(f: Readonly<Record<FaseNaam, readonly number[]>>): Record<Fase
   return Object.fromEntries(FASE_VOLGORDE.map((n) => [n, [f[n][0], f[n][1]] as const])) as Record<FaseNaam, FaseReeks>
 }
 
+function matenVan(maten: Readonly<Record<string, FrameMaatData>>): OefenFrameMaat[] {
+  return Object.entries(maten)
+    .map(([maat, m]) => ({ maat: Number(maat), breedte: m.breedte, hoogte: m.hoogte, bytes: m.bytes }))
+    .sort((a, b) => a.maat - b.maat)
+}
+
 function framesVan(d: Data): OefenFrames | null {
   if (!('frames' in d)) return null
   const f = d.frames as FramesData
@@ -159,9 +209,7 @@ function framesVan(d: Data): OefenFrames | null {
     aantal: f.aantal,
     fps: f.fps,
     versie: f.versie,
-    maten: Object.entries(f.maten)
-      .map(([maat, m]) => ({ maat: Number(maat), breedte: m.breedte, hoogte: m.hoogte, bytes: m.bytes }))
-      .sort((a, b) => a.maat - b.maat),
+    maten: matenVan(f.maten),
     fasen: fasenVan(f.fasen),
     heenIs: f.heen_is as HeenIs,
     soort: f.soort as BewegingSoort,
@@ -175,7 +223,7 @@ export function kiesFrameMaat(frames: OefenFrames, breedte: number): OefenFrameM
 }
 
 /**
- * Pad van een los beeld: /oefenbeelden/<slug>/frames/<maat>/f000.webp?v=<versie>.
+ * Pad van een los beeld: <map van de render>/frames/<maat>/f000.webp?v=<versie>.
  * `maat` is een gewenste breedte in px (de dichtstbijzijnde maat erboven wordt
  * gekozen); `index` loopt rond binnen de lus. undefined zonder losse beelden.
  */
@@ -184,7 +232,7 @@ export function frameUrl(render: OefenRender, maat: number, index: number): stri
   if (!f || f.maten.length === 0) return undefined
   const m = kiesFrameMaat(f, maat).maat
   const i = ((Math.round(index) % f.aantal) + f.aantal) % f.aantal
-  return `${OEFENRENDER_MAP}/${render.slug}/frames/${m}/f${String(i).padStart(3, '0')}.webp?v=${f.versie}`
+  return `${render.map}/frames/${m}/f${String(i).padStart(3, '0')}.webp?v=${f.versie}`
 }
 
 /** Aantal beelden van een fase (0 als hij leeg is). */
@@ -194,30 +242,53 @@ export function faseLengte(frames: OefenFrames, fase: FaseNaam): number {
 }
 
 function render(d: Data): OefenRender {
+  const map = `${OEFENRENDER_MAP}/${d.slug}`
   return {
     slug: d.slug,
+    figuur: 'kane',
+    map,
     naam: d.naam,
     spieren: (d.spieren as readonly Lichaamsdeel[]).map((s) => SPIER_LABEL[s]),
     spierenSecundair: (d.spierenSecundair as readonly Lichaamsdeel[]).map((s) => SPIER_LABEL[s]),
-    lusHd: bestand(d, 'lus-hd'),
-    lus: bestand(d, 'lus'),
-    lusKlein: bestand(d, 'lus-klein'),
-    begin: bestand(d, 'begin'),
-    beginKlein: bestand(d, 'begin-klein'),
-    piek: bestand(d, 'piek'),
-    piekKlein: bestand(d, 'piek-klein'),
+    ...bestanden(map, d),
     vloerY: 'vloer_y' in d ? (d.vloer_y as number) : null,
     frames: framesVan(d),
   }
 }
 
+/**
+ * Dezelfde oefening met de beelden van het neutrale figuur. Fasen, fps en aantal
+ * horen bij de beweging en blijven gelijk (het script weigert een ander aantal).
+ */
+export function metNeutraal(r: OefenRender, n: NeutraalData): OefenRender {
+  const map = `${OEFENRENDER_MAP}/neutraal/${r.slug}`
+  return {
+    ...r,
+    figuur: 'neutraal',
+    map,
+    ...bestanden(map, n),
+    vloerY: n.vloer_y,
+    frames: r.frames ? { ...r.frames, versie: n.frames.versie, maten: matenVan(n.frames.maten) } : null,
+  }
+}
+
+/** Alle renders met het figuur kane. */
 export const OEFENRENDERS: readonly OefenRender[] = OEFENRENDER_DATA.map(render)
 
-const OP_NAAM = new Map(OEFENRENDERS.map((r) => [r.naam.toLowerCase(), r]))
+/** Alle renders met het neutrale figuur; een oefening zonder neutrale render houdt de bestaande. */
+export const OEFENRENDERS_NEUTRAAL: readonly OefenRender[] = OEFENRENDER_DATA.map((d, i) =>
+  'neutraal' in d ? metNeutraal(OEFENRENDERS[i], d.neutraal as NeutraalData) : OEFENRENDERS[i],
+)
 
-/** De render bij een oefening (naam zoals in de bibliotheek), of undefined. */
-export function renderVoor(naam: string): OefenRender | undefined {
-  return OP_NAAM.get(naam.trim().toLowerCase())
+const opNaam = (lijst: readonly OefenRender[]) => new Map(lijst.map((r) => [r.naam.toLowerCase(), r]))
+const OP_NAAM: Readonly<Record<OefenFiguur, ReadonlyMap<string, OefenRender>>> = {
+  kane: opNaam(OEFENRENDERS),
+  neutraal: opNaam(OEFENRENDERS_NEUTRAAL),
+}
+
+/** De render bij een oefening (naam zoals in de bibliotheek), of undefined. Zonder keuze neutraal. */
+export function renderVoor(naam: string, figuur: OefenFiguur = 'neutraal'): OefenRender | undefined {
+  return OP_NAAM[figuur].get(naam.trim().toLowerCase())
 }
 
 /** ["Bovenbenen", "Bilspieren", "Romp"] wordt "bovenbenen, bilspieren en romp". */

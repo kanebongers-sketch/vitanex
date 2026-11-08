@@ -41,7 +41,7 @@ export const COACHING_EN_500_C: Readonly<Record<string, Coaching>> = {
     stappen: [
       'Push your hips up until you are straight from knee to shoulder.',
       'Squeeze your glute at the top.',
-      'Lower calmly and switch legs after the set.',
+      'Lower calmly and then do your other leg.',
     ],
     fouten: [
       { fout: 'Hip drops on the free side', beter: 'Brace your core and go less high.' },
@@ -64,7 +64,7 @@ export const COACHING_EN_500_C: Readonly<Record<string, Coaching>> = {
     stappen: [
       'Push one foot with a bent knee up towards the ceiling.',
       'Stop when your thigh is in line with your torso and squeeze your glute.',
-      'Lower your leg calmly and switch after the set.',
+      'Lower your leg calmly and then do your other leg.',
     ],
     fouten: [
       { fout: 'Arched lower back', beter: 'Brace your core and lift your leg less high.' },
@@ -87,7 +87,7 @@ export const COACHING_EN_500_C: Readonly<Record<string, Coaching>> = {
     stappen: [
       'Lift one bent leg to the side until your knee is at hip height.',
       'Hold briefly.',
-      'Lower your leg calmly and switch after the set.',
+      'Lower your leg calmly and then do your other leg.',
     ],
     fouten: [
       { fout: 'Torso leans away', beter: 'Keep your shoulders square and lift your leg less high.' },
@@ -252,7 +252,7 @@ export const COACHING_EN_500_C: Readonly<Record<string, Coaching>> = {
     stappen: [
       'Lift your hips until your body is straight.',
       'Let your bottom leg hang loose or lift it towards the bench.',
-      'Hold and switch sides when the time is up.',
+      'Hold and then do the other side.',
     ],
     fouten: [
       { fout: 'Hips sag', beter: 'Place your knee on the bench instead of your foot.' },

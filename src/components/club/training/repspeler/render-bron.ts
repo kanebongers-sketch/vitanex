@@ -6,9 +6,11 @@
 // dan blijft het oude beeld staan.
 // Let op: de fasen in de renderdata zijn halfopen [van, tot); de tijdlijn van de
 // speler rekent met inclusieve bereiken [eerste, laatste].
+// Welk figuur (kane of neutraal) komt uit de sportschool: useRepRender in
+// oefen-figuur.tsx. Zonder keuze neutraal.
 // Geen zware imports: dit bestand gaat mee naar de browser.
 
-import { frameUrl, renderVoor, type FaseNaam, type FaseReeks, type OefenRender } from '@/components/aiyourgym/inhoud/oefenrenders'
+import { frameUrl, renderVoor, type FaseNaam, type FaseReeks, type OefenFiguur, type OefenRender } from '@/components/aiyourgym/inhoud/oefenrenders'
 import type { RenderTiming } from '@/lib/club/training/repspeler/plan'
 import type { FrameBereik, FrameFases } from '@/lib/club/training/repspeler/typen'
 import { uitvoeringVoor } from '@/lib/club/training/repspeler/uitvoering'
@@ -81,10 +83,10 @@ export function leesRepRender(r: OefenRender): RepRender | null {
 const CACHE = new Map<string, RepRender | null>()
 
 /** De render met losse frames bij een oefening (naam zoals in de bibliotheek), of null. */
-export function repRenderVoor(naam: string): RepRender | null {
-  const sleutel = naam.trim().toLowerCase()
+export function repRenderVoor(naam: string, figuur: OefenFiguur = 'neutraal'): RepRender | null {
+  const sleutel = `${figuur}|${naam.trim().toLowerCase()}`
   if (!CACHE.has(sleutel)) {
-    const r = renderVoor(naam)
+    const r = renderVoor(naam, figuur)
     CACHE.set(sleutel, r ? leesRepRender(r) : null)
   }
   return CACHE.get(sleutel) ?? null

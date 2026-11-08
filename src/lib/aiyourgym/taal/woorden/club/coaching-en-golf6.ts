@@ -170,12 +170,12 @@ export const COACHING_EN_GOLF6: Readonly<Record<string, Coaching>> = {
       { punt: 'Lower slowly', uitleg: 'Lower yourself back under control until your arms are straight.' },
     ],
     opstelling: [
-      'Set the straps to medium length and hold the handles with your palms facing each other.',
+      'Set the straps to medium length and grip the handles overhand: handles crosswise, palms facing down.',
       'Walk your feet forward and lean back until your arms are straight and your body is straight.',
     ],
     stappen: [
       'Brace your core and glutes.',
-      'Pull your chest to the handles until your hands are next to your ribs.',
+      'Pull your chest to the handles until your hands are just in front of your chest.',
       'Lower yourself slowly until your arms are straight.',
     ],
     fouten: [
