@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import {
-  coachFase, eerstOpTePakken, gesprekDezeWeek, gesprekGehad, laatsteContactOp, moetDoorplannen, nietDezeWeek, weekVan, opTePakkenLabel, opTePakkenTekst, sorteerCoachRijen, telCoach, verslagOpen,
+  coachFase, eerstOpTePakken, gesprekDezeWeek, gesprekGehad, laatsteContactOp, moetDoorplannen, nietDezeWeek, weekBlokken, weekVan, opTePakkenLabel, opTePakkenTekst, sorteerCoachRijen, telCoach, verslagOpen,
   type CoachRij, type OpTePakken,
 } from './coach-overzicht'
 import type { EvaluatieJson } from './pt-coaching'
@@ -15,7 +15,7 @@ function verslag(op: string): EvaluatieJson {
 const LEEG: OpTePakken = { teLaat: [], vandaag: [], zonderPlan: [] }
 
 function rij(over: Partial<CoachRij> & { naam: string }): CoachRij {
-  return { id: over.naam.toLowerCase(), volgendeOp: null, laatsteGesprekOp: null, verslagen: [], openPunten: [], opTePakken: LEEG, ...over }
+  return { id: over.naam.toLowerCase(), volgendeOp: null, laatsteGesprekOp: null, afspraken: [], verslagen: [], openPunten: [], opTePakken: LEEG, ...over }
 }
 
 function lead(naam: string, over: Partial<Lead> = {}): Lead {
@@ -94,6 +94,29 @@ describe('de week van maandag tot en met zondag (besluit Kane 11-11-2026)', () =
     expect(coachFase(geweest, WOE)).toBe('doorplannen')
     expect(coachFase(openVerslag, WOE)).toBe('verslag')
     expect(coachFase(vorigeWeek, WOE)).toBe('inplannen')
+  })
+
+  test('blokjes: deze week geweest of ingepland, volgende week leeg met voorstel dezelfde dag', () => {
+    // Arrange: gesprek dinsdag 10 nov geweest, niets volgende week
+    const r = rij({ naam: 'Joey', afspraken: ['2026-11-10T09:00:00Z'] })
+    // Act
+    const w = weekBlokken(r, WOE)
+    // Assert
+    expect(w.deze).toEqual({ soort: 'geweest', op: '2026-11-10T09:00:00Z', voorstel: '2026-11-12' })
+    expect(w.volgende).toEqual({ soort: 'leeg', op: null, voorstel: '2026-11-17' })
+  })
+
+  test('blokjes: gepland deze en volgende week, of niets met voorstel morgen en maandag', () => {
+    const gepland = weekBlokken(rij({ naam: 'A', afspraken: ['2026-11-13T09:00:00Z', '2026-11-20T09:00:00Z'] }), WOE)
+    expect(gepland.deze.soort).toBe('gepland')
+    expect(gepland.volgende).toMatchObject({ soort: 'gepland', op: '2026-11-20T09:00:00Z' })
+    const niets = weekBlokken(rij({ naam: 'B' }), WOE)
+    expect(niets.deze).toEqual({ soort: 'leeg', op: null, voorstel: '2026-11-12' })
+    expect(niets.volgende).toEqual({ soort: 'leeg', op: null, voorstel: '2026-11-16' })
+    // Op zondag is het voorstel voor deze week vandaag.
+    expect(weekBlokken(rij({ naam: 'C' }), new Date('2026-11-15T10:00:00Z')).deze.voorstel).toBe('2026-11-15')
+    // Alleen een verslag deze week (geen agenda): telt als geweest.
+    expect(weekBlokken(rij({ naam: 'D', verslagen: [verslag('2026-11-09T10:00:00Z')] }), WOE).deze.soort).toBe('geweest')
   })
 
   test('doorplannen staat na verslag en voor inplannen', () => {

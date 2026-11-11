@@ -4019,6 +4019,18 @@ body {
 .lifeos-root .ptd-coachmelding-kop { margin: 0; font-weight: 600; color: var(--status-aandacht); }
 .lifeos-root .ptd-coachmelding-tekst { margin: 4px 0 0; font-size: 14px; color: var(--text-2); }
 .lifeos-root .ptd-coachmelding-tekst + .ptd-coachmelding-kop { margin-top: 12px; }
+.lifeos-root .ptd-weekblokken { display: flex; flex-wrap: wrap; gap: 8px; }
+.lifeos-root .ptd-weekblok { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 148px; padding: 7px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg-card); font: inherit; text-align: left; color: var(--text); }
+.lifeos-root .ptd-weekblok-week { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); }
+.lifeos-root .ptd-weekblok-stand { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.lifeos-root .ptd-weekblok[data-soort='gepland'] { border-color: color-mix(in srgb, var(--brand) 45%, var(--line)); background: var(--brand-soft); }
+.lifeos-root .ptd-weekblok[data-soort='gepland'] .ptd-weekblok-stand { color: var(--brand); }
+.lifeos-root .ptd-weekblok[data-soort='geweest'] .ptd-weekblok-stand { color: var(--text-2); }
+.lifeos-root .ptd-weekblok[data-soort='leeg'] { border-style: dashed; border-color: color-mix(in srgb, var(--status-aandacht) 55%, transparent); background: var(--status-warning-soft); }
+.lifeos-root .ptd-weekblok[data-soort='leeg'] .ptd-weekblok-stand { color: var(--status-aandacht); font-weight: 600; }
+.lifeos-root button.ptd-weekblok { cursor: pointer; transition: transform 150ms ease, border-color 150ms ease; }
+.lifeos-root button.ptd-weekblok:hover { transform: translateY(-1px); border-style: solid; }
+.lifeos-root button.ptd-weekblok:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .lifeos-root .ptd-coachlijst {list-style: none; margin: 0; padding: 0; border-radius: 14px; border: 1px solid var(--line); background: var(--bg-card); overflow: hidden; }
 .lifeos-root .ptd-coachrij { border-top: 1px solid var(--line); }
 .lifeos-root .ptd-coachrij:first-child { border-top: 0; }

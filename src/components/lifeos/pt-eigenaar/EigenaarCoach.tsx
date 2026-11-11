@@ -1,6 +1,6 @@
 import { eigenaarGegevens } from '@/lib/lifeos/pt-dashboard/sessie'
 import { haalCoachTeam } from '@/lib/lifeos/pt-coaching/coach-team'
-import { coachFase, moetDoorplannen, nietDezeWeek, sorteerCoachRijen, telCoach, weekVan, type CoachRij } from '@/lib/lifeos/pt-coaching/coach-overzicht'
+import { coachFase, moetDoorplannen, nietDezeWeek, sorteerCoachRijen, telCoach, weekBlokken, weekVan, type CoachRij } from '@/lib/lifeos/pt-coaching/coach-overzicht'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { CoachgesprekkenBeheer } from '@/components/lifeos/pt-beheer/CoachgesprekkenBeheer'
 import { CoachRijBeheer } from '@/components/lifeos/pt-beheer/CoachRijBeheer'
@@ -101,6 +101,7 @@ export async function EigenaarCoach({ code, beheerder = false }: { code: string;
               ptId={r.id}
               fase={coachFase(r, nu)}
               kop={<CoachRijKop code={code} r={r} nu={nu} />}
+              weken={weekBlokken(r, nu)}
               samenvatting={coachRijSamenvatting(r)}
               inhoud={<CoachRijInhoud code={code} r={r} />}
             />

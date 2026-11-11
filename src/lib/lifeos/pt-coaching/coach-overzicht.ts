@@ -22,6 +22,8 @@ export interface CoachRij {
   volgendeOp: string | null
   /** Laatste coachgesprek dat al geweest is (ISO, uit de agenda), of null. */
   laatsteGesprekOp: string | null
+  /** Alle coachgesprekken in de agenda rond nu (ISO, oplopend), voor de blokjes per week. */
+  afspraken: readonly string[]
   /** Alle verslagen, nieuwste eerst. */
   verslagen: EvaluatieJson[]
   openPunten: OpenPunt[]
@@ -149,6 +151,40 @@ export function telCoach(rijen: readonly CoachRij[], nu: Date): CoachTelling {
     teVerslaan: rijen.filter((r) => verslagOpen(r, nu)).length,
     dezeWeek: rijen.filter((r) => gesprekDezeWeek(r, nu)).length,
   }
+}
+
+/** Wat er in een week staat voor een PT'er: geweest, ingepland of nog niets. */
+export interface WeekBlok {
+  soort: 'geweest' | 'gepland' | 'leeg'
+  /** Moment van het gesprek (ISO), of null bij leeg. */
+  op: string | null
+  /** Voorstel voor inplannen in deze week (YYYY-MM-DD). */
+  voorstel: string
+}
+
+function blokVan(afspraken: readonly string[], week: { maandag: string; zondag: string }, nu: Date, voorstel: string, verslagOp: string | null): WeekBlok {
+  const inDeze = afspraken.filter((a) => inWeek(a, week))
+  const komend = inDeze.find((a) => new Date(a).getTime() > nu.getTime())
+  if (komend) return { soort: 'gepland', op: komend, voorstel }
+  const geweest = inDeze[inDeze.length - 1] ?? (inWeek(verslagOp, week) ? verslagOp : null)
+  if (geweest) return { soort: 'geweest', op: geweest, voorstel }
+  return { soort: 'leeg', op: null, voorstel }
+}
+
+/**
+ * De blokjes per PT'er (besluit Kane 11-11-2026): deze week en volgende week, elk
+ * "geweest op", "ingepland op" of "nog niet ingepland". Het voorstel voor inplannen:
+ * deze week morgen (of vandaag op zondag), volgende week dezelfde dag als het gesprek
+ * van deze week, anders de maandag.
+ */
+export function weekBlokken(r: Pick<CoachRij, 'afspraken' | 'verslagen'>, nu: Date): { deze: WeekBlok; volgende: WeekBlok } {
+  const deze = weekVan(nu)
+  const volgende = { maandag: plusDagen(deze.maandag, 7), zondag: plusDagen(deze.zondag, 7) }
+  const vandaag = dagNl(nu)
+  const morgen = plusDagen(vandaag, 1)
+  const blokDeze = blokVan(r.afspraken, deze, nu, morgen <= deze.zondag ? morgen : vandaag, r.verslagen[0]?.aangemaaktOp ?? null)
+  const zelfdeDag = blokDeze.op ? plusDagen(dagNl(new Date(blokDeze.op)), 7) : volgende.maandag
+  return { deze: blokDeze, volgende: blokVan(r.afspraken, volgende, nu, zelfdeDag, null) }
 }
 
 /** Geen gesprek deze week: niet geweest en ook niet gepland binnen maandag tot en met zondag. */

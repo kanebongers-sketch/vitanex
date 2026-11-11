@@ -1,13 +1,13 @@
 import Link from 'next/link'
 import {
-  afspraakLabel,
   coachFase,
   datumLabel,
   laatsteContactOp,
   opTePakkenTotaal,
-  type CoachFase,
+  weekBlokken,
   type CoachRij,
 } from '@/lib/lifeos/pt-coaching/coach-overzicht'
+import { WeekBlokjes } from './WeekBlokjes'
 import type { VerloopPunt } from '@/lib/lifeos/pt-gesprek/team'
 import { ScoreVerloop } from '@/components/lifeos/pt/ScoreVerloop'
 import { CoachRijOpbouw } from './CoachRijOpbouw'
@@ -15,29 +15,30 @@ import { OpTePakkenLijst } from './OpTePakkenLijst'
 import { VerslagenLijst } from './VerslagenLijst'
 
 // Een PT'er in het coach-overzicht van eigenaar en beheerder. Zichtbaar: naam,
-// laatste gesprek en de stand (verslag open, inplannen of de volgende afspraak).
+// laatste gesprek, verslag open en de blokjes van deze en volgende week.
 // Achter de uitklap: open punten, op te pakken leads, scoreverloop en verslagen.
 // Puur; de beheerder zet er met `CoachRijBeheer` zijn acties bij.
 
 const VERLOOP_GESPREKKEN = 8
 
-function Stand({ fase, r }: { fase: CoachFase; r: CoachRij }) {
-  if (fase === 'verslag') return <span className="ptd-badge ptd-badge--let-op">Verslag open</span>
-  if (fase === 'inplannen') return <span className="ptd-badge ptd-badge--accent">Inplannen</span>
-  if (fase === 'doorplannen') return <span className="ptd-badge ptd-badge--let-op">Volgende week nog inplannen</span>
-  return <span className="ptd-coachrij-volgende">Volgende {afspraakLabel(r.volgendeOp as string)}</span>
-}
-
-/** Naam, laatste gesprek en stand: de regel die altijd zichtbaar is. */
-export function CoachRijKop({ code, r, nu }: { code: string; r: CoachRij; nu: Date }) {
+/**
+ * Naam en laatste gesprek: de regel die altijd zichtbaar is. Met `metBlokjes` (eigenaren)
+ * staan de blokjes van deze en volgende week er direct bij; de beheerder zet ze als knoppen
+ * in de acties (`CoachRijBeheer`).
+ */
+export function CoachRijKop({ code, r, nu, metBlokjes = false }: { code: string; r: CoachRij; nu: Date; metBlokjes?: boolean }) {
   const laatste = laatsteContactOp(r)
+  const w = metBlokjes ? weekBlokken(r, nu) : null
   return (
     <>
       <div className="ptd-coachrij-wie">
         <Link className="ptd-naam ptd-link" href={`/${code}/team/${r.id}`}>{r.naam}</Link>
-        <span className="ptd-coachrij-sub">{laatste ? `Laatste gesprek ${datumLabel(laatste)}` : 'Nog geen gesprek'}</span>
+        <span className="ptd-coachrij-sub">
+          {laatste ? `Laatste gesprek ${datumLabel(laatste)}` : 'Nog geen gesprek'}
+          {coachFase(r, nu) === 'verslag' ? <span className="ptd-badge ptd-badge--let-op">Verslag open</span> : null}
+        </span>
       </div>
-      <Stand fase={coachFase(r, nu)} r={r} />
+      {w ? <WeekBlokjes deze={w.deze} volgende={w.volgende} /> : null}
     </>
   )
 }
@@ -89,7 +90,7 @@ export function CoachPtKaart({ code, r, nu }: { code: string; r: CoachRij; nu: D
   return (
     <CoachRijOpbouw
       fase={coachFase(r, nu)}
-      kop={<CoachRijKop code={code} r={r} nu={nu} />}
+      kop={<CoachRijKop code={code} r={r} nu={nu} metBlokjes />}
       samenvatting={coachRijSamenvatting(r)}
       inhoud={<CoachRijInhoud code={code} r={r} />}
     />

@@ -15,6 +15,8 @@ interface Props {
   pt: PtStatus
   onKlaar: () => Promise<void>
   onAnnuleer: () => void
+  /** Voorgestelde datum (YYYY-MM-DD), bijvoorbeeld in de week van het blokje waarop geklikt is. */
+  startDatum?: string
 }
 
 /** Standaarddatum voor een eerste afspraak: overmorgen (lokaal, YYYY-MM-DD). */
@@ -24,8 +26,8 @@ function standaardDatum(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-export function CoachInplanForm({ pt, onKlaar, onAnnuleer }: Props) {
-  const [datum, setDatum] = useState(standaardDatum)
+export function CoachInplanForm({ pt, onKlaar, onAnnuleer, startDatum }: Props) {
+  const [datum, setDatum] = useState(() => startDatum ?? standaardDatum())
   const [tijd, setTijd] = useState('10:00')
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)

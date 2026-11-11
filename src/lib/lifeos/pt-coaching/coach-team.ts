@@ -33,6 +33,7 @@ export interface CoachTeam {
 interface Gesprekken {
   laatsteOp: string | null
   volgendeOp: string | null
+  alle: string[]
 }
 
 /** Het laatste (geweest) en eerstvolgende coachgesprek van één PT'er uit de agenda-events. */
@@ -46,6 +47,7 @@ function gesprekkenVan(naam: string, events: readonly GoogleAfspraak[], nu: Date
   return {
     laatsteOp: geweest.length > 0 ? geweest[geweest.length - 1].startOp.toISOString() : null,
     volgendeOp: komend ? komend.startOp.toISOString() : null,
+    alle: eigen.map((e) => e.startOp.toISOString()),
   }
 }
 
@@ -85,6 +87,7 @@ export async function haalCoachTeam(
       naam: p.naam,
       laatsteGesprekOp: g.laatsteOp,
       volgendeOp: g.volgendeOp,
+      afspraken: g.alle,
       verslagen: verslagen.get(p.id) ?? [],
       openPunten: punten.get(p.id) ?? [],
       opTePakken: { teLaat: o.teLaat, vandaag: o.vandaag, zonderPlan: o.zonderPlan },
