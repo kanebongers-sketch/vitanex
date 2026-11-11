@@ -29,7 +29,7 @@ export interface CoachRij {
 }
 
 /** Wat er voor deze PT'er nu te doen is. */
-export type CoachFase = 'verslag' | 'inplannen' | 'geregeld'
+export type CoachFase = 'verslag' | 'inplannen' | 'geregeld' | 'gesproken'
 
 const DAG_MS = 24 * 60 * 60 * 1000
 /** "Gesprek gehad" telt binnen deze periode — twee weken, zodat één gemiste week niet meteen rood is. */
@@ -60,13 +60,35 @@ export function verslagOpen(r: Pick<CoachRij, 'laatsteGesprekOp' | 'verslagen'>,
   return !verslag || new Date(verslag).getTime() < ms
 }
 
-export function coachFase(r: CoachRij, nu: Date): CoachFase {
-  if (verslagOpen(r, nu)) return 'verslag'
-  if (!r.volgendeOp) return 'inplannen'
-  return 'geregeld'
+/** De kalenderdag in Nederland (YYYY-MM-DD) van een moment. */
+function dagNl(moment: Date): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit' }).format(moment)
 }
 
-const FASE_VOLGORDE: Record<CoachFase, number> = { verslag: 0, inplannen: 1, geregeld: 2 }
+/**
+ * Na een gesprek komt "inplannen" pas terug op de zondag erna (besluit Kane 11-11-2026:
+ * "anders wordt het chaotisch"). Een gesprek op zondag zelf: de zondag een week later.
+ * Geeft die zondag als YYYY-MM-DD (Nederlandse kalender), of null zonder gesprek.
+ */
+export function inplannenVanaf(r: Pick<CoachRij, 'laatsteGesprekOp' | 'verslagen'>): string | null {
+  const op = laatsteContactOp(r)
+  if (!op) return null
+  const dag = dagNl(new Date(op))
+  const [j, m, d] = dag.split('-').map(Number)
+  const weekdag = new Date(Date.UTC(j, m - 1, d)).getUTCDay()
+  const zondag = new Date(Date.UTC(j, m - 1, d + (7 - weekdag)))
+  return zondag.toISOString().slice(0, 10)
+}
+
+export function coachFase(r: CoachRij, nu: Date): CoachFase {
+  if (verslagOpen(r, nu)) return 'verslag'
+  if (r.volgendeOp) return 'geregeld'
+  const vanaf = inplannenVanaf(r)
+  if (vanaf !== null && dagNl(nu) < vanaf) return 'gesproken'
+  return 'inplannen'
+}
+
+const FASE_VOLGORDE: Record<CoachFase, number> = { verslag: 0, inplannen: 1, geregeld: 2, gesproken: 3 }
 
 /**
  * Wat af moet bovenaan: eerst wie een verslag nodig heeft, dan wie nog geen

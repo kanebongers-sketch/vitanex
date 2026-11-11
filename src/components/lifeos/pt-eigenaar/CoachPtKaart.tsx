@@ -3,6 +3,7 @@ import {
   afspraakLabel,
   coachFase,
   datumLabel,
+  inplannenVanaf,
   laatsteContactOp,
   opTePakkenTotaal,
   type CoachFase,
@@ -21,9 +22,21 @@ import { VerslagenLijst } from './VerslagenLijst'
 
 const VERLOOP_GESPREKKEN = 8
 
+/** "zo 16 nov" uit YYYY-MM-DD. */
+function zondagLabel(dag: string): string {
+  const [j, m, d] = dag.split('-').map(Number)
+  return new Intl.DateTimeFormat('nl-NL', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' })
+    .format(new Date(Date.UTC(j, m - 1, d)))
+    .replace('.', '')
+}
+
 function Stand({ fase, r }: { fase: CoachFase; r: CoachRij }) {
   if (fase === 'verslag') return <span className="ptd-badge ptd-badge--let-op">Verslag open</span>
   if (fase === 'inplannen') return <span className="ptd-badge ptd-badge--accent">Inplannen</span>
+  if (fase === 'gesproken') {
+    const vanaf = inplannenVanaf(r)
+    return <span className="ptd-coachrij-volgende">Gesproken, inplannen vanaf {vanaf ? zondagLabel(vanaf) : 'zondag'}</span>
+  }
   return <span className="ptd-coachrij-volgende">Volgende {afspraakLabel(r.volgendeOp as string)}</span>
 }
 

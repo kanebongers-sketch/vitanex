@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import {
-  coachFase, eerstOpTePakken, gesprekGehad, laatsteContactOp, opTePakkenLabel, opTePakkenTekst, sorteerCoachRijen, telCoach, verslagOpen,
+  coachFase, eerstOpTePakken, gesprekGehad, inplannenVanaf, laatsteContactOp, opTePakkenLabel, opTePakkenTekst, sorteerCoachRijen, telCoach, verslagOpen,
   type CoachRij, type OpTePakken,
 } from './coach-overzicht'
 import type { EvaluatieJson } from './pt-coaching'
@@ -49,8 +49,23 @@ describe('verslag open & fase', () => {
   test('verslag ná het gesprek → geen verslag open; zonder volgende afspraak → inplannen', () => {
     const r = rij({ naam: 'A', laatsteGesprekOp: '2026-10-08T09:00:00Z', verslagen: [verslag('2026-10-08T10:00:00Z')] })
     expect(verslagOpen(r, NU)).toBe(false)
-    expect(coachFase(r, NU)).toBe('inplannen')
+    expect(coachFase(r, NU)).toBe('gesproken')
+    expect(coachFase(r, new Date('2026-10-11T10:00:00Z'))).toBe('inplannen')
     expect(coachFase({ ...r, volgendeOp: '2026-10-15T09:00:00Z' }, NU)).toBe('geregeld')
+  })
+  test('na een gesprek komt inplannen pas op de zondag erna terug (besluit Kane 11-11-2026)', () => {
+    // Arrange: gesprek op woensdag 11 nov met verslag, geen volgende afspraak
+    const r = rij({ naam: 'A', laatsteGesprekOp: '2026-11-11T09:00:00Z', verslagen: [verslag('2026-11-11T10:00:00Z')] })
+    // Act en Assert
+    expect(inplannenVanaf(r)).toBe('2026-11-15')
+    expect(coachFase(r, new Date('2026-11-14T21:00:00Z'))).toBe('gesproken')
+    expect(coachFase(r, new Date('2026-11-14T23:30:00Z'))).toBe('inplannen')
+    expect(coachFase({ ...r, volgendeOp: '2026-11-18T09:00:00Z' }, new Date('2026-11-12T10:00:00Z'))).toBe('geregeld')
+  })
+  test('gesprek op zondag: inplannen pas de zondag erna, zonder gesprek meteen inplannen', () => {
+    expect(inplannenVanaf(rij({ naam: 'A', verslagen: [verslag('2026-11-15T10:00:00Z')] }))).toBe('2026-11-22')
+    expect(inplannenVanaf(rij({ naam: 'A' }))).toBeNull()
+    expect(coachFase(rij({ naam: 'A' }), NU)).toBe('inplannen')
   })
   test('een gesprek van meer dan drie weken geleden vraagt geen verslag meer', () => {
     expect(verslagOpen(rij({ naam: 'A', laatsteGesprekOp: '2026-09-01T09:00:00Z' }), NU)).toBe(false)

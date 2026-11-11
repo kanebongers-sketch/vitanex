@@ -39,7 +39,7 @@ export function CoachRijBeheer({ ptId, fase, kop, samenvatting, inhoud }: Props)
     pt && modus === 'dicht' ? (
       <>
         {!pt.ingepland && !teVerslaan ? (
-          <button type="button" className="ptd-knop ptd-knop--klein ptd-knop--primair" onClick={() => setModus('inplannen')}>
+          <button type="button" className={`ptd-knop ptd-knop--klein${fase === 'gesproken' ? '' : ' ptd-knop--primair'}`} onClick={() => setModus('inplannen')}>
             <CalendarPlus size={14} strokeWidth={2.2} aria-hidden /> Inplannen
           </button>
         ) : null}
