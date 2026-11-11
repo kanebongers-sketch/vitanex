@@ -11,6 +11,7 @@ import { RepBeeld } from './RepBeeld'
 import { RepNaSet } from './RepNaSet'
 import { RepTeller, type Weergave } from './RepTeller'
 import { useFrames, useMinderBeweging } from './useFrames'
+import { BEWEGENDE_OEFENBEELDEN } from './oefen-figuur'
 import { breedteVan, hoogteVan, leesSchermProfiel } from './frame-laden'
 import { plafondVoor } from './geheugen'
 import { useTik } from './useTik'
@@ -111,7 +112,8 @@ function useMaat(render: RepRender): [(el: HTMLDivElement | null) => void, RepMa
 export function RepSpeler(p: RepSpelerProps) {
   const { render } = p
   const plan = useMemo(() => planVoor(render, { herhalingen: p.herhalingen, tijdSec: p.tijdSec, tempo: p.tempo }), [render, p.herhalingen, p.tijdSec, p.tempo])
-  const minder = useMinderBeweging()
+  // Zonder bewegende beelden op de server (tot de livegang) dezelfde stand als bij minder beweging.
+  const minder = useMinderBeweging() || !BEWEGENDE_OEFENBEELDEN
   const [meet, maat] = useMaat(render)
   const frames = useFrames(render, maat, !minder)
   const tik = useTik()

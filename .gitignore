@@ -96,3 +96,10 @@ ios/App/DerivedData/
 # Claude Code worktree artifacts
 .claire/
 .clone/
+
+# Bewegende oefenbeelden (frames en lussen) tot de livegang niet in git: de deploy op Render werd te traag
+# (besluit Kane 11-11-2026). Lokaal blijven ze staan; stilstaande begin- en piekbeelden gaan wel mee.
+public/oefenbeelden/**/frames/
+public/oefenbeelden/**/lus.webp
+public/oefenbeelden/**/lus-hd.webp
+public/oefenbeelden/**/lus-klein.webp

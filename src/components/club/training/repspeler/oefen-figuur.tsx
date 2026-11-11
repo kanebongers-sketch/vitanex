@@ -16,6 +16,14 @@ export function OefenFiguurProvider({ figuur, children }: { figuur: OefenFiguur;
   return <FiguurContext.Provider value={figuur}>{children}</FiguurContext.Provider>
 }
 
+/**
+ * Bewegende oefenbeelden (frames en lussen) staan tot de livegang niet in git en dus niet
+ * op de server (besluit Kane 11-11-2026: de deploy op Render werd te traag). Alleen met
+ * NEXT_PUBLIC_OEFENBEELDEN_BEWEGEND=1 speelt de rep-speler; anders toont hij het stilstaande
+ * beginbeeld (de stilstaande beelden staan wel in git).
+ */
+export const BEWEGENDE_OEFENBEELDEN = process.env.NEXT_PUBLIC_OEFENBEELDEN_BEWEGEND === '1'
+
 /** De render met losse frames bij een oefening, in het figuur van de sportschool, of null. */
 export function useRepRender(naam: string): RepRender | null {
   return repRenderVoor(naam, useContext(FiguurContext))

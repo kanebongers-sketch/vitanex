@@ -4,7 +4,7 @@ import { useState, type ReactNode } from 'react'
 import type { OefeningBeelden } from '@/lib/club/training/beeld'
 import { OefeningSpeler } from '../coaching/OefeningSpeler'
 import { RepSpeler } from './RepSpeler'
-import { useRepRender } from './oefen-figuur'
+import { BEWEGENDE_OEFENBEELDEN, useRepRender } from './oefen-figuur'
 
 // Het grote oefenbeeld bij een oefening bekijken (bibliotheek, oefeningblad in
 // de ledenapp): met een Blender-render de rep-speler in voorbeeldstand (zonder
@@ -41,7 +41,7 @@ export function RenderDuim({ naam, anders }: RenderDuimProps) {
   return (
     <span className="club-rep-duim" aria-hidden onPointerEnter={() => setLus(true)}>
       <img src={render.posterKlein} alt="" width={52} height={52} loading="lazy" decoding="async" />
-      {lus && <img className="club-rep-duim-lus" src={render.lusKlein} alt="" width={52} height={52} decoding="async" />}
+      {lus && BEWEGENDE_OEFENBEELDEN && <img className="club-rep-duim-lus" src={render.lusKlein} alt="" width={52} height={52} decoding="async" />}
     </span>
   )
 }
