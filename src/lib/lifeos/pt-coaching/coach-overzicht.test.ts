@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import {
-  coachFase, eerstOpTePakken, gesprekGehad, inplannenVanaf, laatsteContactOp, opTePakkenLabel, opTePakkenTekst, sorteerCoachRijen, telCoach, verslagOpen,
+  coachFase, eerstOpTePakken, gesprekDezeWeek, gesprekGehad, laatsteContactOp, moetDoorplannen, weekVan, opTePakkenLabel, opTePakkenTekst, sorteerCoachRijen, telCoach, verslagOpen,
   type CoachRij, type OpTePakken,
 } from './coach-overzicht'
 import type { EvaluatieJson } from './pt-coaching'
@@ -49,23 +49,58 @@ describe('verslag open & fase', () => {
   test('verslag ná het gesprek → geen verslag open; zonder volgende afspraak → inplannen', () => {
     const r = rij({ naam: 'A', laatsteGesprekOp: '2026-10-08T09:00:00Z', verslagen: [verslag('2026-10-08T10:00:00Z')] })
     expect(verslagOpen(r, NU)).toBe(false)
-    expect(coachFase(r, NU)).toBe('gesproken')
-    expect(coachFase(r, new Date('2026-10-11T10:00:00Z'))).toBe('inplannen')
+    // 8 okt (do) en NU 9 okt (vr) zitten in dezelfde week: meteen doorplannen.
+    expect(coachFase(r, NU)).toBe('doorplannen')
+    // Maandag 12 okt is een nieuwe week: dan gewoon inplannen.
+    expect(coachFase(r, new Date('2026-10-12T10:00:00Z'))).toBe('inplannen')
     expect(coachFase({ ...r, volgendeOp: '2026-10-15T09:00:00Z' }, NU)).toBe('geregeld')
   })
-  test('na een gesprek komt inplannen pas op de zondag erna terug (besluit Kane 11-11-2026)', () => {
-    // Arrange: gesprek op woensdag 11 nov met verslag, geen volgende afspraak
-    const r = rij({ naam: 'A', laatsteGesprekOp: '2026-11-11T09:00:00Z', verslagen: [verslag('2026-11-11T10:00:00Z')] })
-    // Act en Assert
-    expect(inplannenVanaf(r)).toBe('2026-11-15')
-    expect(coachFase(r, new Date('2026-11-14T21:00:00Z'))).toBe('gesproken')
-    expect(coachFase(r, new Date('2026-11-14T23:30:00Z'))).toBe('inplannen')
-    expect(coachFase({ ...r, volgendeOp: '2026-11-18T09:00:00Z' }, new Date('2026-11-12T10:00:00Z'))).toBe('geregeld')
+})
+
+describe('de week van maandag tot en met zondag (besluit Kane 11-11-2026)', () => {
+  // woensdag 11 november 2026
+  const WOE = new Date('2026-11-11T12:00:00Z')
+
+  test('week loopt van maandag tot en met zondag, ook op zondagavond laat (Nederlandse tijd)', () => {
+    expect(weekVan(WOE)).toEqual({ maandag: '2026-11-09', zondag: '2026-11-15' })
+    expect(weekVan(new Date('2026-11-15T23:30:00Z'))).toEqual({ maandag: '2026-11-16', zondag: '2026-11-22' })
+    expect(weekVan(new Date('2026-11-15T22:30:00Z'))).toEqual({ maandag: '2026-11-09', zondag: '2026-11-15' })
   })
-  test('gesprek op zondag: inplannen pas de zondag erna, zonder gesprek meteen inplannen', () => {
-    expect(inplannenVanaf(rij({ naam: 'A', verslagen: [verslag('2026-11-15T10:00:00Z')] }))).toBe('2026-11-22')
-    expect(inplannenVanaf(rij({ naam: 'A' }))).toBeNull()
-    expect(coachFase(rij({ naam: 'A' }), NU)).toBe('inplannen')
+
+  test('telt gesprekken deze week: geweest of nog gepland in deze week', () => {
+    // Arrange
+    const rijen = [
+      rij({ naam: 'Geweest', laatsteGesprekOp: '2026-11-10T09:00:00Z', verslagen: [verslag('2026-11-10T10:00:00Z')] }),
+      rij({ naam: 'Gepland', laatsteGesprekOp: '2026-11-03T09:00:00Z', verslagen: [verslag('2026-11-03T10:00:00Z')], volgendeOp: '2026-11-13T09:00:00Z' }),
+      rij({ naam: 'Volgende week', laatsteGesprekOp: '2026-11-02T09:00:00Z', verslagen: [verslag('2026-11-02T10:00:00Z')], volgendeOp: '2026-11-17T09:00:00Z' }),
+      rij({ naam: 'Niets' }),
+    ]
+    // Act
+    const t = telCoach(rijen, WOE)
+    // Assert
+    expect(t.dezeWeek).toBe(2)
+    expect(t.totaal).toBe(4)
+    expect(gesprekDezeWeek(rijen[2], WOE)).toBe(false)
+  })
+
+  test('gesprek deze week zonder volgende afspraak: melding doorplannen, ook met open verslag', () => {
+    const geweest = rij({ naam: 'Brandon', laatsteGesprekOp: '2026-11-10T09:00:00Z', verslagen: [verslag('2026-11-10T10:00:00Z')] })
+    const openVerslag = rij({ naam: 'Peter', laatsteGesprekOp: '2026-11-11T09:00:00Z' })
+    const doorgepland = { ...geweest, naam: 'Iris', volgendeOp: '2026-11-17T09:00:00Z' }
+    const vorigeWeek = rij({ naam: 'Joey', laatsteGesprekOp: '2026-11-04T09:00:00Z', verslagen: [verslag('2026-11-04T10:00:00Z')] })
+    expect(moetDoorplannen([geweest, openVerslag, doorgepland, vorigeWeek], WOE).map((r) => r.naam)).toEqual(['Brandon', 'Peter'])
+    expect(coachFase(geweest, WOE)).toBe('doorplannen')
+    expect(coachFase(openVerslag, WOE)).toBe('verslag')
+    expect(coachFase(vorigeWeek, WOE)).toBe('inplannen')
+  })
+
+  test('doorplannen staat na verslag en voor inplannen', () => {
+    const rijen = [
+      rij({ naam: 'Inplannen' }),
+      rij({ naam: 'Door', laatsteGesprekOp: '2026-11-10T09:00:00Z', verslagen: [verslag('2026-11-10T10:00:00Z')] }),
+      rij({ naam: 'Verslag', laatsteGesprekOp: '2026-11-11T09:00:00Z' }),
+    ]
+    expect(sorteerCoachRijen(rijen, WOE).map((r) => r.naam)).toEqual(['Verslag', 'Door', 'Inplannen'])
   })
   test('een gesprek van meer dan drie weken geleden vraagt geen verslag meer', () => {
     expect(verslagOpen(rij({ naam: 'A', laatsteGesprekOp: '2026-09-01T09:00:00Z' }), NU)).toBe(false)
@@ -85,7 +120,7 @@ describe('sorteren & tellen', () => {
   })
 
   test('telling', () => {
-    expect(telCoach([vroeg, laat, langGeleden, nooit, verslagNodig], NU)).toEqual({ totaal: 5, gehad: 3, ingepland: 3, teVerslaan: 1 })
+    expect(telCoach([vroeg, laat, langGeleden, nooit, verslagNodig], NU)).toMatchObject({ totaal: 5, gehad: 3, ingepland: 3, teVerslaan: 1 })
   })
 })
 

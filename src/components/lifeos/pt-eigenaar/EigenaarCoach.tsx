@@ -1,6 +1,6 @@
 import { eigenaarGegevens } from '@/lib/lifeos/pt-dashboard/sessie'
 import { haalCoachTeam } from '@/lib/lifeos/pt-coaching/coach-team'
-import { coachFase, RONDE_DAGEN, sorteerCoachRijen, telCoach, type CoachRij } from '@/lib/lifeos/pt-coaching/coach-overzicht'
+import { coachFase, moetDoorplannen, sorteerCoachRijen, telCoach, weekVan, type CoachRij } from '@/lib/lifeos/pt-coaching/coach-overzicht'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { CoachgesprekkenBeheer } from '@/components/lifeos/pt-beheer/CoachgesprekkenBeheer'
 import { CoachRijBeheer } from '@/components/lifeos/pt-beheer/CoachRijBeheer'
@@ -17,15 +17,53 @@ const AGENDA_HINT: Record<'niet_gekoppeld' | 'fout', string> = {
   fout: 'De agenda kon nu niet gelezen worden: volgende afspraken ontbreken even.',
 }
 
+/** "ma 10 t/m zo 16 nov" uit maandag en zondag (YYYY-MM-DD). */
+function weekLabel(maandag: string, zondag: string): string {
+  const fmt = (dag: string, opties: Intl.DateTimeFormatOptions) => {
+    const [j, m, d] = dag.split('-').map(Number)
+    return new Intl.DateTimeFormat('nl-NL', { ...opties, timeZone: 'UTC' }).format(new Date(Date.UTC(j, m - 1, d))).replace(/\./g, '')
+  }
+  return `${fmt(maandag, { weekday: 'short', day: 'numeric' })} t/m ${fmt(zondag, { weekday: 'short', day: 'numeric', month: 'short' })}`
+}
+
 function standRegel(rijen: readonly CoachRij[], nu: Date): string {
   const t = telCoach(rijen, nu)
   const inplannen = rijen.filter((r) => coachFase(r, nu) === 'inplannen').length
   const delen = [
     t.teVerslaan > 0 ? `${t.teVerslaan} verslag open` : null,
-    inplannen > 0 ? `${inplannen} inplannen` : null,
-    `${t.gehad} van ${t.totaal} gesproken in ${RONDE_DAGEN} dagen`,
+    inplannen > 0 ? `${inplannen} nog geen gesprek ingepland` : null,
   ].filter((d): d is string => d !== null)
   return delen.join(' · ')
+}
+
+/** Kop van de week: "Deze week 2 van 15 gesprekken", met de dagen erbij. */
+function WeekStand({ rijen, nu }: { rijen: readonly CoachRij[]; nu: Date }) {
+  const t = telCoach(rijen, nu)
+  const w = weekVan(nu)
+  const rest = standRegel(rijen, nu)
+  return (
+    <div className="ptd-coachweek">
+      <p className="ptd-coachweek-getal">
+        <strong>{t.dezeWeek}</strong> van {t.totaal} gesprekken deze week
+      </p>
+      <p className="ptd-coachweek-sub">{weekLabel(w.maandag, w.zondag)}{rest ? ` · ${rest}` : ''}</p>
+    </div>
+  )
+}
+
+/** Melding: gesprek deze week gehad, maar volgende week nog niet ingepland. Dit moet meteen. */
+function DoorplanMelding({ rijen, nu }: { rijen: readonly CoachRij[]; nu: Date }) {
+  const open = moetDoorplannen(rijen, nu)
+  if (open.length === 0) return null
+  const namen = open.map((r) => r.naam).join(', ')
+  return (
+    <div className="ptd-coachmelding" role="alert">
+      <p className="ptd-coachmelding-kop">
+        Plan nu het volgende gesprek in voor {open.length === 1 ? '1 PT’er' : `${open.length} PT’ers`}
+      </p>
+      <p className="ptd-coachmelding-tekst">Gesprek deze week gehad, volgende week staat nog niet in de agenda: {namen}.</p>
+    </div>
+  )
 }
 
 export async function EigenaarCoach({ code, beheerder = false }: { code: string; beheerder?: boolean }) {
@@ -64,9 +102,9 @@ export async function EigenaarCoach({ code, beheerder = false }: { code: string;
     <section className="ptd-sectie" aria-labelledby="eig-coach-kop">
       <div className="ptd-sectiekop">
         <h2 id="eig-coach-kop">Coachgesprekken</h2>
-        {rijen.length > 0 ? <span>{standRegel(rijen, nu)}</span> : null}
       </div>
-      {ct.agenda !== 'ok' ? <p className="ptd-hint">{AGENDA_HINT[ct.agenda]}</p> : null}
+      {rijen.length > 0 ? <WeekStand rijen={rijen} nu={nu} /> : null}
+      {ct.agenda !== 'ok' ? <p className="ptd-hint">{AGENDA_HINT[ct.agenda]}</p> : <DoorplanMelding rijen={rijen} nu={nu} />}
       {beheerder ? <CoachgesprekkenBeheer>{lijst}</CoachgesprekkenBeheer> : lijst}
     </section>
   )

@@ -29,7 +29,7 @@ export interface CoachRij {
 }
 
 /** Wat er voor deze PT'er nu te doen is. */
-export type CoachFase = 'verslag' | 'inplannen' | 'geregeld' | 'gesproken'
+export type CoachFase = 'verslag' | 'doorplannen' | 'inplannen' | 'geregeld'
 
 const DAG_MS = 24 * 60 * 60 * 1000
 /** "Gesprek gehad" telt binnen deze periode — twee weken, zodat één gemiste week niet meteen rood is. */
@@ -60,35 +60,58 @@ export function verslagOpen(r: Pick<CoachRij, 'laatsteGesprekOp' | 'verslagen'>,
   return !verslag || new Date(verslag).getTime() < ms
 }
 
+// ─── De week van maandag tot en met zondag (besluit Kane 11-11-2026) ─────────
+// Kane checkt de coachgesprekken per week: wie had deze week een gesprek, en wie
+// een gesprek had moet meteen voor volgende week doorgepland zijn.
+
 /** De kalenderdag in Nederland (YYYY-MM-DD) van een moment. */
-function dagNl(moment: Date): string {
+export function dagNl(moment: Date): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit' }).format(moment)
 }
 
-/**
- * Na een gesprek komt "inplannen" pas terug op de zondag erna (besluit Kane 11-11-2026:
- * "anders wordt het chaotisch"). Een gesprek op zondag zelf: de zondag een week later.
- * Geeft die zondag als YYYY-MM-DD (Nederlandse kalender), of null zonder gesprek.
- */
-export function inplannenVanaf(r: Pick<CoachRij, 'laatsteGesprekOp' | 'verslagen'>): string | null {
-  const op = laatsteContactOp(r)
-  if (!op) return null
-  const dag = dagNl(new Date(op))
+function plusDagen(dag: string, n: number): string {
   const [j, m, d] = dag.split('-').map(Number)
-  const weekdag = new Date(Date.UTC(j, m - 1, d)).getUTCDay()
-  const zondag = new Date(Date.UTC(j, m - 1, d + (7 - weekdag)))
-  return zondag.toISOString().slice(0, 10)
+  return new Date(Date.UTC(j, m - 1, d + n)).toISOString().slice(0, 10)
 }
 
+/** Maandag en zondag (YYYY-MM-DD, Nederlandse kalender) van de week van `nu`. */
+export function weekVan(nu: Date): { maandag: string; zondag: string } {
+  const dag = dagNl(nu)
+  const [j, m, d] = dag.split('-').map(Number)
+  const weekdag = (new Date(Date.UTC(j, m - 1, d)).getUTCDay() + 6) % 7 // maandag = 0
+  const maandag = plusDagen(dag, -weekdag)
+  return { maandag, zondag: plusDagen(maandag, 6) }
+}
+
+function inWeek(iso: string | null, week: { maandag: string; zondag: string }): boolean {
+  if (!iso) return false
+  const dag = dagNl(new Date(iso))
+  return dag >= week.maandag && dag <= week.zondag
+}
+
+/** Was er deze week (maandag tot en met zondag) al een gesprek: in de agenda geweest of verslag opgeslagen. */
+export function gesprekGeweestDezeWeek(r: Pick<CoachRij, 'laatsteGesprekOp' | 'verslagen'>, nu: Date): boolean {
+  return inWeek(laatsteContactOp(r), weekVan(nu))
+}
+
+/** Heeft deze PT'er deze week een gesprek: al geweest, of nog gepland binnen deze week. */
+export function gesprekDezeWeek(r: Pick<CoachRij, 'laatsteGesprekOp' | 'verslagen' | 'volgendeOp'>, nu: Date): boolean {
+  return gesprekGeweestDezeWeek(r, nu) || inWeek(r.volgendeOp, weekVan(nu))
+}
+
+/**
+ * Wat er nu te doen is. Eerst een open verslag. Een volgende afspraak in de agenda is
+ * geregeld. Gesprek deze week gehad zonder volgende afspraak: meteen doorplannen
+ * (besluit Kane 11-11-2026, "dit moet ik meteen doen"). Anders inplannen.
+ */
 export function coachFase(r: CoachRij, nu: Date): CoachFase {
   if (verslagOpen(r, nu)) return 'verslag'
   if (r.volgendeOp) return 'geregeld'
-  const vanaf = inplannenVanaf(r)
-  if (vanaf !== null && dagNl(nu) < vanaf) return 'gesproken'
+  if (gesprekGeweestDezeWeek(r, nu)) return 'doorplannen'
   return 'inplannen'
 }
 
-const FASE_VOLGORDE: Record<CoachFase, number> = { verslag: 0, inplannen: 1, geregeld: 2, gesproken: 3 }
+const FASE_VOLGORDE: Record<CoachFase, number> = { verslag: 0, doorplannen: 1, inplannen: 2, geregeld: 3 }
 
 /**
  * Wat af moet bovenaan: eerst wie een verslag nodig heeft, dan wie nog geen
@@ -114,6 +137,8 @@ export interface CoachTelling {
   ingepland: number
   /** Gesprek geweest, verslag nog niet opgeslagen. */
   teVerslaan: number
+  /** Gesprek deze week (maandag tot en met zondag): geweest of nog gepland in deze week. */
+  dezeWeek: number
 }
 
 export function telCoach(rijen: readonly CoachRij[], nu: Date): CoachTelling {
@@ -122,7 +147,13 @@ export function telCoach(rijen: readonly CoachRij[], nu: Date): CoachTelling {
     gehad: rijen.filter((r) => gesprekGehad(r, nu)).length,
     ingepland: rijen.filter((r) => r.volgendeOp !== null).length,
     teVerslaan: rijen.filter((r) => verslagOpen(r, nu)).length,
+    dezeWeek: rijen.filter((r) => gesprekDezeWeek(r, nu)).length,
   }
+}
+
+/** Gesprek deze week gehad, maar nog geen volgende afspraak: moet meteen doorgepland (ook als het verslag nog open staat). */
+export function moetDoorplannen(rijen: readonly CoachRij[], nu: Date): CoachRij[] {
+  return rijen.filter((r) => r.volgendeOp === null && gesprekGeweestDezeWeek(r, nu))
 }
 
 // ─── Eerst op te pakken ───────────────────────────────────────────────────────
