@@ -12,7 +12,7 @@ export interface PtWeekCijfers {
   nieuweKlanten: number
   teLaat: number
   lopend: number
-  /** Som van de maandprijzen van lopende, niet-bevroren abonnementen (incl. btw). */
+  /** Omzet deze kalendermaand van de lopende abonnementen, bevroren dagen naar rato eraf (incl. btw). */
   maandwaarde: number
 }
 
@@ -26,7 +26,7 @@ const meervoud = (n: number, een: string, meer: string): string => `${n} ${n ===
 
 export function ptWeekCijfers(leads: readonly Lead[], klanten: readonly PtKlant[], vandaag: string): PtWeekCijfers {
   const van = plusDagen(vandaag, -7)
-  // Lopend en omzet uit dezelfde bron als het team-overzicht (afwijkende prijs telt mee, bevroren niet).
+  // Lopend en omzet uit dezelfde bron als het team-overzicht (afwijkende prijs telt mee, bevroren dagen niet).
   const s = vatKlantenSamen(klanten, vandaag)
   return {
     leads: leads.filter((l) => l.gesprokenOp >= van && l.gesprokenOp < vandaag).length,
@@ -41,14 +41,14 @@ function heeftIets(c: PtWeekCijfers): boolean {
   return c.leads > 0 || c.nieuweKlanten > 0 || c.teLaat > 0 || c.lopend > 0
 }
 
-/** "3 leads · 1 nieuwe klant · 2 opvolgingen te laat · 4 lopende abonnementen (€1.796 p/m)" — nullen vallen weg. */
+/** "3 leads · 1 nieuwe klant · 2 opvolgingen te laat · 4 lopende abonnementen (€1.796 deze maand)". Nullen vallen weg. */
 export function weekTekst(c: PtWeekCijfers): string {
   const delen: string[] = []
   if (c.leads > 0) delen.push(meervoud(c.leads, 'lead', 'leads'))
   if (c.nieuweKlanten > 0) delen.push(meervoud(c.nieuweKlanten, 'nieuwe klant', 'nieuwe klanten'))
   if (c.teLaat > 0) delen.push(`${meervoud(c.teLaat, 'opvolging', 'opvolgingen')} te laat`)
   if (c.lopend > 0) {
-    delen.push(`${meervoud(c.lopend, 'lopend abonnement', 'lopende abonnementen')} (${euro(c.maandwaarde)} p/m)`)
+    delen.push(`${meervoud(c.lopend, 'lopend abonnement', 'lopende abonnementen')} (${euro(c.maandwaarde)} deze maand)`)
   }
   return delen.join(' · ')
 }

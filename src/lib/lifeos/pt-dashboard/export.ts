@@ -35,7 +35,7 @@ const LEAD_KOLOMMEN = [
 
 const KLANT_KOLOMMEN = [
   'Trainer', 'Naam', 'Duo-partner', 'Contact', 'Club', 'Abonnement', 'Prijs p/m', 'Start', 'Vast t/m', 'Status',
-  'Opgezegd op', 'Loopt t/m', 'Notities',
+  'Bevroren van', 'Bevroren t/m', 'Opgezegd op', 'Loopt t/m', 'Notities',
 ] as const
 
 /** Maakt één cel veilig: formule-prefix, en quotes waar nodig. */
@@ -100,6 +100,8 @@ function klantRij(trainer: string, k: PtKlant): string[] {
     datumNl(k.startdatum),
     datumNl(eindeVastePeriode(k.startdatum)),
     KLANT_STATUS_LABEL[k.status],
+    datumNl(k.bevrorenVan),
+    datumNl(k.bevrorenTot),
     datumNl(k.opgezegdOp),
     // Alleen bij opzeggen loopt het abonnement nog door; gestopt = direct klaar.
     k.status === 'opgezegd' && k.opgezegdOp ? datumNl(laatsteDag(k.startdatum, k.opgezegdOp)) : '',

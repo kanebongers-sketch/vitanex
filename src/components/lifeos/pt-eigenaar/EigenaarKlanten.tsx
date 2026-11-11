@@ -47,7 +47,7 @@ export async function EigenaarKlanten({ code, pt, toon, club: clubRuw }: Props) 
     <section className="ptd-sectie" aria-labelledby="eig-klanten-kop">
       <div className="ptd-sectiekop">
         <h2 id="eig-klanten-kop">PT-klanten{gekozen ? ` van ${gekozen.naam}` : ' van het team'}{club ? ` · ${CLUB_LABEL[club]}` : ''}</h2>
-        <span>{cijfers.lopend} lopend{zietGeld(g.link.rol) ? ` · ${euro(cijfers.maandwaarde)} p/m` : ''}</span>
+        <span>{cijfers.lopend} lopend{zietGeld(g.link.rol) ? ` · ${euro(cijfers.maandwaarde)} deze maand` : ''}</span>
       </div>
       {clubs.length > 0 ? (
         <FilterRij

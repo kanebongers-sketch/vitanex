@@ -6,6 +6,7 @@
 
 import { CLUBS, isClub, type Club } from './clubs'
 import { plusDagen, type PtKlant } from './abonnementen'
+import { standOp } from './bevriezen'
 import type { Lead } from '@/lib/lifeos/leads/leads'
 
 export const ACTIE_VOOR = ['iedereen', 'pt', 'clubmanager'] as const
@@ -183,7 +184,7 @@ export function clubStanden(
   const van = plusDagen(vandaag, -(PERIODE_DAGEN - 1))
   return clubs.map((club) => ({
     club,
-    actief: klanten.filter((k) => k.club === club && k.status === 'actief').length,
+    actief: klanten.filter((k) => k.club === club && standOp(k, vandaag) === 'actief').length,
     doel: plan.doelen[club] ?? null,
     leads: leads.filter((l) => l.club === club && l.gesprokenOp >= van && l.gesprokenOp <= vandaag).length,
     nieuweKlanten: klanten.filter((k) => k.club === club && k.startdatum >= van && k.startdatum <= vandaag).length,

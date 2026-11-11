@@ -10,6 +10,7 @@
 
 import { OPEN_STATUSSEN, moetOpvolgen, vergelijkLeads, type Lead } from '@/lib/lifeos/leads/leads'
 import { eindeVastePeriode, isLopend, plusDagen, type PtKlant } from './abonnementen'
+import { standOp } from './bevriezen'
 
 /** Zonder eerdere afspraak kijken we zoveel dagen terug (de coachronde). */
 export const STANDAARD_TERUG = 14
@@ -154,7 +155,7 @@ export function checkupStand(leads: readonly Lead[], klanten: readonly PtKlant[]
     behoud: {
       gestopt: klanten.filter((k) => (k.status === 'opgezegd' || k.status === 'gestopt') && inPeriode(k.opgezegdOp)).sort(opNaam),
       eindeVastePeriode: klanten
-        .filter((k) => k.status === 'actief')
+        .filter((k) => standOp(k, vandaag) === 'actief')
         .map((klant) => ({ klant, einde: eindeVastePeriode(klant.startdatum) }))
         .filter((x) => x.einde >= vandaag && x.einde <= tot)
         .sort((a, b) => a.einde.localeCompare(b.einde)),

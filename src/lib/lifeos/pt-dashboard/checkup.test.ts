@@ -9,7 +9,7 @@ const lead = (id: string, over: Partial<Lead> = {}): Lead => ({
 })
 const klant = (id: string, over: Partial<PtKlant> = {}): PtKlant => ({
   id, naam: `Klant ${id}`, contact: null, duoPartner: null, club: 'bladel', abonnement: '1x', startdatum: '2026-05-01', status: 'actief',
-  opgezegdOp: null, notitie: null, leadId: null, prijsAfwijkend: null, stopReden: null, referralGevraagdOp: null, ...over,
+  opgezegdOp: null, notitie: null, leadId: null, prijsAfwijkend: null, stopReden: null, referralGevraagdOp: null, bevrorenVan: null, bevrorenTot: null, ...over,
 })
 const afspraak = (over: Partial<Afspraak> = {}): Afspraak => ({
   id: 'a', gemaaktOp: '2026-10-06', gemaaktDoor: 'Kane', gesprekken: null, nieuweKlanten: null, referrals: null, nietsTeLaat: false, notitie: null, ...over,

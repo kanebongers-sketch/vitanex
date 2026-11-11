@@ -12,7 +12,7 @@ export type KlantUitkomst<T> = { ok: true; waarde: T } | { ok: false; reden: 'db
 /** Zoveel nieuwe klanten per uur per trainer; meer is eerder een kapotte knop of misbruik (zelfde grens als leads). */
 export const MAX_KLANTEN_PER_UUR = 40
 
-const KOLOMMEN = 'id, naam, contact, duo_partner, locatie, abonnement, startdatum, status, opgezegd_op, notitie, lead_id, prijs_afwijkend, stop_reden, referral_gevraagd_op'
+const KOLOMMEN = 'id, naam, contact, duo_partner, locatie, abonnement, startdatum, status, opgezegd_op, notitie, lead_id, prijs_afwijkend, stop_reden, referral_gevraagd_op, bevroren_van, bevroren_tot'
 
 interface Rij {
   id: string
@@ -29,6 +29,8 @@ interface Rij {
   prijs_afwijkend: number | string | null
   stop_reden: string | null
   referral_gevraagd_op: string | null
+  bevroren_van: string | null
+  bevroren_tot: string | null
 }
 
 function vanRij(r: Rij): PtKlant | null {
@@ -49,6 +51,8 @@ function vanRij(r: Rij): PtKlant | null {
     prijsAfwijkend: r.prijs_afwijkend === null ? null : Number(r.prijs_afwijkend),
     stopReden: isStopReden(r.stop_reden) ? r.stop_reden : null,
     referralGevraagdOp: r.referral_gevraagd_op ?? null,
+    bevrorenVan: r.status === 'bevroren' ? (r.bevroren_van ?? null) : null,
+    bevrorenTot: r.status === 'bevroren' ? (r.bevroren_tot ?? null) : null,
   }
 }
 
@@ -73,6 +77,8 @@ function naarRij(k: KlantInvoer) {
     lead_id: k.leadId,
     stop_reden: k.stopReden,
     referral_gevraagd_op: k.referralGevraagdOp,
+    bevroren_van: k.bevrorenVan,
+    bevroren_tot: k.bevrorenTot,
     // Alleen meesturen als hij in de invoer zat; anders blijft de opgeslagen prijs staan.
     ...(k.prijsAfwijkend !== undefined ? { prijs_afwijkend: k.prijsAfwijkend } : {}),
   }

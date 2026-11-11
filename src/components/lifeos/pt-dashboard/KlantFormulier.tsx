@@ -10,6 +10,7 @@ import {
 import { CLUBS, CLUB_LABEL, isClub, type Club } from '@/lib/lifeos/pt-dashboard/clubs'
 import { dagLang } from '@/lib/lifeos/pt-dashboard/datum'
 import { Keuzes, TrainerVeld, Veld } from './velden'
+import { BevriesVelden } from './BevriesVelden'
 import { leesLeeg, ptApi } from './api'
 
 // Een PT-klant met abonnement vastleggen of bijwerken. De prijs volgt uit het
@@ -36,11 +37,12 @@ type Concept = Omit<KlantInvoer, 'club'> & { club: Club | null }
 export function KlantFormulier({ code, vandaag, standaardClub, klant, vanLead, onOpgeslagen, onVerwijderd, onAnnuleer, trainers, trainerId: beginTrainer }: Props) {
   const [v, setV] = useState<Concept>(() =>
     klant
-      ? { ...klant }
+      ? { ...klant, bevrorenVan: klant.status === 'bevroren' ? (klant.bevrorenVan ?? vandaag) : null }
       : {
           naam: vanLead?.naam ?? '', contact: vanLead?.contact ?? null, duoPartner: null,
           club: vanLead?.club ?? standaardClub, abonnement: '1x', startdatum: vandaag,
           status: 'actief', opgezegdOp: null, notitie: null, leadId: vanLead?.id ?? null, stopReden: null, referralGevraagdOp: null, prijsAfwijkend: null,
+          bevrorenVan: null, bevrorenTot: null,
         },
   )
   const [trainer, setTrainer] = useState(beginTrainer ?? trainers?.[0]?.id ?? '')
@@ -56,6 +58,10 @@ export function KlantFormulier({ code, vandaag, standaardClub, klant, vanLead, o
     e.preventDefault()
     if (bezig) return
     if (!v.club) return setFout('Kies de club waar deze klant traint.')
+    if (v.status === 'bevroren' && !v.bevrorenVan) return setFout('Vul in vanaf wanneer de klant bevroren is.')
+    if (v.status === 'bevroren' && v.bevrorenVan && v.bevrorenTot && v.bevrorenTot < v.bevrorenVan) {
+      return setFout('De einddatum van de bevriezing ligt voor de begindatum.')
+    }
     const prijs = prijsTekst.trim() === '' ? null : Number(prijsTekst.trim().replace(',', '.'))
     if (prijs !== null && (!Number.isFinite(prijs) || prijs < 0 || prijs > 5000)) {
       return setFout('Vul een geldige maandprijs in (0 tot 5000 euro), of laat het veld leeg.')
@@ -128,9 +134,15 @@ export function KlantFormulier({ code, vandaag, standaardClub, klant, vanLead, o
         label="Status"
         opties={KLANT_STATUSSEN.map((s) => ({ waarde: s, label: KLANT_STATUS_LABEL[s] }))}
         waarde={v.status}
-        onKies={(s) => s && setV((x) => ({ ...x, status: s, opgezegdOp: s === 'opgezegd' || s === 'gestopt' ? (x.opgezegdOp ?? vandaag) : null }))}
+        onKies={(s) => s && setV((x) => ({
+          ...x,
+          status: s,
+          opgezegdOp: s === 'opgezegd' || s === 'gestopt' ? (x.opgezegdOp ?? vandaag) : null,
+          bevrorenVan: s === 'bevroren' ? (x.bevrorenVan ?? vandaag) : null,
+          bevrorenTot: s === 'bevroren' ? x.bevrorenTot : null,
+        }))}
       />
-      {v.status === 'bevroren' ? <p className="ptd-hint">Bevroren (blessure, ziekte): het abonnement loopt door, maar telt niet mee in de sessies per week tot je hem weer op actief zet.</p> : null}
+      {v.status === 'bevroren' ? <BevriesVelden id={id} startdatum={v.startdatum} van={v.bevrorenVan} tot={v.bevrorenTot} onVan={(d) => zet('bevrorenVan', d)} onTot={(d) => zet('bevrorenTot', d)} /> : null}
       {metEinde ? (
         <Veld
           label={v.status === 'opgezegd' ? 'Opgezegd op *' : 'Gestopt op *'}

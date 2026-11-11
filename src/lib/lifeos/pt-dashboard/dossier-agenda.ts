@@ -5,6 +5,7 @@
 // wie je deze week moet meten of spreken, zonder elk dossier te openen.
 
 import { isLopend, type PtKlant } from './abonnementen'
+import { isBevrorenOp, standOp } from './bevriezen'
 import type { DossierStand } from './dossier-opslag'
 import { MOMENTEN, TRAJECT_WEKEN, trajectWeek, type TrajectMoment } from './traject'
 
@@ -45,10 +46,10 @@ export function dossierTaken(klanten: readonly PtKlant[], stand: ReadonlyMap<str
   const uit: DossierTaak[] = []
   for (const klant of klanten) {
     // Lopend, óf nog te starten: de intake en nulmeting horen vóór de eerste training.
-    const nogTeStarten = klant.status === 'actief' && klant.startdatum > vandaag
+    const nogTeStarten = standOp(klant, vandaag) === 'actief' && klant.startdatum > vandaag
     if (!isLopend(klant, vandaag) && !nogTeStarten) continue
     // Bevroren (blessure, ziekte): er wordt niet getraind, dus ook geen 'niet gemeten'-signalen.
-    if (klant.status === 'bevroren') continue
+    if (isBevrorenOp(klant, vandaag)) continue
     const week = trajectWeek(klant.startdatum, vandaag)
     if (week > TRAJECT_WEKEN) continue
     const s = stand.get(klant.id) ?? { intake: false, startmeting: false, laatsteMeting: null, laatsteSessie: null }

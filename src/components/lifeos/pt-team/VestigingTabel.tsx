@@ -12,7 +12,7 @@ export function VestigingTabel({ vestigingen }: { vestigingen: readonly Vestigin
     <section className="ptd-sectie" aria-labelledby="vestiging-kop">
       <div className="ptd-sectiekop">
         <h2 id="vestiging-kop">Per vestiging</h2>
-        <span>lopende PT-abonnementen · incl. btw</span>
+        <span>lopende PT-abonnementen · incl. btw · bedrag deze maand, bevroren dagen niet meegeteld</span>
       </div>
       {vestigingen.length === 0 ? (
         <p className="ptd-leeg">Nog geen lopende klanten ingevuld.</p>
@@ -24,7 +24,7 @@ export function VestigingTabel({ vestigingen }: { vestigingen: readonly Vestigin
                 <th scope="col">Vestiging</th>
                 <th scope="col">Abonnementen</th>
                 <th scope="col">Personen</th>
-                <th scope="col">Per maand</th>
+                <th scope="col">Deze maand</th>
               </tr>
             </thead>
             <tbody>

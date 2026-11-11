@@ -10,7 +10,7 @@ const lead = (over: Partial<Lead> = {}): Lead => ({
 })
 const klant = (over: Partial<PtKlant> = {}): PtKlant => ({
   id: 'k', naam: 'Tom', contact: null, duoPartner: null, club: 'eersel', abonnement: '2x', startdatum: '2026-09-01',
-  status: 'actief', opgezegdOp: null, notitie: null, leadId: null, prijsAfwijkend: null, stopReden: null, referralGevraagdOp: null, ...over,
+  status: 'actief', opgezegdOp: null, notitie: null, leadId: null, prijsAfwijkend: null, stopReden: null, referralGevraagdOp: null, bevrorenVan: null, bevrorenTot: null, ...over,
 })
 
 const regels = (csv: string): string[] => csv.slice(1).split('\r\n')
@@ -68,13 +68,17 @@ describe('klantenCsv', () => {
       { naam: 'Joey', items: [klant(), klant({ naam: 'Duo', abonnement: 'duo_1x', club: 'budel', duoPartner: 'Eva', status: 'opgezegd', opgezegdOp: '2026-12-10' })] },
     ])
     const [kop, a, b] = regels(csv)
-    expect(kop).toBe('Trainer;Naam;Duo-partner;Contact;Club;Abonnement;Prijs p/m;Start;Vast t/m;Status;Opgezegd op;Loopt t/m;Notities')
-    expect(a).toBe('Joey;Tom;;;Eersel;2x per week;519;01-09-2026;30-11-2026;Actief;;;')
-    expect(b).toBe('Joey;Duo;Eva;;Budel;Duo · 1x per week;399;01-09-2026;30-11-2026;Opgezegd;10-12-2026;31-01-2027;')
+    expect(kop).toBe('Trainer;Naam;Duo-partner;Contact;Club;Abonnement;Prijs p/m;Start;Vast t/m;Status;Bevroren van;Bevroren t/m;Opgezegd op;Loopt t/m;Notities')
+    expect(a).toBe('Joey;Tom;;;Eersel;2x per week;519;01-09-2026;30-11-2026;Actief;;;;;')
+    expect(b).toBe('Joey;Duo;Eva;;Budel;Duo · 1x per week;399;01-09-2026;30-11-2026;Opgezegd;;;10-12-2026;31-01-2027;')
   })
   test('een afwijkende prijs staat in de export zoals de klant écht betaalt', () => {
     const [, rij] = regels(klantenCsv([{ naam: 'Joey', items: [klant({ prijsAfwijkend: 450 })] }]))
     expect(rij.split(';')[6]).toBe('450')
+  })
+  test('een bevriesperiode staat in eigen kolommen', () => {
+    const [, rij] = regels(klantenCsv([{ naam: 'Joey', items: [klant({ status: 'bevroren', bevrorenVan: '2026-11-01', bevrorenTot: '2026-12-12' })] }]))
+    expect(rij.split(';').slice(9, 12)).toEqual(['Bevroren', '01-11-2026', '12-12-2026'])
   })
 })
 

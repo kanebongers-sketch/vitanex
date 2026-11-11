@@ -5,6 +5,7 @@
 // Prijswijziging? Alleen hier aanpassen.
 
 import { CLUB_LABEL, isClub, type Club } from './clubs'
+import { isBevrorenOp, prijsNaRato, standOp } from './bevriezen'
 
 export const ABONNEMENTEN = ['1x', '2x', 'duo_1x', 'duo_2x', '1x_2w', 'duo_start', 'challenge', 'coaching'] as const
 export type Abonnement = (typeof ABONNEMENTEN)[number]
@@ -106,6 +107,10 @@ export interface PtKlant {
   stopReden: StopReden | null
   /** YYYY-MM-DD: wanneer de PT'er om een referral vroeg; null = nog niet. Telt mee in de checkup. */
   referralGevraagdOp: string | null
+  /** YYYY-MM-DD, alleen bij bevroren: eerste bevroren dag. Null bij oude bevriezingen (dan: al bevroren). */
+  bevrorenVan: string | null
+  /** YYYY-MM-DD, alleen bij bevroren: laatste bevroren dag. Null = einddatum onbekend. */
+  bevrorenTot: string | null
 }
 
 // ─── Datums (dagsleutels, geen tijdzones) ─────────────────────────────────────
@@ -153,8 +158,12 @@ function laatsteDagVan(k: Pick<PtKlant, 'startdatum' | 'opgezegdOp'>): string {
 
 export interface KlantSamenvatting {
   lopend: number
+  /** Vandaag bevroren (binnen de bevriesperiode). */
   bevroren: number
-  /** Som van de maandprijzen van lopende, niet-bevroren abonnementen (incl. btw). */
+  /**
+   * Omzet van de lopende abonnementen in de kalendermaand van vandaag (incl. btw):
+   * de maandprijs met de bevroren dagen van die maand naar rato eraf.
+   */
   maandwaarde: number
   /** Klanten (incl. duo-partners) in lopende abonnementen. */
   personen: number
@@ -166,16 +175,17 @@ export interface KlantSamenvatting {
 
 export function vatKlantenSamen(klanten: readonly PtKlant[], vandaag: string): KlantSamenvatting {
   const lopend = klanten.filter((k) => isLopend(k, vandaag))
-  const betalend = lopend.filter((k) => k.status !== 'bevroren')
+  const betalend = lopend.filter((k) => !isBevrorenOp(k, vandaag))
   const over30 = plusDagen(vandaag, 30)
+  const waarde = lopend.reduce((s, k) => s + prijsNaRato(klantPrijs(k), k, vandaag), 0)
   return {
     lopend: lopend.length,
-    bevroren: lopend.filter((k) => k.status === 'bevroren').length,
-    maandwaarde: betalend.reduce((s, k) => s + klantPrijs(k), 0),
+    bevroren: lopend.length - betalend.length,
+    maandwaarde: Math.round(waarde * 100) / 100,
     personen: lopend.reduce((s, k) => s + (ABONNEMENT[k.abonnement].duo ? 2 : 1), 0),
     sessiesPerWeek: betalend.reduce((s, k) => s + ABONNEMENT[k.abonnement].sessiesPerWeek, 0),
     vastBijnaKlaar: lopend
-      .filter((k) => k.status === 'actief')
+      .filter((k) => standOp(k, vandaag) === 'actief')
       .filter((k) => {
         const e = eindeVastePeriode(k.startdatum)
         return e >= vandaag && e <= over30
@@ -230,6 +240,8 @@ export function leesKlantInvoer(body: unknown): Lees<KlantInvoer> {
     return { ok: false, fout: status === 'opgezegd' ? 'Vul in wanneer er is opgezegd.' : 'Vul in wanneer de klant stopte.' }
   }
   if (opgezegdOp && opgezegdOp < o.startdatum) return { ok: false, fout: 'Opzegdatum ligt vóór de startdatum.' }
+  const bevriezing = leesBevriezing(o, status)
+  if (!bevriezing.ok) return bevriezing
   // Een ingevulde maar ongeldige prijs is een fout — niet stil terug naar de standaard.
   const prijsGezet = Object.hasOwn(o, 'prijsAfwijkend') && o.prijsAfwijkend !== null && o.prijsAfwijkend !== ''
   if (prijsGezet && leesPrijs(o.prijsAfwijkend) === null) return { ok: false, fout: 'Vul een geldige maandprijs in (0 tot 5000 euro), of laat het veld leeg.' }
@@ -249,9 +261,31 @@ export function leesKlantInvoer(body: unknown): Lees<KlantInvoer> {
       leadId: typeof o.leadId === 'string' && UUID.test(o.leadId) ? o.leadId : null,
       stopReden: (status === 'opgezegd' || status === 'gestopt') && isStopReden(o.stopReden) ? o.stopReden : null,
       referralGevraagdOp: typeof o.referralGevraagdOp === 'string' && DAG.test(o.referralGevraagdOp) ? o.referralGevraagdOp : null,
+      ...bevriezing.waarde,
       ...(Object.hasOwn(o, 'prijsAfwijkend') ? { prijsAfwijkend: leesPrijs(o.prijsAfwijkend) } : {}),
     },
   }
+}
+
+/** Een datumveld: geldig YYYY-MM-DD, leeg (null) of ongeldig (undefined). */
+function leesDag(v: unknown): string | null | undefined {
+  if (v === null || v === undefined || v === '') return null
+  return typeof v === 'string' && DAG.test(v) && !Number.isNaN(Date.parse(`${v}T00:00:00Z`)) ? v : undefined
+}
+
+/**
+ * De bevriesperiode. Bij bevroren is de van-datum verplicht en ligt de
+ * tot-datum (mag leeg: einddatum onbekend) niet voor de van-datum. Bij een
+ * andere status vallen beide weg.
+ */
+function leesBevriezing(o: Record<string, unknown>, status: KlantStatus): Lees<Pick<PtKlant, 'bevrorenVan' | 'bevrorenTot'>> {
+  if (status !== 'bevroren') return { ok: true, waarde: { bevrorenVan: null, bevrorenTot: null } }
+  const van = leesDag(o.bevrorenVan)
+  const tot = leesDag(o.bevrorenTot)
+  if (!van) return { ok: false, fout: 'Vul in vanaf wanneer de klant bevroren is.' }
+  if (tot === undefined) return { ok: false, fout: 'Vul een geldige einddatum van de bevriezing in, of laat het veld leeg.' }
+  if (tot !== null && tot < van) return { ok: false, fout: 'De einddatum van de bevriezing ligt voor de begindatum.' }
+  return { ok: true, waarde: { bevrorenVan: van, bevrorenTot: tot } }
 }
 
 /** Een maandprijs in euro (0–5000, op centen), of null bij leeg/ongeldig. */
@@ -266,9 +300,15 @@ export function leesKlant(ruw: unknown): PtKlant | null {
   if (typeof ruw !== 'object' || ruw === null) return null
   const o = ruw as Record<string, unknown>
   if (typeof o.id !== 'string') return null
-  const r = leesKlantInvoer(o)
-  return r.ok ? { id: o.id, ...r.waarde, prijsAfwijkend: r.waarde.prijsAfwijkend ?? null } : null
+  // Een bevroren klant van voor migratie 504 heeft geen van-datum: die blijft geldig.
+  const r = leesKlantInvoer(o.status === 'bevroren' && o.bevrorenVan == null ? { ...o, bevrorenVan: OUDE_BEVRIEZING } : o)
+  if (!r.ok) return null
+  const bevrorenVan = r.waarde.bevrorenVan === OUDE_BEVRIEZING ? null : r.waarde.bevrorenVan
+  return { id: o.id, ...r.waarde, bevrorenVan, prijsAfwijkend: r.waarde.prijsAfwijkend ?? null }
 }
+
+/** Plaatshouder bij het teruglezen van een oude bevriezing zonder van-datum. */
+const OUDE_BEVRIEZING = '0001-01-01'
 
 /** "€1.297" */
 export function euro(n: number): string {
@@ -283,10 +323,10 @@ export function abonnementRegel(k: Pick<PtKlant, 'abonnement' | 'club'> & { prij
   return `${basis} · ${euro(prijs)} p/m${k.prijsAfwijkend != null ? ' (afwijkend)' : ''}`
 }
 
-/** Eén regel voor coachgesprek/pdf/mail: "5 lopende abonnementen · €1.795 p/m · 1 bevroren". */
+/** Een regel voor coachgesprek/pdf/mail: "5 lopende abonnementen · €1.795 deze maand · 1 bevroren". */
 export function klantRegel(s: KlantSamenvatting): string {
   if (s.lopend === 0) return 'Nog geen lopende PT-abonnementen ingevuld.'
-  const delen = [`${s.lopend} lopend${s.lopend === 1 ? ' abonnement' : 'e abonnementen'}`, `${euro(s.maandwaarde)} p/m`]
+  const delen = [`${s.lopend} lopend${s.lopend === 1 ? ' abonnement' : 'e abonnementen'}`, `${euro(s.maandwaarde)} deze maand`]
   if (s.bevroren > 0) delen.push(`${s.bevroren} bevroren`)
   if (s.vastBijnaKlaar.length > 0) delen.push(`${s.vastBijnaKlaar.length} einde vaste periode binnen 30 dagen`)
   return delen.join(' · ')

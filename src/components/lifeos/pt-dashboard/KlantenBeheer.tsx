@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus } from 'lucide-react'
 import { isLopend, vatKlantenSamen, type PtKlant } from '@/lib/lifeos/pt-dashboard/abonnementen'
+import { bevriezingLooptOfKomt } from '@/lib/lifeos/pt-dashboard/bevriezen'
 import type { Club } from '@/lib/lifeos/pt-dashboard/clubs'
 import { KlantFormulier } from './KlantFormulier'
 import { KlantKaart } from './KlantKaart'
@@ -37,6 +38,8 @@ const FILTERS: { sleutel: Filter; label: string }[] = [
 function past(k: PtKlant, f: Filter, vandaag: string): boolean {
   if (f === 'lopend') return isLopend(k, vandaag) || k.startdatum > vandaag
   if (f === 'alles') return true
+  // Bevroren: nu bevroren of een bevriezing die nog komt; na de einddatum niet meer.
+  if (f === 'bevroren') return isLopend(k, vandaag) && bevriezingLooptOfKomt(k, vandaag)
   return k.status === f
 }
 

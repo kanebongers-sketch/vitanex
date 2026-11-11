@@ -40,7 +40,7 @@ export function TeamOverzichtWeergave({ data, ptHref, toonPin = false, children,
         <Tegel getal={String(som((r) => r.leads.open))} label="Open leads" uitleg={`${som((r) => r.teLaat)} opvolging te laat`} />
         <Tegel getal={String(klant)} label="Klant geworden" uitleg={leadsTotaal ? `${Math.round((klant / leadsTotaal) * 100)}% van ${leadsTotaal} leads` : 'nog geen leads'} accent />
         {toonGeld ? (
-          <Tegel getal={euro(som((r) => r.maandwaarde))} label="PT-abonnementen p/m" uitleg={`${som((r) => r.klantenLopend)} lopend · incl. btw`} />
+          <Tegel getal={euro(som((r) => r.maandwaarde))} label="PT-omzet deze maand" uitleg={`${som((r) => r.klantenLopend)} lopend · incl. btw · bevroren dagen niet meegeteld`} />
         ) : (
           <Tegel getal={String(som((r) => r.klantenLopend))} label="Lopende abonnementen" uitleg={`${som((r) => r.sessiesPerWeek)} sessies per week`} />
         )}
@@ -60,7 +60,7 @@ export function TeamOverzichtWeergave({ data, ptHref, toonPin = false, children,
                 <tr>
                   <th scope="col">PT&apos;er</th><th scope="col">Leads wk</th><th scope="col">Doel wk</th><th scope="col">Maand</th><th scope="col">Open</th>
                   <th scope="col">Te laat</th><th scope="col">Klant</th><th scope="col">Conversie</th><th scope="col" title="Klant geworden van de afgesloten leads">Succes</th><th scope="col">Abonnementen</th>
-                  {toonGeld ? <th scope="col">Per maand</th> : null}<th scope="col">Laatste lead</th>
+                  {toonGeld ? <th scope="col">Deze maand</th> : null}<th scope="col">Laatste lead</th>
                   {toonPin ? <th scope="col">Dashboard</th> : null}
                 </tr>
               </thead>

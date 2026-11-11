@@ -10,7 +10,7 @@ const lead = (over: Partial<Lead> = {}): Lead => ({
 })
 const klant = (over: Partial<PtKlant> = {}): PtKlant => ({
   id: 'k', naam: 'Y', contact: null, duoPartner: null, club: 'budel', abonnement: '1x', startdatum: '2026-06-01',
-  status: 'actief', opgezegdOp: null, notitie: null, leadId: null, prijsAfwijkend: null, stopReden: null, referralGevraagdOp: null, ...over,
+  status: 'actief', opgezegdOp: null, notitie: null, leadId: null, prijsAfwijkend: null, stopReden: null, referralGevraagdOp: null, bevrorenVan: null, bevrorenTot: null, ...over,
 })
 
 // Maandag 12 oktober 2026: de week = ma 5 t/m zo 11 oktober.
@@ -57,7 +57,7 @@ describe('weekTekst', () => {
   test('enkelvoud/meervoud en nullen vallen weg', () => {
     expect(weekTekst({ leads: 1, nieuweKlanten: 0, teLaat: 2, lopend: 0, maandwaarde: 0 })).toBe('1 lead · 2 opvolgingen te laat')
     expect(weekTekst({ leads: 0, nieuweKlanten: 1, teLaat: 0, lopend: 1, maandwaarde: 299 })).toMatch(
-      /^1 nieuwe klant · 1 lopend abonnement \(€\s?299 p\/m\)$/,
+      /^1 nieuwe klant · 1 lopend abonnement \(€\s?299 deze maand\)$/,
     )
   })
 })

@@ -5,6 +5,7 @@ import { FolderOpen, Pencil } from 'lucide-react'
 import {
   KLANT_STATUS_LABEL, STOP_REDEN_LABEL, abonnementRegel, eindeVastePeriode, isLopend, laatsteDag, type PtKlant,
 } from '@/lib/lifeos/pt-dashboard/abonnementen'
+import { bevriesLabel, standOp } from '@/lib/lifeos/pt-dashboard/bevriezen'
 import { dagKort } from '@/lib/lifeos/pt-dashboard/datum'
 import { ContactActies } from './velden'
 
@@ -13,14 +14,16 @@ import { ContactActies } from './velden'
 // bewerkbaar (PT'er), zonder alleen-lezen (Kane, eigenaar).
 
 function badge(k: PtKlant, vandaag: string): string {
-  if (k.status === 'actief') return 'ptd-badge ptd-badge--accent'
+  if (standOp(k, vandaag) === 'actief') return 'ptd-badge ptd-badge--accent'
   if (k.status === 'opgezegd' && isLopend(k, vandaag)) return 'ptd-badge ptd-badge--let-op'
   return 'ptd-badge ptd-badge--stil'
 }
 
 /** De statusbadge van een klant (ook gebruikt in het dossier). */
 export function KlantBadge({ klant: k, vandaag }: { klant: PtKlant; vandaag: string }) {
-  return <span className={badge(k, vandaag)}>{k.startdatum > vandaag ? 'Start binnenkort' : KLANT_STATUS_LABEL[k.status]}</span>
+  // Bevroren volgt de periode: "Bevroren tot 12 dec", en na de einddatum vanzelf weer Actief.
+  const label = k.startdatum > vandaag ? 'Start binnenkort' : (bevriesLabel(k, vandaag) ?? KLANT_STATUS_LABEL[standOp(k, vandaag)])
+  return <span className={badge(k, vandaag)}>{label}</span>
 }
 
 interface Props {
