@@ -1,8 +1,8 @@
 // ─── PT-coaching — het coach-overzicht van het team ophalen (SERVER-ONLY) ──
 // Voor de coach-pagina van een eigenaar of de beheerder: per PT'er de agenda
 // (laatste en volgende coachgesprek, uit Kane's gekoppelde Google Agenda), alle
-// verslagen, de open aandachtspunten, de check-in van deze week en de leads die
-// eerst opgepakt moeten worden. De service-role-client komt als parameter binnen.
+// verslagen, de open aandachtspunten en de leads die eerst opgepakt moeten
+// worden. De service-role-client komt als parameter binnen.
 // Leads en klanten zijn al geladen door `eigenaarGegevens`; die geef je mee.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -10,8 +10,6 @@ import { geldigToken, leesGekozenKalender } from '@/lib/lifeos/agenda/koppeling'
 import type { GoogleAfspraak } from '@/lib/lifeos/agenda/google'
 import { haalEventsMetCoachAgenda } from '@/lib/lifeos/pt-gesprek/coach-agenda-ophalen'
 import { matchtCoachgesprek } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
-import { huidigeWeek } from '@/lib/lifeos/pt-dashboard/checkin'
-import { haalCheckinsVoor } from '@/lib/lifeos/pt-dashboard/checkin-opslag'
 import { ptOverzicht } from '@/lib/lifeos/pt-dashboard/overzicht'
 import type { PtKlant } from '@/lib/lifeos/pt-dashboard/abonnementen'
 import { dagSleutelNl, type Lead } from '@/lib/lifeos/leads/leads'
@@ -73,11 +71,10 @@ export async function haalCoachTeam(
   nu: Date,
 ): Promise<CoachTeam> {
   const ids = team.map((p) => p.id)
-  const [agenda, verslagen, punten, checkins] = await Promise.all([
+  const [agenda, verslagen, punten] = await Promise.all([
     haalAgenda(admin, userId, nu).catch((): { staat: AgendaStaat; events: GoogleAfspraak[] } => ({ staat: 'fout', events: [] })),
     haalRecenteEvaluaties(admin, userId, ids, MAX_VERSLAGEN),
     haalOpenPunten(admin, userId, ids),
-    haalCheckinsVoor(admin, userId, ids, huidigeWeek(nu)),
   ])
   const vandaag = dagSleutelNl(nu)
   const rijen = team.map((p): CoachRij => {
@@ -90,7 +87,6 @@ export async function haalCoachTeam(
       volgendeOp: g.volgendeOp,
       verslagen: verslagen.get(p.id) ?? [],
       openPunten: punten.get(p.id) ?? [],
-      checkin: checkins.get(p.id) ?? null,
       opTePakken: { teLaat: o.teLaat, vandaag: o.vandaag, zonderPlan: o.zonderPlan },
     }
   })

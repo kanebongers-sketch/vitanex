@@ -1,12 +1,11 @@
 // ─── PT-coaching — het coach-overzicht voor eigenaar en beheerder (PUUR) ────
 // Geen fetch, geen DB. Per PT'er: wanneer het laatste coachgesprek was, wanneer
-// het volgende staat, of er nog een verslag open staat, de check-in van deze
-// week en welke leads eerst opgepakt moeten worden. Plus de telling bovenaan en
+// het volgende staat, of er nog een verslag open staat en welke leads eerst
+// opgepakt moeten worden. Plus de telling bovenaan en
 // de volgorde (wat af moet, bovenaan). De data komt uit `coach-team.ts`.
 
 import type { EvaluatieJson } from './pt-coaching'
 import type { OpenPunt } from './aandachtspunten'
-import type { Checkin } from '@/lib/lifeos/pt-dashboard/checkin'
 import { STATUS_LABEL, type Lead } from '@/lib/lifeos/leads/leads'
 
 /** Welke open leads eerst aandacht vragen (uit `ptOverzicht`): te laat, vandaag, zonder plan. */
@@ -26,8 +25,6 @@ export interface CoachRij {
   /** Alle verslagen, nieuwste eerst. */
   verslagen: EvaluatieJson[]
   openPunten: OpenPunt[]
-  /** De weekcheck-in van deze week, of null. */
-  checkin: Checkin | null
   opTePakken: OpTePakken
 }
 
@@ -93,8 +90,6 @@ export interface CoachTelling {
   gehad: number
   /** Een volgende afspraak staat in de agenda. */
   ingepland: number
-  /** De check-in van deze week is ingevuld. */
-  checkins: number
   /** Gesprek geweest, verslag nog niet opgeslagen. */
   teVerslaan: number
 }
@@ -104,7 +99,6 @@ export function telCoach(rijen: readonly CoachRij[], nu: Date): CoachTelling {
     totaal: rijen.length,
     gehad: rijen.filter((r) => gesprekGehad(r, nu)).length,
     ingepland: rijen.filter((r) => r.volgendeOp !== null).length,
-    checkins: rijen.filter((r) => r.checkin !== null).length,
     teVerslaan: rijen.filter((r) => verslagOpen(r, nu)).length,
   }
 }

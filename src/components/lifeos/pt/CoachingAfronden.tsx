@@ -7,7 +7,6 @@ import { haalJson } from '@/lib/lifeos/api/http'
 import { coachgesprekTitel, type PtStatus } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
 import { leesAfrondResultaat } from '@/lib/lifeos/pt-coaching/pt-coaching'
 import { VorigeKeer } from './VorigeKeer'
-import { CheckinOverzicht } from './CheckinOverzicht'
 import { OpenPuntenKeuze } from './OpenPuntenKeuze'
 import type { Oordeel } from '@/lib/lifeos/pt-coaching/aandachtspunten'
 import { RITME_DAGEN } from '@/lib/lifeos/pt-gesprek/ritme'
@@ -98,7 +97,6 @@ export function CoachingAfronden({ pt, onKlaar, onAnnuleer }: Props) {
 
   return (
     <div style={{ display: 'grid', gap: 12, paddingTop: 10 }}>
-      <CheckinOverzicht naam={pt.naam} checkin={pt.extra?.checkin ?? null} pinStatus={pt.extra?.leadLink?.pinStatus ?? null} />
       {pt.extra?.vorige ? <VorigeKeer vorige={pt.extra.vorige} /> : null}
       {pt.extra?.leads ? <LeadOverzicht leads={pt.extra.leads} klanten={pt.extra.klanten ?? null} pinActief={pt.extra.leadLink?.pinStatus === 'actief'} /> : null}
       <OpenPuntenKeuze

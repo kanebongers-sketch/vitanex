@@ -32,7 +32,7 @@ export function CoachPunten({ punten }: { punten: readonly OpenPunt[] }) {
               </li>
             ))}
           </ul>
-          <p className="ptd-hint">Of een punt is opgelost, bespreken jullie in het gesprek. Schrijf in je check-in gerust hoe het ervoor staat.</p>
+          <p className="ptd-hint">Of een punt is opgelost, bespreken jullie in het gesprek.</p>
         </>
       )}
     </section>

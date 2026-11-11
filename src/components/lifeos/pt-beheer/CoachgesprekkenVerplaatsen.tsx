@@ -65,13 +65,10 @@ export function CoachgesprekkenVerplaatsen() {
   }
 
   return (
-    <div style={{ display: 'grid', gap: 12, padding: '16px 18px', borderRadius: 14, border: '1px solid var(--line)', background: 'var(--bg-card, transparent)' }}>
-      <div style={{ display: 'grid', gap: 4 }}>
-        <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>Coachgesprekken naar {COACH_AGENDA_NAAM}</p>
-        <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-3)', lineHeight: 1.5 }}>
-          Zet alle coachgesprekken van 18 maanden terug tot 12 maanden vooruit uit je gekozen agenda in de agenda {COACH_AGENDA_NAAM}. Je ziet eerst wat er gebeurt.
-        </p>
-      </div>
+    <div style={{ display: 'grid', gap: 12 }}>
+      <p className="ptd-hint">
+        Zet de coachgesprekken van 18 maanden terug tot 12 maanden vooruit uit je gekozen agenda in {COACH_AGENDA_NAAM}. Je ziet eerst wat er gebeurt.
+      </p>
 
       {staat.fase === 'dicht' || staat.fase === 'fout' || staat.fase === 'klaar' ? (
         <div style={{ justifySelf: 'start' }}>

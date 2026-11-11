@@ -61,7 +61,7 @@ export function krijgtBelangrijk(rol: LinkRol): boolean {
   return rol === 'pt'
 }
 
-/** Ziet deze rol de coachgesprekken (check-ins, open punten, verslagen) van het team? */
+/** Ziet deze rol de coachgesprekken (open punten, verslagen) van het team? */
 export function zietCoach(rol: LinkRol): boolean {
   return rol === 'eigenaar' || rol === 'beheerder'
 }

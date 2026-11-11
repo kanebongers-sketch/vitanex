@@ -23,8 +23,6 @@ import { zorgVoorLinks } from '@/lib/lifeos/leads/links'
 import { dagSleutelNl, vatLeadsSamen } from '@/lib/lifeos/leads/leads'
 import { haalKlantenVoorStrikt } from '@/lib/lifeos/pt-dashboard/klanten-opslag'
 import { klantRegel, vatKlantenSamen } from '@/lib/lifeos/pt-dashboard/abonnementen'
-import { huidigeWeek, kiesCheckin, weekVan } from '@/lib/lifeos/pt-dashboard/checkin'
-import { haalCheckinsVanafVoor } from '@/lib/lifeos/pt-dashboard/checkin-opslag'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -92,7 +90,7 @@ export async function GET(req: NextRequest) {
   const team = personen.waarde.filter((p) => p.status !== 'inactief')
   const agenda: AgendaBlok[] = events.events.map((e) => ({ titel: e.titel, startOp: e.startOp, eindOp: e.eindOp, heleDag: e.heleDag }))
   const ids = team.map((p) => p.id)
-  const [laatste, recent, punten, links, leads, klanten, checkins] = await Promise.all([
+  const [laatste, recent, punten, links, leads, klanten] = await Promise.all([
     haalLaatsteEvaluaties(toegang.admin, toegang.userId, ids),
     haalRecenteEvaluaties(toegang.admin, toegang.userId, ids, VERLOOP_GESPREKKEN),
     haalOpenPunten(toegang.admin, toegang.userId, ids),
@@ -100,7 +98,6 @@ export async function GET(req: NextRequest) {
     haalLeadsVoor(toegang.admin, toegang.userId, ids),
     // Strikt: bij een leesfout geen klantenregel, i.p.v. "nog geen abonnementen".
     haalKlantenVoorStrikt(toegang.admin, toegang.userId, ids),
-    haalCheckinsVanafVoor(toegang.admin, toegang.userId, ids, weekVan(dagSleutelNl(new Date(nu.getTime() - 7 * 24 * 60 * 60 * 1000)))),
   ])
   const vandaag = dagSleutelNl(nu)
   // Leads tellen vanaf het vorige verslag; zonder verslag de afgelopen week.
@@ -123,7 +120,6 @@ export async function GET(req: NextRequest) {
         leadLink: link,
         leads: link ? vatLeadsSamen(leads.get(s.id) ?? [], leadsSinds, vandaag) : null,
         klanten: link && klanten ? klantRegel(vatKlantenSamen(klanten.get(s.id) ?? [], vandaag)) : null,
-        checkin: kiesCheckin(checkins.get(s.id) ?? [], huidigeWeek(nu), vorige?.op ?? null),
       },
     }
   })

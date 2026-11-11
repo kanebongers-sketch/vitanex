@@ -2,7 +2,7 @@
 //
 // Auth: de founder-gate uit `@/lib/lifeos/admin`. De naam komt server-side uit
 // het CRM (via de persoon van de evaluatie), niet uit de url. Het verslag wordt
-// compleet opgebouwd — met lead tracker, klanten en voorbereiding — net als de
+// compleet opgebouwd — met lead tracker en klanten, net als de
 // pdf die bij het afronden gemaild werd (zie `verslag-bouw.ts`).
 
 import { NextResponse, type NextRequest } from 'next/server'

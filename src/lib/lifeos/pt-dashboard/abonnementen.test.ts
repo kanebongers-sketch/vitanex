@@ -87,7 +87,7 @@ describe('notitie', () => {
 })
 
 describe('afwijkende prijs en reden van stoppen', () => {
-  const basis = { naam: 'Stefanie', club: 'eindhoven_boschdijk', abonnement: '1x', startdatum: '2026-09-01', status: 'actief' }
+  const basis = { naam: 'Stefanie', club: 'eindhoven', abonnement: '1x', startdatum: '2026-09-01', status: 'actief' }
 
   test('klantPrijs: afwijkend gaat voor de standaard; de maandwaarde telt ermee', () => {
     expect(klantPrijs(klant({ abonnement: '1x', club: 'budel' }))).toBe(299)

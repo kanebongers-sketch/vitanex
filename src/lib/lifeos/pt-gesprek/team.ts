@@ -13,7 +13,6 @@ import { matchtCoachgesprek } from './pt-gesprek'
 import type { OpenPunt } from '@/lib/lifeos/pt-coaching/aandachtspunten'
 import { GESPREK_DUUR_MIN, RITME_DAGEN } from './ritme'
 import type { LeadSamenvatting, PinStatus } from '@/lib/lifeos/leads/leads'
-import type { Checkin } from '@/lib/lifeos/pt-dashboard/checkin'
 
 export interface AgendaBlok {
   titel: string | null
@@ -54,8 +53,6 @@ export interface TeamExtra {
   leads?: LeadSamenvatting | null
   /** Eén regel over de lopende PT-abonnementen van deze PT'er (zie `klantRegel`). */
   klanten?: string | null
-  /** De weekcheck-in die de PT'er deze week op zijn dashboard invulde, of null. */
-  checkin?: Checkin | null
 }
 
 export interface LeadLinkInfo {

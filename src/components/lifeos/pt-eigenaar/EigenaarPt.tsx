@@ -1,13 +1,11 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ChevronLeft } from 'lucide-react'
-import { alsPt, eigenaarGegevens } from '@/lib/lifeos/pt-dashboard/sessie'
+import { eigenaarGegevens } from '@/lib/lifeos/pt-dashboard/sessie'
 import { ptOverzicht } from '@/lib/lifeos/pt-dashboard/overzicht'
 import { euro, isLopend } from '@/lib/lifeos/pt-dashboard/abonnementen'
 import { doelenWeergave } from '@/lib/lifeos/pt-dashboard/doelen'
 import { bronAnalyse, funnel, weekReeks } from '@/lib/lifeos/pt-dashboard/analyse'
-import { huidigeWeek } from '@/lib/lifeos/pt-dashboard/checkin'
-import { haalCheckin } from '@/lib/lifeos/pt-dashboard/checkin-opslag'
 import { isUuid } from '@/lib/lifeos/leads/toegang'
 import { Tegel } from '@/components/lifeos/pt-dashboard/Tegel'
 import { DoelLijst } from '@/components/lifeos/pt-dashboard/DoelVoortgang'
@@ -18,7 +16,6 @@ import { WeekTrend } from '@/components/lifeos/pt-dashboard/WeekTrend'
 import { Funnel } from '@/components/lifeos/pt-dashboard/Funnel'
 import { BronTabel } from '@/components/lifeos/pt-dashboard/BronTabel'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
-import { CheckinKaart } from './CheckinKaart'
 import { TEAM_FOUT } from './teksten'
 import { zietCoach, zietDossiers, zietGeld } from '@/lib/lifeos/leads/links'
 import { DoelenBewerken } from '@/components/lifeos/pt-beheer/DoelenBewerken'
@@ -30,7 +27,7 @@ import { AfspraakStand, CheckupKaart } from '@/components/lifeos/pt-groei/Checku
 import { AfsprakenFormulier } from '@/components/lifeos/pt-groei/AfsprakenFormulier'
 
 // /<eigenaar>/team/<id> — alles van één PT'er, zoals die het in zijn eigen app
-// ziet: cijfers, doelen, opvolging, klanten, trend en de check-in van deze week.
+// ziet: cijfers, doelen, opvolging, klanten en trend.
 // Alleen lezen. Volledige lijsten via Leads/Klanten met ?pt=<id>.
 
 const MAX_LIJST = 8
@@ -48,10 +45,8 @@ export async function EigenaarPt({ code, id }: { code: string; id: string }) {
   const doelen = doelenWeergave(g.doelen.get(pt.id) ?? null, leads, klanten, g.vandaag)
   const geld = zietGeld(g.link.rol)
   const coach = zietCoach(g.link.rol)
-  // Check-in en afspraken horen bij het coachgesprek: alleen voor wie dat mag zien.
-  const [checkin, afspraken] = coach
-    ? await Promise.all([haalCheckin(g.admin, alsPt(g.link, pt.id), huidigeWeek(new Date())), haalLopendeAfspraken(g.admin, g.link.userId, [pt.id])])
-    : [null, null]
+  // Afspraken horen bij het coachgesprek: alleen voor wie dat mag zien.
+  const afspraken = coach ? await haalLopendeAfspraken(g.admin, g.link.userId, [pt.id]) : null
   const vorige = afspraken?.get(pt.id) ?? null
   const checkup = coach ? checkupStand(leads, klanten, vorige, g.vandaag) : null
   const opvolgen = [...o.teLaat, ...o.vandaag]
@@ -124,19 +119,6 @@ export async function EigenaarPt({ code, id }: { code: string; id: string }) {
         )}
         <Link className="ptd-knop ptd-knop--klein" href={`/${code}/klanten?pt=${pt.id}&toon=alle`}>Alle klanten van {pt.naam} ({klanten.length})</Link>
       </section>
-
-      {checkin ? (
-        <section className="ptd-sectie" aria-labelledby="eig-checkin-kop">
-          <div className="ptd-sectiekop"><h2 id="eig-checkin-kop">Check-in deze week</h2><span>voorbereiding coachgesprek</span></div>
-          {!checkin.ok ? (
-            <Foutmelding bericht="De check-in kon niet geladen worden. Vernieuw de pagina." />
-          ) : checkin.waarde ? (
-            <div className="ptd-rij"><CheckinKaart checkin={checkin.waarde} /></div>
-          ) : (
-            <p className="ptd-leeg">{pt.naam} heeft de check-in van deze week nog niet ingevuld.</p>
-          )}
-        </section>
-      ) : null}
 
       {leads.length > 0 ? (
         <section className="ptd-sectie" aria-labelledby="eig-trend-kop">

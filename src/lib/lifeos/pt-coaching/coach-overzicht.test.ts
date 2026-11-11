@@ -15,7 +15,7 @@ function verslag(op: string): EvaluatieJson {
 const LEEG: OpTePakken = { teLaat: [], vandaag: [], zonderPlan: [] }
 
 function rij(over: Partial<CoachRij> & { naam: string }): CoachRij {
-  return { id: over.naam.toLowerCase(), volgendeOp: null, laatsteGesprekOp: null, verslagen: [], openPunten: [], checkin: null, opTePakken: LEEG, ...over }
+  return { id: over.naam.toLowerCase(), volgendeOp: null, laatsteGesprekOp: null, verslagen: [], openPunten: [], opTePakken: LEEG, ...over }
 }
 
 function lead(naam: string, over: Partial<Lead> = {}): Lead {
@@ -61,7 +61,7 @@ describe('sorteren & tellen', () => {
   const verslagNodig = rij({ naam: 'Verslag', laatsteGesprekOp: '2026-10-08T09:00:00Z', volgendeOp: '2026-10-15T09:00:00Z' })
   const nooit = rij({ naam: 'Nooit' })
   const langGeleden = rij({ naam: 'Lang', verslagen: [verslag('2026-09-01T09:00:00Z')] })
-  const laat = rij({ naam: 'Laat', verslagen: [verslag('2026-10-05T09:00:00Z')], volgendeOp: '2026-10-20T09:00:00Z', checkin: { week: '2026-10-05', bijgewerktOp: '2026-10-07T10:00:00Z', energie: 4, gewonnen: null, lastig: null, bespreken: null, focus: null } })
+  const laat = rij({ naam: 'Laat', verslagen: [verslag('2026-10-05T09:00:00Z')], volgendeOp: '2026-10-20T09:00:00Z' })
   const vroeg = rij({ naam: 'Vroeg', verslagen: [verslag('2026-10-06T09:00:00Z')], volgendeOp: '2026-10-12T09:00:00Z' })
 
   test('verslag eerst, dan inplannen (nooit → langst geleden), dan geregeld op datum', () => {
@@ -70,7 +70,7 @@ describe('sorteren & tellen', () => {
   })
 
   test('telling', () => {
-    expect(telCoach([vroeg, laat, langGeleden, nooit, verslagNodig], NU)).toEqual({ totaal: 5, gehad: 3, ingepland: 3, checkins: 1, teVerslaan: 1 })
+    expect(telCoach([vroeg, laat, langGeleden, nooit, verslagNodig], NU)).toEqual({ totaal: 5, gehad: 3, ingepland: 3, teVerslaan: 1 })
   })
 })
 

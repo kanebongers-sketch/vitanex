@@ -1,11 +1,10 @@
 // ─── PT-coaching — een opgeslagen verslag compleet opbouwen voor de pdf ─────
 // SERVER-ONLY. Bij het afronden gaat het volledige verslag (met lead tracker,
-// klanten en voorbereiding) per mail; wie 'm later downloadt kreeg tot nu toe
+// klanten) per mail; wie 'm later downloadt kreeg tot nu toe
 // alleen de scores en de notitie. Hier bouwen we 'm opnieuw op uit de database:
 //   • leads die tussen het vorige en dít verslag bijkwamen (de lead tracker),
 //   • wat er nú eerst opgepakt moet worden (stand van vandaag, zo gelabeld),
-//   • de lopende abonnementen (stand van vandaag),
-//   • de weekcheck-in die de PT'er vóór dat gesprek invulde.
+//   • de lopende abonnementen (stand van vandaag).
 // De oordelen over de vorige aandachtspunten worden niet per verslag bewaard en
 // staan daarom niet in een later gedownloade pdf.
 
@@ -15,8 +14,6 @@ import { haalLeadsVoor } from '@/lib/lifeos/leads/opslag'
 import { dagSleutelNl, vatLeadsSamen } from '@/lib/lifeos/leads/leads'
 import { haalKlantenVoorStrikt } from '@/lib/lifeos/pt-dashboard/klanten-opslag'
 import { klantRegel, vatKlantenSamen } from '@/lib/lifeos/pt-dashboard/abonnementen'
-import { kiesCheckin, weekVan } from '@/lib/lifeos/pt-dashboard/checkin'
-import { haalCheckinsVanafVoor } from '@/lib/lifeos/pt-dashboard/checkin-opslag'
 import { ptOverzicht } from '@/lib/lifeos/pt-dashboard/overzicht'
 import { RITME_DAGEN } from '@/lib/lifeos/pt-gesprek/ritme'
 import { NextResponse } from 'next/server'
@@ -47,12 +44,11 @@ export async function bouwVerslag(admin: SupabaseClient, userId: string, id: str
   const op = new Date(ev.aangemaaktOp)
   const ids = [ev.persoonId]
 
-  const [personen, alle, leads, klanten, checkins] = await Promise.all([
+  const [personen, alle, leads, klanten] = await Promise.all([
     haalPersonen(admin, userId, 'pt_team'),
     haalEvaluaties(admin, userId, ev.persoonId),
     haalLeadsVoor(admin, userId, ids),
     haalKlantenVoorStrikt(admin, userId, ids),
-    haalCheckinsVanafVoor(admin, userId, ids, weekVan(dagSleutelNl(new Date(op.getTime() - 7 * DAG_MS)))),
   ])
   const naam = personen.ok ? personen.waarde.find((p) => p.id === ev.persoonId)?.naam ?? 'PT-teamlid' : 'PT-teamlid'
   // Het verslag vóór dit verslag: vanaf daar telt de lead tracker. Zonder vorige: één ritme terug.
@@ -81,7 +77,6 @@ export async function bouwVerslag(admin: SupabaseClient, userId: string, id: str
         leads: vatLeadsSamen(totMoment(eigenLeads, op), sinds, vandaag),
         opTePakken: { teLaat: o.teLaat, vandaag: o.vandaag, zonderPlan: o.zonderPlan },
         klanten: klantRegel(vatKlantenSamen(eigenKlanten, vandaag)),
-        voorbereiding: kiesCheckin(checkins.get(ev.persoonId) ?? [], weekVan(dagSleutelNl(op)), vorige?.aangemaaktOp ?? null),
       },
     },
   }

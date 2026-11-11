@@ -75,7 +75,7 @@ export async function linkVoor(code: string): Promise<PtToegang | NextResponse> 
 
 /**
  * Als `linkVoor`, maar ook ingelogd met de pincode. Standaard alleen voor een
- * PT'er: een eigenaar kijkt mee maar schrijft geen leads, klanten of check-ins
+ * PT'er: een eigenaar kijkt mee maar schrijft geen leads of klanten
  * (anders zouden die op zijn naam belanden). `eigenaarMag` voor wat hij wél mag
  * (bv. een document openen).
  */

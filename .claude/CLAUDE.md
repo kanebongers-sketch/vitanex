@@ -13,7 +13,8 @@ welzijn vroeg — **anoniem, AVG-conform, EU-gehost** — over zes vlakken (pijl
 - Live is alleen **Fit Factory PT** op fitfactorypt.nl, plus **LifeOS** op het verborgen adres fitfactorypt.nl/lifeoskane.
 - De LifeOS-link/knop is alleen voor Kane (rol beheerder). **Ruben (eigenaar) mag de link nooit te zien krijgen.**
 - LifeOS heeft **geen Gmail/mail-functie meer** (geen inbox, mail naar taken, triage of conceptmails). Niet terugbouwen zonder Kane. De mails die LifeOS naar Kane stuurt (dagplanning, weekmail) en de PT-verslagmails blijven.
-- Coachgesprekken met PT'ers (besluit Kane 22-10-2026): eigen Google-agenda "Coachgesprekken PT"; LifeOS vindt hem op naam (`src/lib/lifeos/pt-gesprek/coach-agenda.ts`), leest coachgesprekken uit die agenda plus de gekozen agenda en plant nieuwe daar in. PT'ers zien alleen hun open aandachtspunten en eigen check-in, niet het verslag; eigenaren zien de verslagen.
+- Coachgesprekken met PT'ers (besluit Kane 22-10-2026): eigen Google-agenda "Coachgesprekken PT"; LifeOS vindt hem op naam (`src/lib/lifeos/pt-gesprek/coach-agenda.ts`), leest coachgesprekken uit die agenda plus de gekozen agenda en plant nieuwe daar in. PT'ers zien alleen hun open aandachtspunten, niet het verslag; eigenaren zien de verslagen.
+- PT-app (besluit Kane 11-11-2026): geen wekelijkse check-in meer voor PT'ers (tabel `pt_weekcheckins` blijft staan). Eindhoven Boschdijk en Tongelre zijn in de PT-app een club `eindhoven` (migratie 503; de clubsoftware houdt ze apart). Indy en Damian zijn PT'er in Eindhoven.
 - LifeOS heeft de Fit Factory PT-stijl (grafiet + amber, Barlow-koppen), net als de PT-app.
 - De PT-app gebruikt op de pc de hele schermbreedte (rand `--ff-rand`); alleen formulieren en inloggen blijven smal. De LifeOS-agenda staat over de volle breedte.
 

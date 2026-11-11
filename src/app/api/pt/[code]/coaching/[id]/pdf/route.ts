@@ -2,7 +2,7 @@
 // het verslag van een coachgesprek als pdf, vanuit de PT-app (sessiecookie, dus
 // een gewone link werkt — ook op de telefoon). Een PT'er krijgt 403: de scores
 // en notities van Kane zijn voor de eigenaren, niet voor de PT'er zelf.
-// Het verslag wordt compleet opgebouwd (lead tracker, klanten, voorbereiding),
+// Het verslag wordt compleet opgebouwd (lead tracker en klanten),
 // zie `verslag-bouw.ts`.
 
 import { NextResponse, type NextRequest } from 'next/server'

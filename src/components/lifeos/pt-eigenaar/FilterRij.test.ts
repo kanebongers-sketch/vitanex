@@ -3,7 +3,7 @@ import { filterClubs, gekozenClub, metFilters } from './FilterRij'
 
 describe('clubfilter', () => {
   test('clubmanager: zijn eigen clubs, maar alleen een filter bij meer dan één', () => {
-    expect(filterClubs(['someren', 'eindhoven_boschdijk'], ['bladel'])).toEqual(['someren', 'eindhoven_boschdijk'])
+    expect(filterClubs(['someren', 'eindhoven'], ['bladel'])).toEqual(['someren', 'eindhoven'])
     expect(filterClubs(['bladel'], ['bladel', 'budel'])).toEqual([])
   })
   test('eigenaar/beheerder: de clubs die in de gegevens voorkomen, in vaste volgorde', () => {

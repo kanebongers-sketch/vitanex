@@ -81,7 +81,7 @@ export const eigenaarGegevens = cache(async (code: string) => {
 
 /**
  * De link van de eigenaar, maar "als" een PT'er uit zijn team — voor de
- * lees-functies (dossier, check-in) die per PT'er filteren op user_id + persoon_id.
+ * lees-functies (zoals het dossier) die per PT'er filteren op user_id + persoon_id.
  */
 export function alsPt(eigenaar: LeadLink, persoonId: string): LeadLink {
   return { ...eigenaar, rol: 'pt', persoonId }

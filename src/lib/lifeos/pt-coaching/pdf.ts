@@ -1,6 +1,6 @@
 // ─── LifeOS — coachgesprek-verslag als nette pdf (SERVER-ONLY) ──────────────
 // Eén A4 per verslag: navy kop met naam en datum, de drie scores als balkjes,
-// dan (als de PT'er die invulde) zijn voorbereiding, wat besproken is, het
+// dan wat besproken is, het
 // aandachtspunt en (als die er is) het volgende gesprek.
 // PDFKit kent geen CSS-variabelen: de hexwaarden spiegelen theme.ts (navy + cyaan;
 // cyaan alleen op navy, want op wit haalt het geen AA-contrast).
@@ -10,7 +10,6 @@
 
 import type { EvaluatieScores } from './pt-coaching'
 import { BRON_LABEL, STATUS_LABEL, leadRegel, type LeadSamenvatting } from '@/lib/lifeos/leads/leads'
-import { checkinTekst, type Checkin } from '@/lib/lifeos/pt-dashboard/checkin'
 import { opTePakkenTekst, type OpTePakken } from './coach-overzicht'
 
 type PDFDocumentConstructor = new (options?: PDFKit.PDFDocumentOptions) => PDFKit.PDFDocument
@@ -38,8 +37,6 @@ export interface VerslagPdfInvoer {
   opTePakken?: OpTePakken | null
   /** De lopende PT-abonnementen van deze PT'er, als één regel. */
   klanten?: string | null
-  /** De weekcheck-in die de PT'er vóór het gesprek invulde (op zijn dashboard). */
-  voorbereiding?: Checkin | null
 }
 
 const OPVOLG_LABEL = { opgelost: 'Opgelost', loopt: 'Loopt nog', erger: 'Erger geworden' } as const
@@ -120,7 +117,6 @@ export async function maakVerslagPdf(v: VerslagPdfInvoer): Promise<Buffer> {
       y += hoogte + 28 + 6
     }
 
-    if (v.voorbereiding) blok("Voorbereiding PT'er", checkinTekst(v.voorbereiding))
     if (v.opvolging && v.opvolging.length > 0) {
       blok('Opvolging vorige aandachtspunten', v.opvolging.map((o) => `• ${o.tekst} — ${o.oordeel ? OPVOLG_LABEL[o.oordeel] : 'nog open'}`).join('\n'))
     }
