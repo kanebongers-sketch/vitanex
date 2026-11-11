@@ -151,6 +151,11 @@ export function telCoach(rijen: readonly CoachRij[], nu: Date): CoachTelling {
   }
 }
 
+/** Geen gesprek deze week: niet geweest en ook niet gepland binnen maandag tot en met zondag. */
+export function nietDezeWeek(rijen: readonly CoachRij[], nu: Date): CoachRij[] {
+  return rijen.filter((r) => !gesprekDezeWeek(r, nu))
+}
+
 /** Gesprek deze week gehad, maar nog geen volgende afspraak: moet meteen doorgepland (ook als het verslag nog open staat). */
 export function moetDoorplannen(rijen: readonly CoachRij[], nu: Date): CoachRij[] {
   return rijen.filter((r) => r.volgendeOp === null && gesprekGeweestDezeWeek(r, nu))

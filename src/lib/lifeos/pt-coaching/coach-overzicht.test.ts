@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import {
-  coachFase, eerstOpTePakken, gesprekDezeWeek, gesprekGehad, laatsteContactOp, moetDoorplannen, weekVan, opTePakkenLabel, opTePakkenTekst, sorteerCoachRijen, telCoach, verslagOpen,
+  coachFase, eerstOpTePakken, gesprekDezeWeek, gesprekGehad, laatsteContactOp, moetDoorplannen, nietDezeWeek, weekVan, opTePakkenLabel, opTePakkenTekst, sorteerCoachRijen, telCoach, verslagOpen,
   type CoachRij, type OpTePakken,
 } from './coach-overzicht'
 import type { EvaluatieJson } from './pt-coaching'
@@ -81,6 +81,8 @@ describe('de week van maandag tot en met zondag (besluit Kane 11-11-2026)', () =
     expect(t.dezeWeek).toBe(2)
     expect(t.totaal).toBe(4)
     expect(gesprekDezeWeek(rijen[2], WOE)).toBe(false)
+    // Wie deze week niets heeft, ook met een afspraak pas volgende week, staat bij "niet ingepland".
+    expect(nietDezeWeek(rijen, WOE).map((r) => r.naam)).toEqual(['Volgende week', 'Niets'])
   })
 
   test('gesprek deze week zonder volgende afspraak: melding doorplannen, ook met open verslag', () => {

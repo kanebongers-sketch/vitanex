@@ -1,6 +1,6 @@
 import { eigenaarGegevens } from '@/lib/lifeos/pt-dashboard/sessie'
 import { haalCoachTeam } from '@/lib/lifeos/pt-coaching/coach-team'
-import { coachFase, moetDoorplannen, sorteerCoachRijen, telCoach, weekVan, type CoachRij } from '@/lib/lifeos/pt-coaching/coach-overzicht'
+import { coachFase, moetDoorplannen, nietDezeWeek, sorteerCoachRijen, telCoach, weekVan, type CoachRij } from '@/lib/lifeos/pt-coaching/coach-overzicht'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { CoachgesprekkenBeheer } from '@/components/lifeos/pt-beheer/CoachgesprekkenBeheer'
 import { CoachRijBeheer } from '@/components/lifeos/pt-beheer/CoachRijBeheer'
@@ -51,17 +51,30 @@ function WeekStand({ rijen, nu }: { rijen: readonly CoachRij[]; nu: Date }) {
   )
 }
 
-/** Melding: gesprek deze week gehad, maar volgende week nog niet ingepland. Dit moet meteen. */
-function DoorplanMelding({ rijen, nu }: { rijen: readonly CoachRij[]; nu: Date }) {
-  const open = moetDoorplannen(rijen, nu)
-  if (open.length === 0) return null
-  const namen = open.map((r) => r.naam).join(', ')
+const ptErs = (n: number) => (n === 1 ? '1 PT’er' : `${n} PT’ers`)
+
+/**
+ * Meldingen van de week: wie deze week geen gesprek heeft (niet geweest en niet gepland),
+ * en wie deze week een gesprek had maar volgende week nog niet in de agenda staat. Dit moet meteen.
+ */
+function WeekMeldingen({ rijen, nu }: { rijen: readonly CoachRij[]; nu: Date }) {
+  const niet = nietDezeWeek(rijen, nu)
+  const door = moetDoorplannen(rijen, nu)
+  if (niet.length === 0 && door.length === 0) return null
   return (
     <div className="ptd-coachmelding" role="alert">
-      <p className="ptd-coachmelding-kop">
-        Plan nu het volgende gesprek in voor {open.length === 1 ? '1 PT’er' : `${open.length} PT’ers`}
-      </p>
-      <p className="ptd-coachmelding-tekst">Gesprek deze week gehad, volgende week staat nog niet in de agenda: {namen}.</p>
+      {niet.length > 0 ? (
+        <>
+          <p className="ptd-coachmelding-kop">Deze week niet ingepland: {ptErs(niet.length)}</p>
+          <p className="ptd-coachmelding-tekst">{niet.map((r) => r.naam).join(', ')}</p>
+        </>
+      ) : null}
+      {door.length > 0 ? (
+        <>
+          <p className="ptd-coachmelding-kop">Volgende week nog inplannen: {ptErs(door.length)}</p>
+          <p className="ptd-coachmelding-tekst">Gesprek deze week gehad, vervolg staat nog niet in de agenda: {door.map((r) => r.naam).join(', ')}</p>
+        </>
+      ) : null}
     </div>
   )
 }
@@ -104,7 +117,7 @@ export async function EigenaarCoach({ code, beheerder = false }: { code: string;
         <h2 id="eig-coach-kop">Coachgesprekken</h2>
       </div>
       {rijen.length > 0 ? <WeekStand rijen={rijen} nu={nu} /> : null}
-      {ct.agenda !== 'ok' ? <p className="ptd-hint">{AGENDA_HINT[ct.agenda]}</p> : <DoorplanMelding rijen={rijen} nu={nu} />}
+      {ct.agenda !== 'ok' ? <p className="ptd-hint">{AGENDA_HINT[ct.agenda]}</p> : <WeekMeldingen rijen={rijen} nu={nu} />}
       {beheerder ? <CoachgesprekkenBeheer>{lijst}</CoachgesprekkenBeheer> : lijst}
     </section>
   )
