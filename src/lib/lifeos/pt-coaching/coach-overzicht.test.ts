@@ -119,6 +119,24 @@ describe('de week van maandag tot en met zondag (besluit Kane 11-11-2026)', () =
     expect(weekBlokken(rij({ naam: 'D', verslagen: [verslag('2026-11-09T10:00:00Z')] }), WOE).deze.soort).toBe('geweest')
   })
 
+  test('blokjes: afspraken over 2 en 3 weken zijn zichtbaar, ook met een lege week ertussen', () => {
+    // Arrange: woensdag 11 nov; niets volgende week, wel di 24 nov en di 1 dec
+    const r = rij({ naam: 'Joey', afspraken: ['2026-11-24T09:00:00Z', '2026-12-01T09:00:00Z'] })
+    // Act
+    const w = weekBlokken(r, WOE)
+    // Assert
+    expect(w.volgende).toMatchObject({ soort: 'leeg', voorstel: '2026-11-16' })
+    expect(w.verder).toHaveLength(2)
+    expect(w.verder[0]).toMatchObject({ soort: 'gepland', op: '2026-11-24T09:00:00Z' })
+    expect(w.verder[1]).toMatchObject({ soort: 'gepland', op: '2026-12-01T09:00:00Z' })
+    // Lege latere weken: voorstel een week na het vorige.
+    const leeg = weekBlokken(rij({ naam: 'B', afspraken: ['2026-11-10T09:00:00Z'] }), WOE)
+    expect(leeg.verder.map((b) => [b.soort, b.voorstel])).toEqual([['leeg', '2026-11-24'], ['leeg', '2026-12-01']])
+    // De knop volgens patroon blijft bij deze en volgende week.
+    const vast = rij({ naam: 'Vast', afspraken: ['2026-10-29T09:00:00Z', '2026-11-05T09:00:00Z'] })
+    expect(patroonVoorstellen([vast], WOE).map((v) => v.week)).toEqual(['deze', 'volgende'])
+  })
+
   test('patroon: vaste dag en tijd uit de laatste gesprekken (Nederlandse tijd)', () => {
     // Arrange: drie dinsdagen om 10:00 NL (20 okt nog zomertijd: 08:00 UTC), een keer donderdag
     const afspraken = ['2026-10-20T08:00:00Z', '2026-10-27T09:00:00Z', '2026-10-29T14:00:00Z', '2026-11-03T09:00:00Z']

@@ -16,7 +16,7 @@ import { OpTePakkenLijst } from './OpTePakkenLijst'
 import { VerslagenLijst } from './VerslagenLijst'
 
 // Een PT'er in het coach-overzicht van eigenaar en beheerder. Zichtbaar: naam,
-// laatste gesprek, verslag open en de blokjes van deze en volgende week.
+// laatste gesprek, verslag open en de blokjes van deze week tot over 3 weken.
 // Achter de uitklap: open punten, op te pakken leads, scoreverloop en verslagen.
 // Puur; de beheerder zet er met `CoachRijBeheer` zijn acties bij.
 
@@ -40,7 +40,7 @@ export function CoachRijKop({ code, r, nu, metBlokjes = false }: { code: string;
           {coachFase(r, nu) === 'verslag' ? <span className="ptd-badge ptd-badge--let-op">Verslag open</span> : null}
         </span>
       </div>
-      {metBlokjes ? <WeekBlokjes deze={w.deze} volgende={w.volgende} /> : null}
+      {metBlokjes ? <WeekBlokjes deze={w.deze} volgende={w.volgende} verder={w.verder} /> : null}
     </>
   )
 }

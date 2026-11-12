@@ -257,24 +257,39 @@ function patroonIn(p: Patroon | null, maandag: string, nu: Date): { datum: strin
   return { datum, tijd: p.tijd, patroon: true }
 }
 
+/** Zoveel weken na volgende week tonen we ook (over 2 en 3 weken), zodat verder vooruit geplande gesprekken zichtbaar zijn. */
+export const VERDER_WEKEN = 2
+
 /**
- * De blokjes per PT'er (besluit Kane 11-11-2026): deze week en volgende week, elk
+ * De blokjes per PT'er (besluit Kane 11-11-2026): deze week, volgende week en de twee
+ * weken daarna (12-11-2026: "afspraken over 2 of 3 weken ziet hij niet"), elk
  * "geweest op", "ingepland op" of "nog niet ingepland". Het voorstel voor inplannen
  * komt uit het vaste patroon van de PT'er (12-11-2026); zonder patroon of als het
- * moment deze week al voorbij is: deze week morgen (of vandaag op zondag), volgende
- * week dezelfde dag als het gesprek van deze week, anders de maandag, om 10:00.
+ * moment deze week al voorbij is: deze week morgen (of vandaag op zondag), een latere
+ * week dezelfde dag als het gesprek van de week ervoor, anders de maandag, om 10:00.
  */
-export function weekBlokken(r: Pick<CoachRij, 'afspraken' | 'verslagen'>, nu: Date): { deze: WeekBlok; volgende: WeekBlok; patroon: Patroon | null } {
+export function weekBlokken(
+  r: Pick<CoachRij, 'afspraken' | 'verslagen'>,
+  nu: Date,
+): { deze: WeekBlok; volgende: WeekBlok; verder: WeekBlok[]; patroon: Patroon | null } {
   const deze = weekVan(nu)
-  const volgende = { maandag: plusDagen(deze.maandag, 7), zondag: plusDagen(deze.zondag, 7) }
   const patroon = patroonVan(r.afspraken, nu)
   const vandaag = dagNl(nu)
   const morgen = plusDagen(vandaag, 1)
   const terugvalDeze = { datum: morgen <= deze.zondag ? morgen : vandaag, tijd: STANDAARD_TIJD, patroon: false }
   const blokDeze = blokVan(r.afspraken, deze, nu, patroonIn(patroon, deze.maandag, nu) ?? terugvalDeze, r.verslagen[0]?.aangemaaktOp ?? null)
-  const terugvalVolgende = { datum: blokDeze.op ? plusDagen(dagNl(new Date(blokDeze.op)), 7) : volgende.maandag, tijd: STANDAARD_TIJD, patroon: false }
-  const blokVolgende = blokVan(r.afspraken, volgende, nu, patroonIn(patroon, volgende.maandag, nu) ?? terugvalVolgende, null)
-  return { deze: blokDeze, volgende: blokVolgende, patroon }
+  const latere: WeekBlok[] = []
+  let vorige = blokDeze
+  for (let n = 1; n <= 1 + VERDER_WEKEN; n++) {
+    const week = { maandag: plusDagen(deze.maandag, 7 * n), zondag: plusDagen(deze.zondag, 7 * n) }
+    // Zonder gesprek in de week ervoor: na deze week de maandag, daarna een week na het vorige voorstel.
+    const zonderOp = n === 1 ? week.maandag : plusDagen(vorige.voorstel, 7)
+    const terugval = { datum: vorige.op ? plusDagen(dagNl(new Date(vorige.op)), 7) : zonderOp, tijd: STANDAARD_TIJD, patroon: false }
+    vorige = blokVan(r.afspraken, week, nu, patroonIn(patroon, week.maandag, nu) ?? terugval, null)
+    latere.push(vorige)
+  }
+  const [blokVolgende, ...verder] = latere
+  return { deze: blokDeze, volgende: blokVolgende, verder, patroon }
 }
 
 /** Een open week die volgens het patroon in te plannen is. */

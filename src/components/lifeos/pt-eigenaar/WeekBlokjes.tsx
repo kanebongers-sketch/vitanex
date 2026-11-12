@@ -1,8 +1,8 @@
 import { CalendarPlus } from 'lucide-react'
 import { afspraakLabel, datumLabel, type WeekBlok } from '@/lib/lifeos/pt-coaching/coach-overzicht'
 
-// Twee blokjes per PT'er in het coach-overzicht (besluit Kane 11-11-2026): deze week
-// en volgende week, elk "geweest", "ingepland" of "nog niet ingepland". Bij de
+// Blokjes per PT'er in het coach-overzicht (besluit Kane 11-11-2026): deze week,
+// volgende week en de twee weken daarna (12-11-2026), elk "geweest", "ingepland" of "nog niet ingepland". Bij de
 // beheerder is een leeg blokje een knop die het inplannen opent in die week, met het
 // voorstel uit het vaste patroon van de PT'er (12-11-2026).
 // Puur en zonder hooks: de server (eigenaren) en de client (beheerder) gebruiken het.
@@ -10,6 +10,8 @@ import { afspraakLabel, datumLabel, type WeekBlok } from '@/lib/lifeos/pt-coachi
 interface Props {
   deze: WeekBlok
   volgende: WeekBlok
+  /** De weken na volgende week (over 2 en 3 weken). */
+  verder?: readonly WeekBlok[]
   /** Alleen bij de beheerder: inplannen met een voorgestelde datum (YYYY-MM-DD) en tijd (HH:MM). */
   onKies?: (datum: string, tijd: string) => void
 }
@@ -51,11 +53,14 @@ function Blok({ week, blok, onKies }: { week: string; blok: WeekBlok; onKies?: (
   )
 }
 
-export function WeekBlokjes({ deze, volgende, onKies }: Props) {
+export function WeekBlokjes({ deze, volgende, verder = [], onKies }: Props) {
   return (
     <div className="ptd-weekblokken">
       <Blok week="Deze week" blok={deze} onKies={onKies} />
       <Blok week="Volgende week" blok={volgende} onKies={onKies} />
+      {verder.map((blok, i) => (
+        <Blok key={i} week={`Over ${i + 2} weken`} blok={blok} onKies={onKies} />
+      ))}
     </div>
   )
 }

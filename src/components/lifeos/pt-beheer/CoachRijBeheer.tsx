@@ -22,8 +22,8 @@ interface Props {
   ptId: string
   fase: CoachFase
   kop: ReactNode
-  /** Blokjes van deze en volgende week; een leeg blokje opent het inplannen in die week. */
-  weken: { deze: WeekBlok; volgende: WeekBlok }
+  /** Blokjes van deze week tot over 3 weken; een leeg blokje opent het inplannen in die week. */
+  weken: { deze: WeekBlok; volgende: WeekBlok; verder: readonly WeekBlok[] }
   samenvatting: string
   inhoud: ReactNode
 }
@@ -48,7 +48,7 @@ export function CoachRijBeheer({ ptId, fase, kop, weken, samenvatting, inhoud }:
   // De blokjes staan er altijd; klikken kan zodra de gegevens voor inplannen geladen zijn.
   const acties = (
     <>
-      <WeekBlokjes deze={weken.deze} volgende={weken.volgende} onKies={pt && modus === 'dicht' ? plan : undefined} />
+      <WeekBlokjes deze={weken.deze} volgende={weken.volgende} verder={weken.verder} onKies={pt && modus === 'dicht' ? plan : undefined} />
       {pt && modus === 'dicht' ? (
         <button
           type="button"
@@ -63,7 +63,7 @@ export function CoachRijBeheer({ ptId, fase, kop, weken, samenvatting, inhoud }:
 
   const formulier =
     pt && modus === 'inplannen' ? (
-      <CoachInplanForm key={voorstel ? `${voorstel.datum}T${voorstel.tijd}` : 'leeg'} pt={pt} startDatum={voorstel?.datum} startTijd={voorstel?.tijd}onKlaar={sluitEnVernieuw} onAnnuleer={() => setModus('dicht')} />
+      <CoachInplanForm key={voorstel ? `${voorstel.datum}T${voorstel.tijd}` : 'leeg'} pt={pt} startDatum={voorstel?.datum} startTijd={voorstel?.tijd} onKlaar={sluitEnVernieuw} onAnnuleer={() => setModus('dicht')} />
     ) : pt && modus === 'afronden' ? (
       <CoachingAfronden pt={pt} onKlaar={sluitEnVernieuw} onAnnuleer={() => setModus('dicht')} />
     ) : null
