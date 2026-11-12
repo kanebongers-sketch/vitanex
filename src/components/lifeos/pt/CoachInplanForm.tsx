@@ -3,9 +3,8 @@
 import { useState } from 'react'
 import { Knop } from '@/components/lifeos/os/Knop'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
-import { haalJson, leesNiets } from '@/lib/lifeos/api/http'
-import { coachgesprekTitel, type PtStatus } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
-import { GESPREK_DUUR_MIN } from '@/lib/lifeos/pt-gesprek/ritme'
+import type { PtStatus } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
+import { planCoachgesprek } from './coach-plannen'
 import { veld } from './PtInplanForm'
 
 // De eerste coachgesprek-afspraak zetten (zonder evaluatie): datum en tijd,
@@ -17,6 +16,8 @@ interface Props {
   onAnnuleer: () => void
   /** Voorgestelde datum (YYYY-MM-DD), bijvoorbeeld in de week van het blokje waarop geklikt is. */
   startDatum?: string
+  /** Voorgestelde tijd (HH:MM), bijvoorbeeld uit het vaste patroon van de PT'er. */
+  startTijd?: string
 }
 
 /** Standaarddatum voor een eerste afspraak: overmorgen (lokaal, YYYY-MM-DD). */
@@ -26,30 +27,16 @@ function standaardDatum(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-export function CoachInplanForm({ pt, onKlaar, onAnnuleer, startDatum }: Props) {
+export function CoachInplanForm({ pt, onKlaar, onAnnuleer, startDatum, startTijd }: Props) {
   const [datum, setDatum] = useState(() => startDatum ?? standaardDatum())
-  const [tijd, setTijd] = useState('10:00')
+  const [tijd, setTijd] = useState(startTijd ?? '10:00')
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
 
   async function plan() {
-    const start = new Date(`${datum}T${tijd}`)
-    if (Number.isNaN(start.getTime())) {
-      setFout('Kies een geldige datum en tijd.')
-      return
-    }
     setBezig(true)
     setFout(null)
-    const eind = new Date(start.getTime() + GESPREK_DUUR_MIN * 60_000)
-    const uitkomst = await haalJson('/api/lifeos/agenda/events', leesNiets, {
-      method: 'POST',
-      body: JSON.stringify({
-        titel: coachgesprekTitel(pt.naam),
-        startOp: start.toISOString(),
-        eindOp: eind.toISOString(),
-        genodigden: pt.email ? [pt.email] : [],
-      }),
-    })
+    const uitkomst = await planCoachgesprek(pt, datum, tijd)
     setBezig(false)
     if (!uitkomst.ok) {
       setFout(uitkomst.fout)

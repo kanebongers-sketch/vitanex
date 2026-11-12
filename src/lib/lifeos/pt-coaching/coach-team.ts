@@ -16,8 +16,8 @@ import { dagSleutelNl, type Lead } from '@/lib/lifeos/leads/leads'
 import { haalOpenPunten, haalRecenteEvaluaties } from './opslag'
 import type { CoachRij } from './coach-overzicht'
 
-/** Hoe ver terug en vooruit we in de agenda kijken voor het laatste/volgende gesprek. */
-const TERUG_DAGEN = 21
+/** Hoe ver terug en vooruit we in de agenda kijken: 8 weken terug voor het vaste patroon per PT'er. */
+const TERUG_DAGEN = 56
 const VOORUIT_DAGEN = 60
 /** Zoveel verslagen per PT'er laden we (ruim een jaar wekelijks). */
 const MAX_VERSLAGEN = 60

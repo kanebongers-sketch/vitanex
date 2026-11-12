@@ -14,6 +14,7 @@ import type { Persoon } from '@/lib/lifeos/crm/crm'
 import { contactVersheid, laatsteContactMoment } from '@/lib/lifeos/crm/versheid'
 import { duurLabel } from '@/lib/lifeos/datum/datum'
 import type { PtTeamWeek } from '@/lib/lifeos/pt-dashboard/team-week'
+import { coachWeekHtml, coachWeekTekst, type CoachWeek } from './coach-week'
 
 const TIJDZONE = 'Europe/Amsterdam'
 
@@ -88,6 +89,11 @@ export interface WeekmailInvoer {
    * Optioneel: niet nagegaan, omgevallen of geen team → geen sectie.
    */
   ptTeam?: PtTeamWeek | null
+  /**
+   * Coachgesprekken met de PT'ers deze week (zie `coach-week.ts`, besluit Kane
+   * 12-11-2026). Optioneel: niet nagegaan → geen sectie.
+   */
+  coachWeek?: CoachWeek | null
   zelf: WeekZelf | null
 }
 
@@ -189,9 +195,12 @@ export function bouwWeekmail(dag: Date, invoer: WeekmailInvoer): Weekmail {
     ? ['', 'PT-TEAM AFGELOPEN WEEK', ...ptTeam.regels.map((r) => `- ${r.naam}: ${r.tekst}`), ptTeam.totaal]
     : []
 
+  const coachWeek = invoer.coachWeek ?? null
+  const tekstCoach = coachWeek ? coachWeekTekst(coachWeek) : []
+
   const tekstZelf = zelf.length ? ['', 'VAN LIFEOS ZELF', ...zelf.map((r) => `- ${r}`)] : []
 
-  const tekst = [`Je week — terugblik ${datum}`, '', ...tekstAfgerond, ...tekstAgenda, ...tekstPtTeam, ...tekstAfhaak, ...tekstKoud, ...tekstZelf].join(
+  const tekst = [`Je week — terugblik ${datum}`, '', ...tekstAfgerond, ...tekstAgenda, ...tekstCoach, ...tekstPtTeam, ...tekstAfhaak, ...tekstKoud, ...tekstZelf].join(
     '\n',
   )
 
@@ -256,6 +265,7 @@ export function bouwWeekmail(dag: Date, invoer: WeekmailInvoer): Weekmail {
     <p style="margin:0 0 8px;font-size:13px;color:#8a97ad;">De afgelopen zeven dagen op een rij.</p>
     ${afgerondHtml}
     ${agendaHtml}
+    ${coachWeek ? coachWeekHtml(coachWeek) : ''}
     ${ptTeamHtml}
     ${afhaakHtml}
     ${koudHtml}

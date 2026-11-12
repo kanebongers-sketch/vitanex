@@ -32,8 +32,9 @@ import { haalCategorieRegels } from '@/lib/lifeos/agenda/categorie-opslag'
 import { tijdPerCategorie, type CategorieTijd } from '@/lib/lifeos/weekmail/agenda-tijd'
 import { lokaleTijd } from '@/lib/lifeos/vita/signalen'
 import { dagSleutelNl } from '@/lib/lifeos/leads/leads'
-import { haalPtTeamGegevens } from '@/lib/lifeos/pt-dashboard/team-opslag'
+import { haalPtTeamGegevens, type PtTeamGegevens } from '@/lib/lifeos/pt-dashboard/team-opslag'
 import { bouwPtTeamWeek, type PtTeamWeek } from '@/lib/lifeos/pt-dashboard/team-week'
+import { haalCoachWeek } from '@/lib/lifeos/weekmail/coach-week-ophalen'
 import { alGeclaimdVandaag, claimBriefing, geefClaimTerug, markeerBezorgd } from '@/lib/lifeos/vita/briefing-opslag'
 import {
   bouwWeekmail,
@@ -155,17 +156,25 @@ async function haalZelf(
   }
 }
 
-/** Wat het PT-team afgelopen week invulde. Best-effort: kon het team niet gelezen worden → null → geen sectie. */
-async function haalPtTeamWeek(
+/** Het PT-team met leads en klanten, één keer gelezen. Best-effort: fout → null. */
+async function haalTeam(
   admin: ReturnType<typeof createLifeosAdminClient>,
   userId: string,
-  nu: Date,
-): Promise<PtTeamWeek | null> {
+): Promise<PtTeamGegevens | null> {
   try {
-    const g = await haalPtTeamGegevens(admin, userId)
-    return g ? bouwPtTeamWeek(g.team, g.leads, g.klanten, dagSleutelNl(nu)) : null
+    return await haalPtTeamGegevens(admin, userId)
   } catch (oorzaak) {
     console.error('[weekmail] PT-team ophalen mislukt', oorzaak)
+    return null
+  }
+}
+
+/** Wat het PT-team afgelopen week invulde. Kon het team niet gelezen worden → null → geen sectie. */
+function ptTeamWeek(g: PtTeamGegevens | null, nu: Date): PtTeamWeek | null {
+  try {
+    return g ? bouwPtTeamWeek(g.team, g.leads, g.klanten, dagSleutelNl(nu)) : null
+  } catch (oorzaak) {
+    console.error('[weekmail] PT-team week bouwen mislukt', oorzaak)
     return null
   }
 }
@@ -200,19 +209,23 @@ export async function GET(req: NextRequest): Promise<Response> {
 
   // Alle bronnen best-effort en parallel: één trage of gevallen bron mag de mail
   // niet tegenhouden. Elke helper vangt zijn eigen fout en levert leeg/null op.
-  const [afgerondeTaken, personen, zelf, ptTeam] = await Promise.all([
+  const [afgerondeTaken, personen, zelf, team] = await Promise.all([
     haalAfgerond(admin, userId, vanaf, nu),
     haalCrmPersonen(admin, userId),
     haalZelf(admin, userId, vanaf, nu),
-    haalPtTeamWeek(admin, userId, nu),
+    haalTeam(admin, userId),
   ])
+  const ptTeam = ptTeamWeek(team, nu)
   const koud = koudeContacten(personen, nu)
-  const [{ afhaak }, agendaTijd] = await Promise.all([
+  // Coachgesprekken met de PT'ers deze week (besluit Kane 12-11-2026). Vangt zelf
+  // elke fout af; de catch hier is het laatste vangnet: de mail gaat altijd door.
+  const [{ afhaak }, agendaTijd, coachWeek] = await Promise.all([
     haalPtSignalen(admin, userId, personen, nu),
     haalAgendaTijd(admin, userId, personen, vanaf, nu),
+    haalCoachWeek(admin, userId, team, nu).catch(() => null),
   ])
 
-  const mail = bouwWeekmail(nu, { afgerondeTaken, koudeContacten: koud, afhaak, agendaTijd, ptTeam, zelf })
+  const mail = bouwWeekmail(nu, { afgerondeTaken, koudeContacten: koud, afhaak, agendaTijd, ptTeam, coachWeek, zelf })
 
   // Claim vlak vóór het sturen (spiegelt de dagmail): de insert is het slot.
   const claim = await claimBriefing(admin, userId, datum, 'weekmail')
@@ -252,6 +265,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     koudeContacten: koud.length,
     afhaak: afhaak.length,
     ptTeam: ptTeam ? ptTeam.regels.length : undefined,
+    coachWeek: coachWeek?.staat,
     zelf: zelf ?? undefined,
   })
 }

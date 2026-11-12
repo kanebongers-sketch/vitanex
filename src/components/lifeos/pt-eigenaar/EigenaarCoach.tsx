@@ -1,9 +1,10 @@
 import { eigenaarGegevens } from '@/lib/lifeos/pt-dashboard/sessie'
 import { haalCoachTeam } from '@/lib/lifeos/pt-coaching/coach-team'
-import { coachFase, moetDoorplannen, nietDezeWeek, sorteerCoachRijen, telCoach, weekBlokken, weekVan, type CoachRij } from '@/lib/lifeos/pt-coaching/coach-overzicht'
+import { coachFase, moetDoorplannen, nietDezeWeek, patroonVoorstellen, sorteerCoachRijen, telCoach, weekBlokken, weekVan, type CoachRij } from '@/lib/lifeos/pt-coaching/coach-overzicht'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { CoachgesprekkenBeheer } from '@/components/lifeos/pt-beheer/CoachgesprekkenBeheer'
 import { CoachRijBeheer } from '@/components/lifeos/pt-beheer/CoachRijBeheer'
+import { PatroonInplannen } from '@/components/lifeos/pt-beheer/PatroonInplannen'
 import { CoachPtKaart, CoachRijInhoud, CoachRijKop, coachRijSamenvatting } from './CoachPtKaart'
 import { TEAM_FOUT } from './teksten'
 
@@ -119,7 +120,14 @@ export async function EigenaarCoach({ code, beheerder = false }: { code: string;
       </div>
       {rijen.length > 0 ? <WeekStand rijen={rijen} nu={nu} /> : null}
       {ct.agenda !== 'ok' ? <p className="ptd-hint">{AGENDA_HINT[ct.agenda]}</p> : <WeekMeldingen rijen={rijen} nu={nu} />}
-      {beheerder ? <CoachgesprekkenBeheer>{lijst}</CoachgesprekkenBeheer> : lijst}
+      {beheerder ? (
+        <CoachgesprekkenBeheer>
+          {ct.agenda === 'ok' ? <PatroonInplannen voorstellen={patroonVoorstellen(rijen, nu)} /> : null}
+          {lijst}
+        </CoachgesprekkenBeheer>
+      ) : (
+        lijst
+      )}
     </section>
   )
 }

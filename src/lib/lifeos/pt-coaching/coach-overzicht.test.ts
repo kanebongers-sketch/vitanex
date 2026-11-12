@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import {
-  coachFase, eerstOpTePakken, gesprekDezeWeek, gesprekGehad, laatsteContactOp, moetDoorplannen, nietDezeWeek, weekBlokken, weekVan, opTePakkenLabel, opTePakkenTekst, sorteerCoachRijen, telCoach, verslagOpen,
+  coachFase, eerstOpTePakken, gesprekDezeWeek, gesprekGehad, laatsteContactOp, moetDoorplannen, nietDezeWeek, patroonLabel, patroonVan, patroonVoorstellen, weekBlokken, weekVan, opTePakkenLabel, opTePakkenTekst, sorteerCoachRijen, telCoach, verslagOpen,
   type CoachRij, type OpTePakken,
 } from './coach-overzicht'
 import type { EvaluatieJson } from './pt-coaching'
@@ -102,8 +102,8 @@ describe('de week van maandag tot en met zondag (besluit Kane 11-11-2026)', () =
     // Act
     const w = weekBlokken(r, WOE)
     // Assert
-    expect(w.deze).toEqual({ soort: 'geweest', op: '2026-11-10T09:00:00Z', voorstel: '2026-11-12' })
-    expect(w.volgende).toEqual({ soort: 'leeg', op: null, voorstel: '2026-11-17' })
+    expect(w.deze).toMatchObject({ soort: 'geweest', op: '2026-11-10T09:00:00Z', voorstel: '2026-11-12' })
+    expect(w.volgende).toMatchObject({ soort: 'leeg', op: null, voorstel: '2026-11-17' })
   })
 
   test('blokjes: gepland deze en volgende week, of niets met voorstel morgen en maandag', () => {
@@ -111,12 +111,46 @@ describe('de week van maandag tot en met zondag (besluit Kane 11-11-2026)', () =
     expect(gepland.deze.soort).toBe('gepland')
     expect(gepland.volgende).toMatchObject({ soort: 'gepland', op: '2026-11-20T09:00:00Z' })
     const niets = weekBlokken(rij({ naam: 'B' }), WOE)
-    expect(niets.deze).toEqual({ soort: 'leeg', op: null, voorstel: '2026-11-12' })
-    expect(niets.volgende).toEqual({ soort: 'leeg', op: null, voorstel: '2026-11-16' })
+    expect(niets.deze).toMatchObject({ soort: 'leeg', op: null, voorstel: '2026-11-12' })
+    expect(niets.volgende).toMatchObject({ soort: 'leeg', op: null, voorstel: '2026-11-16' })
     // Op zondag is het voorstel voor deze week vandaag.
     expect(weekBlokken(rij({ naam: 'C' }), new Date('2026-11-15T10:00:00Z')).deze.voorstel).toBe('2026-11-15')
     // Alleen een verslag deze week (geen agenda): telt als geweest.
     expect(weekBlokken(rij({ naam: 'D', verslagen: [verslag('2026-11-09T10:00:00Z')] }), WOE).deze.soort).toBe('geweest')
+  })
+
+  test('patroon: vaste dag en tijd uit de laatste gesprekken (Nederlandse tijd)', () => {
+    // Arrange: drie dinsdagen om 10:00 NL (20 okt nog zomertijd: 08:00 UTC), een keer donderdag
+    const afspraken = ['2026-10-20T08:00:00Z', '2026-10-27T09:00:00Z', '2026-10-29T14:00:00Z', '2026-11-03T09:00:00Z']
+    // Act
+    const p = patroonVan(afspraken, WOE)
+    // Assert
+    expect(p).toEqual({ weekdag: 1, tijd: '10:00', keer: 3, van: 4 })
+    expect(patroonLabel(p!)).toBe('di 10:00 (3 van de laatste 4)')
+  })
+
+  test('patroon: alleen de dag vast neemt de tijd van het laatste gesprek op die dag; te weinig = geen patroon', () => {
+    expect(patroonVan(['2026-10-27T09:00:00Z', '2026-11-03T13:30:00Z'], WOE)).toEqual({ weekdag: 1, tijd: '14:30', keer: 2, van: 2 })
+    expect(patroonVan(['2026-11-03T09:00:00Z'], WOE)).toBeNull()
+    expect(patroonVan(['2026-11-02T09:00:00Z', '2026-11-04T09:00:00Z'], WOE)).toBeNull()
+    // Toekomstige afspraken tellen niet mee voor het patroon.
+    expect(patroonVan(['2026-11-17T09:00:00Z', '2026-11-24T09:00:00Z'], WOE)).toBeNull()
+  })
+
+  test('voorstel volgens patroon: deze week alleen als het moment nog komt, anders terugval', () => {
+    // Patroon donderdag 10:00; woensdag 11 nov: deze week do 12 nov, volgende week do 19 nov
+    const r = rij({ naam: 'Joey', afspraken: ['2026-10-29T09:00:00Z', '2026-11-05T09:00:00Z'] })
+    const w = weekBlokken(r, WOE)
+    expect(w.deze).toMatchObject({ soort: 'leeg', voorstel: '2026-11-12', tijd: '10:00', volgensPatroon: true })
+    expect(w.volgende).toMatchObject({ soort: 'leeg', voorstel: '2026-11-19', tijd: '10:00', volgensPatroon: true })
+    expect(patroonVoorstellen([r], WOE)).toEqual([
+      { ptId: 'joey', naam: 'Joey', week: 'deze', datum: '2026-11-12', tijd: '10:00' },
+      { ptId: 'joey', naam: 'Joey', week: 'volgende', datum: '2026-11-19', tijd: '10:00' },
+    ])
+    // Patroon maandag: deze week al voorbij, dan geen patroonvoorstel voor deze week.
+    const ma = weekBlokken(rij({ naam: 'Ma', afspraken: ['2026-10-26T09:00:00Z', '2026-11-02T09:00:00Z'] }), WOE)
+    expect(ma.deze.volgensPatroon).toBe(false)
+    expect(ma.volgende).toMatchObject({ voorstel: '2026-11-16', volgensPatroon: true })
   })
 
   test('doorplannen staat na verslag en voor inplannen', () => {

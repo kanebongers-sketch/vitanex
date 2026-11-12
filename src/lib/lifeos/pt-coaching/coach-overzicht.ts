@@ -153,6 +153,69 @@ export function telCoach(rijen: readonly CoachRij[], nu: Date): CoachTelling {
   }
 }
 
+// ─── Vast patroon per PT'er (besluit Kane 12-11-2026) ─────────────────────────
+// Uit de gesprekken van de afgelopen weken: op welke dag en tijd zie je deze
+// PT'er meestal? Dat wordt het voorstel bij inplannen, en met een knop plant de
+// app alle open weken volgens dat patroon in.
+
+/** Hoeveel gesprekken terug we kijken voor het patroon. */
+const PATROON_GESPREKKEN = 6
+
+export interface Patroon {
+  /** Dag van de week, 0 = maandag. */
+  weekdag: number
+  /** Tijd "HH:MM" (Nederlandse tijd). */
+  tijd: string
+  /** Zo vaak op deze dag (en tijd) in de laatste `van` gesprekken. */
+  keer: number
+  van: number
+}
+
+const DAG_EN_TIJD = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Amsterdam', weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+const WEEKDAG_NR: Record<string, number> = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5, Sun: 6 }
+
+function dagEnTijd(iso: string): { weekdag: number; tijd: string } {
+  const delen = DAG_EN_TIJD.formatToParts(new Date(iso))
+  const deel = (t: string) => delen.find((p) => p.type === t)?.value ?? ''
+  return { weekdag: WEEKDAG_NR[deel('weekday')] ?? 0, tijd: `${deel('hour')}:${deel('minute')}` }
+}
+
+function meesteVan<T>(lijst: readonly T[], sleutel: (x: T) => string): { x: T; keer: number } | null {
+  const tel = new Map<string, { x: T; keer: number }>()
+  // Van nieuw naar oud: bij gelijke stand wint de nieuwste.
+  for (const x of [...lijst].reverse()) {
+    const k = sleutel(x)
+    const was = tel.get(k)
+    tel.set(k, { x: was?.x ?? x, keer: (was?.keer ?? 0) + 1 })
+  }
+  let beste: { x: T; keer: number } | null = null
+  for (const t of tel.values()) if (!beste || t.keer > beste.keer) beste = t
+  return beste
+}
+
+/**
+ * Het vaste moment van een PT'er: de dag en tijd die in de laatste gesprekken het
+ * vaakst voorkomt, minstens twee keer. Zit alleen de dag vast, dan telt die dag met
+ * de tijd van het laatste gesprek op die dag. Te weinig gesprekken: geen patroon.
+ */
+export function patroonVan(afspraken: readonly string[], nu: Date): Patroon | null {
+  const geweest = afspraken.filter((a) => new Date(a).getTime() <= nu.getTime()).slice(-PATROON_GESPREKKEN)
+  if (geweest.length < 2) return null
+  const momenten = geweest.map(dagEnTijd)
+  const precies = meesteVan(momenten, (m) => `${m.weekdag}|${m.tijd}`)
+  if (precies && precies.keer >= 2) return { ...precies.x, keer: precies.keer, van: momenten.length }
+  const dag = meesteVan(momenten, (m) => String(m.weekdag))
+  if (dag && dag.keer >= 2) return { ...dag.x, keer: dag.keer, van: momenten.length }
+  return null
+}
+
+const WEEKDAG_KORT = ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'] as const
+
+/** "di 10:00 (4 van de laatste 5)" */
+export function patroonLabel(p: Patroon): string {
+  return `${WEEKDAG_KORT[p.weekdag]} ${p.tijd} (${p.keer} van de laatste ${p.van})`
+}
+
 /** Wat er in een week staat voor een PT'er: geweest, ingepland of nog niets. */
 export interface WeekBlok {
   soort: 'geweest' | 'gepland' | 'leeg'
@@ -160,31 +223,78 @@ export interface WeekBlok {
   op: string | null
   /** Voorstel voor inplannen in deze week (YYYY-MM-DD). */
   voorstel: string
+  /** Voorgestelde tijd "HH:MM": van het patroon, anders 10:00. */
+  tijd: string
+  /** Het voorstel komt uit het vaste patroon van deze PT'er. */
+  volgensPatroon: boolean
 }
 
-function blokVan(afspraken: readonly string[], week: { maandag: string; zondag: string }, nu: Date, voorstel: string, verslagOp: string | null): WeekBlok {
+const STANDAARD_TIJD = '10:00'
+
+function blokVan(
+  afspraken: readonly string[],
+  week: { maandag: string; zondag: string },
+  nu: Date,
+  voorstel: { datum: string; tijd: string; patroon: boolean },
+  verslagOp: string | null,
+): WeekBlok {
+  const v = { voorstel: voorstel.datum, tijd: voorstel.tijd, volgensPatroon: voorstel.patroon }
   const inDeze = afspraken.filter((a) => inWeek(a, week))
   const komend = inDeze.find((a) => new Date(a).getTime() > nu.getTime())
-  if (komend) return { soort: 'gepland', op: komend, voorstel }
+  if (komend) return { soort: 'gepland', op: komend, ...v }
   const geweest = inDeze[inDeze.length - 1] ?? (inWeek(verslagOp, week) ? verslagOp : null)
-  if (geweest) return { soort: 'geweest', op: geweest, voorstel }
-  return { soort: 'leeg', op: null, voorstel }
+  if (geweest) return { soort: 'geweest', op: geweest, ...v }
+  return { soort: 'leeg', op: null, ...v }
+}
+
+/** Het patroonmoment in een week, of null als het al voorbij is (of nu bijna). */
+function patroonIn(p: Patroon | null, maandag: string, nu: Date): { datum: string; tijd: string; patroon: boolean } | null {
+  if (!p) return null
+  const datum = plusDagen(maandag, p.weekdag)
+  const vandaag = dagNl(nu)
+  if (datum < vandaag) return null
+  if (datum === vandaag && p.tijd <= new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Amsterdam', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(nu)) return null
+  return { datum, tijd: p.tijd, patroon: true }
 }
 
 /**
  * De blokjes per PT'er (besluit Kane 11-11-2026): deze week en volgende week, elk
- * "geweest op", "ingepland op" of "nog niet ingepland". Het voorstel voor inplannen:
- * deze week morgen (of vandaag op zondag), volgende week dezelfde dag als het gesprek
- * van deze week, anders de maandag.
+ * "geweest op", "ingepland op" of "nog niet ingepland". Het voorstel voor inplannen
+ * komt uit het vaste patroon van de PT'er (12-11-2026); zonder patroon of als het
+ * moment deze week al voorbij is: deze week morgen (of vandaag op zondag), volgende
+ * week dezelfde dag als het gesprek van deze week, anders de maandag, om 10:00.
  */
-export function weekBlokken(r: Pick<CoachRij, 'afspraken' | 'verslagen'>, nu: Date): { deze: WeekBlok; volgende: WeekBlok } {
+export function weekBlokken(r: Pick<CoachRij, 'afspraken' | 'verslagen'>, nu: Date): { deze: WeekBlok; volgende: WeekBlok; patroon: Patroon | null } {
   const deze = weekVan(nu)
   const volgende = { maandag: plusDagen(deze.maandag, 7), zondag: plusDagen(deze.zondag, 7) }
+  const patroon = patroonVan(r.afspraken, nu)
   const vandaag = dagNl(nu)
   const morgen = plusDagen(vandaag, 1)
-  const blokDeze = blokVan(r.afspraken, deze, nu, morgen <= deze.zondag ? morgen : vandaag, r.verslagen[0]?.aangemaaktOp ?? null)
-  const zelfdeDag = blokDeze.op ? plusDagen(dagNl(new Date(blokDeze.op)), 7) : volgende.maandag
-  return { deze: blokDeze, volgende: blokVan(r.afspraken, volgende, nu, zelfdeDag, null) }
+  const terugvalDeze = { datum: morgen <= deze.zondag ? morgen : vandaag, tijd: STANDAARD_TIJD, patroon: false }
+  const blokDeze = blokVan(r.afspraken, deze, nu, patroonIn(patroon, deze.maandag, nu) ?? terugvalDeze, r.verslagen[0]?.aangemaaktOp ?? null)
+  const terugvalVolgende = { datum: blokDeze.op ? plusDagen(dagNl(new Date(blokDeze.op)), 7) : volgende.maandag, tijd: STANDAARD_TIJD, patroon: false }
+  const blokVolgende = blokVan(r.afspraken, volgende, nu, patroonIn(patroon, volgende.maandag, nu) ?? terugvalVolgende, null)
+  return { deze: blokDeze, volgende: blokVolgende, patroon }
+}
+
+/** Een open week die volgens het patroon in te plannen is. */
+export interface PatroonVoorstel {
+  ptId: string
+  naam: string
+  week: 'deze' | 'volgende'
+  datum: string
+  tijd: string
+}
+
+/** Alle lege blokjes met een patroonvoorstel: wat de knop "volgens patroon inplannen" zou doen. */
+export function patroonVoorstellen(rijen: readonly CoachRij[], nu: Date): PatroonVoorstel[] {
+  return rijen.flatMap((r) => {
+    const w = weekBlokken(r, nu)
+    return (['deze', 'volgende'] as const)
+      .map((week) => ({ week, blok: w[week] }))
+      .filter(({ blok }) => blok.soort === 'leeg' && blok.volgensPatroon)
+      .map(({ week, blok }) => ({ ptId: r.id, naam: r.naam, week, datum: blok.voorstel, tijd: blok.tijd }))
+  })
 }
 
 /** Geen gesprek deze week: niet geweest en ook niet gepland binnen maandag tot en met zondag. */

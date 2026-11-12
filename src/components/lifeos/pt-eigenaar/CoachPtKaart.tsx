@@ -4,6 +4,7 @@ import {
   datumLabel,
   laatsteContactOp,
   opTePakkenTotaal,
+  patroonLabel,
   weekBlokken,
   type CoachRij,
 } from '@/lib/lifeos/pt-coaching/coach-overzicht'
@@ -28,17 +29,18 @@ const VERLOOP_GESPREKKEN = 8
  */
 export function CoachRijKop({ code, r, nu, metBlokjes = false }: { code: string; r: CoachRij; nu: Date; metBlokjes?: boolean }) {
   const laatste = laatsteContactOp(r)
-  const w = metBlokjes ? weekBlokken(r, nu) : null
+  const w = weekBlokken(r, nu)
   return (
     <>
       <div className="ptd-coachrij-wie">
         <Link className="ptd-naam ptd-link" href={`/${code}/team/${r.id}`}>{r.naam}</Link>
         <span className="ptd-coachrij-sub">
           {laatste ? `Laatste gesprek ${datumLabel(laatste)}` : 'Nog geen gesprek'}
+          {w.patroon ? ` · Vast ${patroonLabel(w.patroon)}` : ''}
           {coachFase(r, nu) === 'verslag' ? <span className="ptd-badge ptd-badge--let-op">Verslag open</span> : null}
         </span>
       </div>
-      {w ? <WeekBlokjes deze={w.deze} volgende={w.volgende} /> : null}
+      {metBlokjes ? <WeekBlokjes deze={w.deze} volgende={w.volgende} /> : null}
     </>
   )
 }

@@ -32,15 +32,15 @@ export function CoachRijBeheer({ ptId, fase, kop, weken, samenvatting, inhoud }:
   const beheer = useCoachBeheer()
   const pt = beheer?.pt(ptId) ?? null
   const [modus, setModus] = useState<Modus>('dicht')
-  const [voorstel, setVoorstel] = useState<string | undefined>(undefined)
+  const [voorstel, setVoorstel] = useState<{ datum: string; tijd: string } | undefined>(undefined)
 
   async function sluitEnVernieuw() {
     setModus('dicht')
     await beheer?.vernieuw()
   }
 
-  function plan(dag: string) {
-    setVoorstel(dag)
+  function plan(datum: string, tijd: string) {
+    setVoorstel({ datum, tijd })
     setModus('inplannen')
   }
 
@@ -63,7 +63,7 @@ export function CoachRijBeheer({ ptId, fase, kop, weken, samenvatting, inhoud }:
 
   const formulier =
     pt && modus === 'inplannen' ? (
-      <CoachInplanForm key={voorstel} pt={pt} startDatum={voorstel} onKlaar={sluitEnVernieuw} onAnnuleer={() => setModus('dicht')} />
+      <CoachInplanForm key={voorstel ? `${voorstel.datum}T${voorstel.tijd}` : 'leeg'} pt={pt} startDatum={voorstel?.datum} startTijd={voorstel?.tijd}onKlaar={sluitEnVernieuw} onAnnuleer={() => setModus('dicht')} />
     ) : pt && modus === 'afronden' ? (
       <CoachingAfronden pt={pt} onKlaar={sluitEnVernieuw} onAnnuleer={() => setModus('dicht')} />
     ) : null

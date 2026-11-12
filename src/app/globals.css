@@ -4019,6 +4019,15 @@ body {
 .lifeos-root .ptd-coachmelding-kop { margin: 0; font-weight: 600; color: var(--status-aandacht); }
 .lifeos-root .ptd-coachmelding-tekst { margin: 4px 0 0; font-size: 14px; color: var(--text-2); }
 .lifeos-root .ptd-coachmelding-tekst + .ptd-coachmelding-kop { margin-top: 12px; }
+.lifeos-root .ptd-weekblok-voorstel { font-size: 11.5px; color: var(--text-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.lifeos-root .ptd-patroon { margin: 0 0 14px; }
+.lifeos-root .ptd-patroon-paneel { padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg-card); display: grid; gap: 10px; }
+.lifeos-root .ptd-patroon-kop { margin: 0; font-weight: 600; }
+.lifeos-root .ptd-patroon-lijst { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.lifeos-root .ptd-patroon-lijst label { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; }
+.lifeos-root .ptd-patroon-naam { min-width: 110px; font-weight: 600; }
+.lifeos-root .ptd-patroon-wanneer { color: var(--text-2); font-variant-numeric: tabular-nums; }
+.lifeos-root .ptd-patroon-knoppen { display: flex; flex-wrap: wrap; gap: 8px; }
 .lifeos-root .ptd-weekblokken { display: flex; flex-wrap: wrap; gap: 8px; }
 .lifeos-root .ptd-weekblok { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 148px; padding: 7px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg-card); font: inherit; text-align: left; color: var(--text); }
 .lifeos-root .ptd-weekblok-week { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); }
