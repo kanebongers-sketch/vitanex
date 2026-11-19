@@ -174,6 +174,43 @@ export function magBinnen(b: Pick<Beheerder, 'actief' | 'wachtwoordHash'>): bool
   return b.actief && b.wachtwoordHash !== null
 }
 
+// ─── Wachtwoord vergeten ────────────────────────────────────────────────────
+
+/**
+ * Zo lang werkt de link van "wachtwoord vergeten", voor beheerders en
+ * medewerkers: een uur. Kort, want hij vervangt een bestaand wachtwoord. Een
+ * echte uitnodiging (nog geen wachtwoord) houdt haar eigen looptijd van dagen.
+ */
+export const RESET_MS = 60 * 60_000
+
+/** De kolommen die een openstaande aanvraag vastleggen (zie resetStaatOpen). */
+export const RESET_KOLOMMEN = 'pin_status, pin_aangevraagd_op'
+
+/**
+ * Staat er een aanvraag "wachtwoord vergeten" open? Zonder migratie vastgelegd
+ * in twee kolommen van de afgeschafte pincode: pin_status 'wacht' plus het
+ * moment in pin_aangevraagd_op. Alleen dan mag de link een bestaand wachtwoord
+ * vervangen, en hooguit RESET_MS lang. Een gewone geslaagde login sluit hem.
+ */
+export function resetStaatOpen(rij: unknown, nu: Date): boolean {
+  if (typeof rij !== 'object' || rij === null) return false
+  const r = rij as Record<string, unknown>
+  if (r.pin_status !== 'wacht' || typeof r.pin_aangevraagd_op !== 'string') return false
+  const sinds = new Date(r.pin_aangevraagd_op).getTime()
+  if (Number.isNaN(sinds) || sinds > nu.getTime()) return false
+  return nu.getTime() - sinds < RESET_MS
+}
+
+/** Het vroegste moment van aanvragen dat nu nog geldig is (voor het filter in de database). */
+export function resetGrens(nu: Date): string {
+  return new Date(nu.getTime() - RESET_MS).toISOString()
+}
+
+/** Het pad van de link waarmee een eigenaar of clubmanager een wachtwoord kiest. */
+export function beheerderLinkPad(code: string): string {
+  return `/clubinloggen/${code}`
+}
+
 /** Wat Kane in het portaal ziet: nooit de pin-hash. */
 export interface BeheerderOverzicht {
   id: string

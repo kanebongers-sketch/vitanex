@@ -217,3 +217,14 @@
 /* Inloggen met e-mailadres en wachtwoord (pagina Inloggen van de website). */
 .ayg .aan-inlog { display: grid; gap: 18px; width: 100%; max-width: 460px; padding: clamp(22px, 3vw, 32px); border-radius: calc(var(--ayg-radius) + 4px); box-shadow: var(--ayg-schaduw); }
 .ayg .aan-inlog .ayg-knop { justify-self: start; }
+/* Wachtwoord vergeten: een uitklapper met een e-mailveld, naast het inlogformulier. */
+.ayg .aan-vergeten { border-block: 1px solid var(--ayg-lijn); }
+.ayg .aan-vergeten summary { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: 52px; padding-block: 10px; cursor: pointer; list-style: none; font-weight: 600; color: var(--ayg-tekst); border-radius: var(--ayg-radius-klein); transition: color 200ms var(--ayg-ease); }
+.ayg .aan-vergeten summary::-webkit-details-marker { display: none; }
+.ayg .aan-vergeten summary svg { flex-shrink: 0; transition: transform 220ms var(--ayg-ease); }
+.ayg .aan-vergeten summary:is(:hover, :focus-visible) { color: var(--ayg-accent-sterk); }
+.ayg .aan-vergeten[open] summary svg { transform: rotate(180deg); }
+.ayg .aan-vergeten-form { display: grid; gap: 16px; max-width: 460px; padding-block: 6px 22px; }
+.ayg .aan-vergeten-form .ayg-knop { justify-self: start; }
+.ayg .aan-vergeten-form .aan-melding--rustig { margin-bottom: 0; }
+@media (prefers-reduced-motion: reduce) { .ayg .aan-vergeten summary, .ayg .aan-vergeten summary svg { transition: none; } }

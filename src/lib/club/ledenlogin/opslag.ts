@@ -281,6 +281,30 @@ async function haalToegangVanLid(admin: SupabaseClient, userId: string, lidId: s
   return lidToegangUitRij(data)
 }
 
+/**
+ * Het adres waarmee dit lid in de ledenapp inlogt (actief account met
+ * wachtwoord), of null zonder eigen login. undefined bij een leesfout. Een mail
+ * met een link of code voor de ledenapp gaat voor een lid met login alleen naar
+ * dit adres, nooit naar het contactadres in club_leden: dat kan de sportschool
+ * wijzigen, en met een verse link kies je een nieuw wachtwoord (activeerLid).
+ */
+export async function inlogAdresVanLid(admin: SupabaseClient, userId: string, lidId: string): Promise<string | null | undefined> {
+  const t = await haalToegangVanLid(admin, userId, lidId)
+  if (t === undefined) return undefined
+  return t && t.actief && t.wachtwoordHash && t.email ? t.email : null
+}
+
+/** Welke van deze leden een eigen login hebben (actief, met wachtwoord). null bij een leesfout. */
+export async function ledenMetInlog(admin: SupabaseClient, userId: string, lidIds: readonly string[]): Promise<Set<string> | null> {
+  if (lidIds.length === 0) return new Set()
+  const { data, error } = await admin.from(TABEL).select('lid_id').eq('user_id', userId).in('lid_id', [...lidIds]).eq('actief', true).not('wachtwoord_hash', 'is', null)
+  if (error) {
+    log('leden met login lezen', error)
+    return null
+  }
+  return new Set(((data ?? []) as Array<{ lid_id?: unknown }>).map((r) => String(r.lid_id)))
+}
+
 /** Hoe staat de ledenapp van dit lid ervoor? undefined bij een leesfout. */
 export async function haalLinkOverzicht(admin: SupabaseClient, userId: string, lidId: string, nu: Date): Promise<LidLinkOverzicht | undefined> {
   const t = await haalToegangVanLid(admin, userId, lidId)

@@ -6,7 +6,8 @@
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
 import { LEDEN } from '@/lib/aiyourgym/taal/woorden/club/leden'
 
-export type Verstuurd = { ok: true; data: unknown } | { ok: false; fout: string }
+/** Bij een fout zit in `data` wat de server er nog bij stuurde (zoals fouten per veld), anders null. */
+export type Verstuurd = { ok: true; data: unknown } | { ok: false; fout: string; data?: unknown }
 
 /** De taal van de pagina in de browser; buiten de browser Nederlands. */
 function paginaTaal(): Taal {
@@ -24,7 +25,7 @@ export async function stuur(url: string, method: 'POST' | 'PATCH' | 'DELETE', bo
     const data: unknown = await res.json().catch(() => null)
     if (res.ok) return { ok: true, data }
     const fout = typeof data === 'object' && data !== null && 'fout' in data && typeof data.fout === 'string' ? data.fout : null
-    return { ok: false, fout: fout ?? t.algemeen }
+    return { ok: false, fout: fout ?? t.algemeen, data }
   } catch {
     return { ok: false, fout: t.verbinding }
   }

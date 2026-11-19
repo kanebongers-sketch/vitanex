@@ -1,9 +1,11 @@
 // ─── Fit Factory Club: invoer voor de ledenkaart (PUUR) ─────────────────────
 // Systeemgrens: wat er van de pagina binnenkomt (notities, coach, tags, status,
-// lidmaatschapsvorm en datums) wordt
+// lidmaatschapsvorm, datums en contactgegevens) wordt
 // hier gecontroleerd voordat het de database in gaat.
 
 import { LID_STATUSSEN, type LidStatus } from '@/lib/club/kern/lid'
+import { normaalEmail } from '@/lib/club/kern/wachtwoord-regels'
+import { leesTelefoon } from '@/lib/club/nieuwe-leden/regels'
 
 export type Uitslag<T> = { ok: true; waarde: T } | { ok: false; fout: string }
 
@@ -115,7 +117,87 @@ function leesTags(v: unknown): Uitslag<string[]> {
   return { ok: true, waarde: tags }
 }
 
-export function leesLidWijziging(body: unknown): Uitslag<LidWijziging> {
+// ─── Contactgegevens (naam, e-mail, telefoon, geboortedatum) ────────────────
+// Per veld een foutcode in plaats van een zin: de pagina en de API tonen de
+// tekst in de taal van de medewerker (LIDKAART_BLOKKEN.contact.fout).
+
+export const CONTACT_VELDEN = ['voornaam', 'achternaam', 'email', 'telefoon', 'geboortedatum'] as const
+export type ContactVeld = (typeof CONTACT_VELDEN)[number]
+export type ContactFout = ContactVeld | 'geboortedatumToekomst' | 'geboortedatumTeOud' | 'emailDubbel'
+
+export interface ContactWijziging {
+  voornaam?: string
+  achternaam?: string
+  /** null = leeg maken. */
+  email?: string | null
+  telefoon?: string | null
+  /** yyyy-mm-dd; null = leeg maken. */
+  geboortedatum?: string | null
+}
+
+export type ContactFouten = Partial<Record<ContactVeld, ContactFout>>
+export type ContactUitslag = { ok: true; waarde: ContactWijziging } | { ok: false; fouten: ContactFouten }
+
+/** Dezelfde lengtes als bij Lid toevoegen en Ledenbestand inlezen. */
+export const MAX_VOORNAAM = 60
+export const MAX_ACHTERNAAM = 80
+/** Ouder dan dit is een tikfout in het jaartal. */
+export const MAX_LEEFTIJD = 120
+
+function leeg(v: unknown): boolean {
+  return v === null || (typeof v === 'string' && v.trim() === '')
+}
+
+function leesNaamDeel(v: unknown, max: number): string | null {
+  if (typeof v !== 'string') return null
+  const naam = v.trim().replace(/\s+/g, ' ')
+  return naam.length >= 1 && naam.length <= max ? naam : null
+}
+
+function geboortedatumFout(v: unknown, vandaag: string): ContactFout | null {
+  if (!isDatumSleutel(v)) return 'geboortedatum'
+  if (v > vandaag) return 'geboortedatumToekomst'
+  const oudste = `${String(Number(vandaag.slice(0, 4)) - MAX_LEEFTIJD).padStart(4, '0')}${vandaag.slice(4)}`
+  return v < oudste ? 'geboortedatumTeOud' : null
+}
+
+/**
+ * De contactgegevens uit een verzoek; alleen de velden die meekomen. `vandaag`
+ * als yyyy-mm-dd (Nederlandse dag), voor de grenzen van de geboortedatum.
+ */
+export function leesContact(body: unknown, vandaag: string): ContactUitslag {
+  const o = object(body) ?? {}
+  const waarde: ContactWijziging = {}
+  const fouten: ContactFouten = {}
+  for (const veld of ['voornaam', 'achternaam'] as const) {
+    if (!(veld in o)) continue
+    const naam = leesNaamDeel(o[veld], veld === 'voornaam' ? MAX_VOORNAAM : MAX_ACHTERNAAM)
+    if (naam) waarde[veld] = naam
+    else fouten[veld] = veld
+  }
+  if ('email' in o) {
+    const email = leeg(o.email) ? null : normaalEmail(o.email)
+    if (email === null && !leeg(o.email)) fouten.email = 'email'
+    else waarde.email = email
+  }
+  if ('telefoon' in o) {
+    const telefoon = leesTelefoon(o.telefoon)
+    if (telefoon === false) fouten.telefoon = 'telefoon'
+    else waarde.telefoon = telefoon
+  }
+  if ('geboortedatum' in o) {
+    const fout = leeg(o.geboortedatum) ? null : geboortedatumFout(o.geboortedatum, vandaag)
+    if (fout) fouten.geboortedatum = fout
+    else waarde.geboortedatum = leeg(o.geboortedatum) ? null : (o.geboortedatum as string)
+  }
+  return Object.keys(fouten).length > 0 ? { ok: false, fouten } : { ok: true, waarde }
+}
+
+/**
+ * Coach, tags, status en lidmaatschap uit een verzoek. `metContact`: er komen
+ * ook contactgegevens mee (leesContact), dan mag de rest leeg zijn.
+ */
+export function leesLidWijziging(body: unknown, metContact = false): Uitslag<LidWijziging> {
   const o = object(body)
   if (!o) return { ok: false, fout: 'Ongeldige invoer.' }
   const wijziging: LidWijziging = {}
@@ -139,6 +221,6 @@ export function leesLidWijziging(body: unknown): Uitslag<LidWijziging> {
   }
   const datumFout = leesDatums(o, wijziging)
   if (datumFout) return { ok: false, fout: datumFout }
-  if (Object.values(wijziging).every((w) => w === undefined)) return { ok: false, fout: 'Er is niets om te wijzigen.' }
+  if (!metContact && Object.values(wijziging).every((w) => w === undefined)) return { ok: false, fout: 'Er is niets om te wijzigen.' }
   return { ok: true, waarde: wijziging }
 }

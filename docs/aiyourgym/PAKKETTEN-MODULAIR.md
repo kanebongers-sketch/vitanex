@@ -64,7 +64,7 @@ Alleen de stappen van de kern en de afgenomen pakketten: de stap Lessen alleen m
 
 ## Wat Kane nog doet
 
-1. Migraties 485 en 486 uitvoeren.
+1. Migraties 485 en 486 zijn uitgevoerd (gecontroleerd in de database op 14-11-2026).
 2. De prijzen staan vast (staffels, besluit Kane 31-10-2026, tabel in `STRIPE.md`). Zonder prijs voor de basis (`AIYOURGYM_STRIPE_PRIJS_ADMINISTRATIE`) gaat elke aanmelding via de testbetaling.
 3. In Stripe per pakket een product met een getrapte prijs (volume) maken zoals in `STRIPE.md` en het prijs-id in Render zetten als `AIYOURGYM_STRIPE_PRIJS_ADMINISTRATIE`, `_LESSEN`, `_TRAINING`, `_AFSPRAKEN`, `_TEAM`, `_GROEI`. De oude `_START`, `_CLUB`, `_KETEN` en `_ALLES` mogen weg. Daarna de cron `/api/aiyourgym/cron/staffel` eens per dag laten draaien (kop `x-cron-secret`).
 4. Kiezen of en in welke pakketten persoonlijke hulp bij het inrichten gratis is (de website noemt nu geen pakketten meer).

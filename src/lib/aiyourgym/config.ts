@@ -38,6 +38,11 @@ export function stripeSleutel(env: Env = process.env): string | null {
   return v && /^(sk|rk)_(test|live)_/.test(v) ? v : null
 }
 
+/** Staat er een live-sleutel van Stripe? Dan wordt er echt verkocht en mag niets meer gratis afronden. */
+export function stripeLive(env: Env = process.env): boolean {
+  return /^(sk|rk)_live_/.test(stripeSleutel(env) ?? '')
+}
+
 export function webhookGeheim(env: Env = process.env): string | null {
   const v = waarde(env, 'AIYOURGYM_STRIPE_WEBHOOK_SECRET')
   return v && v.startsWith('whsec_') ? v : null

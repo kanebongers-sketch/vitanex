@@ -9,6 +9,7 @@ import { vestigingenUitRijen } from '@/lib/club/kern/vestigingen'
 import type { Organisatie } from '@/lib/club/kern/organisatie'
 import { alleRijen } from '@/lib/club/leden/data'
 import { lidMagApp } from '@/lib/club/ledenlogin/toegang'
+import { ledenMetInlog } from '@/lib/club/ledenlogin/opslag'
 import { haalLedenMetApp } from './met-app'
 import {
   AANVRAAG_VENSTER_MS, aanvraagSleutel, exactPatroon, linkTekst, remOordeel, selecteer, spreidMoment, uitnodigingSleutel, uitnodigingTekst,
@@ -120,24 +121,32 @@ async function ledenMetIds(admin: SupabaseClient, userId: string, ids: string[])
 
 /**
  * Een linkmail voor elk lid van deze sportschool met dit adres dat de app mag
- * gebruiken. Draait na het antwoord (after), zodat de tijd niets verraadt.
- * Best effort: gooit nooit.
+ * gebruiken. Een lid met een eigen login wordt alleen op het inlogadres
+ * gevonden; op het contactadres (club_leden.email, door de sportschool te
+ * wijzigen) alleen een lid zonder login. Anders kon wie het contactadres
+ * wijzigt een link aanvragen en het wachtwoord van het lid vervangen.
+ * Draait na het antwoord (after), zodat de tijd niets verraadt.
+ * Best effort: gooit nooit, en bij een leesfout gaat er niets.
  */
 export async function planAanvraag(admin: SupabaseClient, org: Pick<Organisatie, 'id' | 'naam'>, email: string, aanvraagId: string, nu: Date): Promise<void> {
   try {
     const [{ data, error }, vest, inlog] = await Promise.all([
       admin.from('club_leden').select(LID_KOLOMMEN).eq('user_id', org.id).ilike('email', exactPatroon(email)).limit(10),
       admin.from('club_vestigingen').select('vestiging, naam, volgorde, standaard').eq('user_id', org.id),
-      // Het lid koos bij het activeren misschien een ander inlogadres dan in de ledenlijst staat.
-      admin.from('club_lid_toegang').select('lid_id').eq('user_id', org.id).eq('email', email).eq('actief', true).limit(MAX_LEDEN_PER_ADRES),
+      // Leden die met dit adres inloggen (dat kan een ander adres zijn dan in de ledenlijst staat).
+      admin.from('club_lid_toegang').select('lid_id').eq('user_id', org.id).eq('email', email).eq('actief', true).not('wachtwoord_hash', 'is', null).limit(MAX_LEDEN_PER_ADRES),
     ])
     log('leden zoeken', error ?? vest.error ?? inlog.error)
+    if (error || inlog.error) return
     const vestigingen = vestigingenUitRijen(vest.data ?? [])
     const metInlog = new Set(((inlog.data ?? []) as Array<{ lid_id?: unknown }>).map((r) => String(r.lid_id)))
-    const extra = await ledenMetIds(admin, org.id, [...metInlog].filter((id) => !(data ?? []).some((r) => (r as { id?: unknown }).id === id)))
-    const leden = [...(data ?? []), ...extra]
-      .map(lidUitRij)
-      .filter((l): l is Lid => lidMagApp(l, vestigingen) && !l.demo && (l.email?.trim().toLowerCase() === email || metInlog.has(l.id)))
+    const opContact = (data ?? []).map(lidUitRij).filter((l): l is Lid => l !== null && l.email?.trim().toLowerCase() === email)
+    // Op het contactadres alleen leden zonder eigen login.
+    const metLogin = await ledenMetInlog(admin, org.id, opContact.map((l) => l.id).filter((id) => !metInlog.has(id)))
+    if (!metLogin) return
+    const extra = await ledenMetIds(admin, org.id, [...metInlog].filter((id) => !opContact.some((l) => l.id === id)))
+    const leden = [...opContact.filter((l) => metInlog.has(l.id) || !metLogin.has(l.id)), ...extra.map(lidUitRij)]
+      .filter((l): l is Lid => lidMagApp(l, vestigingen) && !l.demo)
       .slice(0, MAX_LEDEN_PER_ADRES)
     if (leden.length === 0) return
     const rijen = leden.map((lid) => {

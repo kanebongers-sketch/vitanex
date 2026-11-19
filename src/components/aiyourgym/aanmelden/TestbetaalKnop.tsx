@@ -22,7 +22,7 @@ export function TestbetaalKnop({ sessie }: { sessie: string }) {
     try {
       const res = await fetch('/api/aiyourgym/testbetaling', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessie }) })
       const json = (await res.json().catch(() => null)) as { url?: unknown } | null
-      if (res.ok && typeof json?.url === 'string' && json.url.startsWith('/')) {
+      if (res.ok && typeof json?.url === 'string' && json.url.startsWith('/') && !json.url.startsWith('//')) {
         window.location.assign(json.url)
         return
       }

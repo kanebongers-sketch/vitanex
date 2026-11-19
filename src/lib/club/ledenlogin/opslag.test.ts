@@ -4,7 +4,8 @@ import { hashWachtwoord, wachtwoordKlopt } from '@/lib/club/kern/wachtwoord'
 import { heeftFilter, nepSupabase, type Antwoord } from '@/lib/club/beheerders/nep-supabase'
 import type { LidToegangRij } from './regels'
 import {
-  activeerLid, controleerWachtwoord, geefUitnodigingCode, kiesWachtwoordInApp, lidVanSessie, maakLidLink, maakSessie, trekLidLinkIn, vindInlogKandidaten, vindLidToegang,
+  activeerLid, controleerWachtwoord, geefUitnodigingCode, inlogAdresVanLid, kiesWachtwoordInApp, ledenMetInlog, lidVanSessie, maakLidLink, maakSessie, trekLidLinkIn,
+  vindInlogKandidaten, vindLidToegang,
 } from './opslag'
 
 const GYM = 'de000000-0000-4000-8000-0000000000c1'
@@ -252,5 +253,36 @@ describe('geefUitnodigingCode (mail)', () => {
     const { admin, vragen } = nepSupabase(() => ok(null))
     expect((await geefUitnodigingCode(admin, GYM, LID, NU)).staat).toBe('ok')
     expect(vragen.find((v) => v.actie === 'insert')?.waarde).toMatchObject({ user_id: GYM, lid_id: LID, actief: true })
+  })
+})
+
+describe('inlogAdresVanLid (waar een link naartoe mag)', () => {
+  it('een actief account met wachtwoord: het inlogadres, gefilterd op sportschool en lid', async () => {
+    const { admin, vragen } = nepSupabase(() => ok(rij()))
+    expect(await inlogAdresVanLid(admin, GYM, LID)).toBe(EMAIL)
+    expect(heeftFilter(vragen[0], 'user_id', GYM) && heeftFilter(vragen[0], 'lid_id', LID)).toBe(true)
+  })
+  it('geen account, geen wachtwoord of ingetrokken: geen inlogadres', async () => {
+    expect(await inlogAdresVanLid(nepSupabase(() => ok(null)).admin, GYM, LID)).toBeNull()
+    expect(await inlogAdresVanLid(nepSupabase(() => ok(rij({ wachtwoord_hash: null }))).admin, GYM, LID)).toBeNull()
+    expect(await inlogAdresVanLid(nepSupabase(() => ok(rij({ actief: false }))).admin, GYM, LID)).toBeNull()
+  })
+  it('een leesfout: undefined (dan geen mail)', async () => {
+    expect(await inlogAdresVanLid(nepSupabase(() => ({ data: null, error: { message: 'stuk' } })).admin, GYM, LID)).toBeUndefined()
+  })
+})
+
+describe('ledenMetInlog', () => {
+  it('geeft de leden met een actief account met wachtwoord, binnen de sportschool', async () => {
+    const { admin, vragen } = nepSupabase(() => ok([{ lid_id: LID }]))
+    expect(await ledenMetInlog(admin, GYM, [LID, ID])).toEqual(new Set([LID]))
+    expect(heeftFilter(vragen[0], 'user_id', GYM) && heeftFilter(vragen[0], 'actief', true)).toBe(true)
+    expect(vragen[0].filters).toContainEqual(['not', 'wachtwoord_hash', 'is'])
+  })
+  it('zonder leden geen vraag, bij een leesfout null', async () => {
+    const leeg = nepSupabase(() => ok([]))
+    expect(await ledenMetInlog(leeg.admin, GYM, [])).toEqual(new Set())
+    expect(leeg.vragen).toHaveLength(0)
+    expect(await ledenMetInlog(nepSupabase(() => ({ data: null, error: { message: 'stuk' } })).admin, GYM, [LID])).toBeNull()
   })
 })

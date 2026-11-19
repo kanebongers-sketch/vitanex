@@ -9,7 +9,7 @@ import { huisstijlExtra } from '@/lib/club/kern/organisatie'
 import { HuisstijlAuto, autoAttribuut } from '@/components/club/shell/HuisstijlAuto'
 import { clubTekst } from '@/lib/aiyourgym/taal/server'
 import { CLUB_INLOGGEN } from '@/lib/aiyourgym/taal/woorden/club/inloggen'
-import { vindBeheerder } from '@/lib/club/beheerders/beheerder-opslag'
+import { heeftOpenReset, vindBeheerder } from '@/lib/club/beheerders/beheerder-opslag'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
 import { WachtwoordKiezen } from '@/components/club/inloggen/WachtwoordKiezen'
 import '@/app/(aiyourgym)/(club)/club/club.css'
@@ -17,7 +17,9 @@ import '@/components/club/inloggen/inloggen.css'
 
 // /clubinloggen/<code>: de uitnodiging van een eigenaar of clubmanager. Een keer
 // een wachtwoord kiezen, daarna meteen binnen. Is het wachtwoord al gekozen, dan
-// werkt de link niet meer: door naar /inloggen (e-mailadres en wachtwoord). Met
+// werkt de link niet meer: door naar /inloggen (e-mailadres en wachtwoord),
+// behalve met een openstaande aanvraag "wachtwoord vergeten": dan kiest de
+// beheerder hier een nieuw wachtwoord. Met
 // de schakelaar uit of een onbekende link: een gewone 404. De code staat in de
 // URL, dus nooit een referrer meesturen en nooit in zoekmachines.
 
@@ -52,8 +54,8 @@ export default async function ClubInloggenPagina({ params }: PaginaProps) {
   if (!b) notFound()
   const { organisatie } = await haalEigenOrganisatie(admin, b.organisatieId)
   if (!organisatie || !(await hostPastBij(organisatie))) notFound()
-  // Uitnodiging al gebruikt: gewoon inloggen.
-  if (b.wachtwoordHash) redirect('/inloggen')
+  // Uitnodiging al gebruikt en geen aanvraag voor een nieuw wachtwoord: gewoon inloggen.
+  if (b.wachtwoordHash && !(await heeftOpenReset(admin, b, new Date()))) redirect('/inloggen')
 
   const stijl = huisstijlVariabelen(organisatie.kleurAccent, organisatie.thema, huisstijlExtra(organisatie)) as CSSProperties
   const t = await clubTekst(CLUB_INLOGGEN)

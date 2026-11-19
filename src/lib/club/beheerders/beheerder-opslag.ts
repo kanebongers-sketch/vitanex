@@ -8,9 +8,11 @@
 import { randomBytes } from 'node:crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { normaalEmail, wachtwoordKlopt } from '@/lib/club/kern/wachtwoord'
+import { meldFout } from '@/lib/club/betrouwbaarheid/melden'
 import { MAX_BLOKKADES, MAX_POGINGEN, blokkadeDuurMin, nieuwSessieToken, tokenHash } from '@/lib/club/kern/pin'
 import {
-  BEHEERDER_CODE, BEHEERDER_KOLOMMEN, BEHEERDER_SESSIE_DAGEN, MAX_BEHEERDER_SESSIES, beheerderUitRij, beoordeelBeheerderSessie, magBinnen,
+  BEHEERDER_CODE, BEHEERDER_KOLOMMEN, BEHEERDER_SESSIE_DAGEN, MAX_BEHEERDER_SESSIES, RESET_KOLOMMEN, beheerderUitRij, beoordeelBeheerderSessie, magBinnen,
+  resetGrens, resetStaatOpen,
   type Beheerder, type BeheerderOverzicht, type Beoordeling, type BeheerderSessieRij, type NieuweBeheerder,
 } from './beheerder'
 
@@ -89,7 +91,20 @@ async function controleerEnStart(admin: SupabaseClient, b: Beheerder, klopt: () 
   const sessie = await maakSessie(admin, b.id, nu)
   if (!sessie) return { staat: 'db' }
   await admin.from('club_beheerders').update({ ...TELLERS_SCHOON, laatst_ingelogd_op: nu.toISOString() }).eq('id', b.id)
+  if (b.pinStatus === 'wacht') await sluitOpenReset(admin, b.id)
   return { staat: 'ok', ...sessie }
+}
+
+/**
+ * Wie gewoon inlogt weet zijn wachtwoord: een openstaande aanvraag "wachtwoord
+ * vergeten" vervalt dan, zodat de link uit de mail niet blijft werken. Alleen de
+ * twee kolommen van de aanvraag, en alleen als die nog openstaat. Lukt het niet,
+ * dan gaat het inloggen gewoon door; de fout gaat zonder persoonsgegevens naar
+ * de foutregistratie.
+ */
+async function sluitOpenReset(admin: SupabaseClient, id: string): Promise<void> {
+  const { error } = await admin.from('club_beheerders').update({ pin_status: 'geen', pin_aangevraagd_op: null }).eq('id', id).eq('pin_status', 'wacht')
+  if (error) await meldFout({ fout: 'Wachtwoord vergeten: openstaande aanvraag van een beheerder sluiten na inloggen mislukte.', route: '/api/club/inloggen', methode: 'POST', soort: 'route' }, admin)
 }
 
 async function blokkeer(admin: SupabaseClient, b: Beheerder, nu: Date): Promise<InlogUitkomst> {
@@ -248,6 +263,66 @@ export async function kiesBeheerderWachtwoord(admin: SupabaseClient, b: Beheerde
   // Unieke index op e-mail: dit adres logt al ergens anders in.
   if (error) return error.code === '23505' ? { staat: 'email_bezet' } : { staat: 'db' }
   if (!Array.isArray(data) || data.length !== 1) return { staat: 'al_gekozen' }
+  const sessie = await startSessie(admin, { ...b, wachtwoordHash }, nu)
+  return sessie ? { staat: 'ok', ...sessie } : { staat: 'db' }
+}
+
+// ─── Wachtwoord vergeten: zelf een nieuwe link aanvragen ────────────────────
+// Iedereen kan een e-mailadres intikken, dus de aanvraag zelf verandert NIETS
+// aan het inloggen: het wachtwoord, de toestellen en de tellers van de rem
+// blijven zoals ze zijn. Pas wie de link uit de mail opent en een nieuw
+// wachtwoord kiest, vervangt het oude en logt de andere toestellen uit. Een
+// vreemde kan zo niemand buitensluiten of uitloggen. (De knop van de eigenaar,
+// beoordeelBeheerder 'reset', haalt het wachtwoord wel meteen weg.)
+
+/**
+ * Een verse eenmalige code voor een beheerder die al een wachtwoord heeft, met
+ * het moment van aanvragen. De vorige code vervalt. Null als het niet lukte.
+ */
+export async function vraagBeheerderReset(admin: SupabaseClient, b: Beheerder, nu: Date): Promise<string | null> {
+  if (!magBinnen(b)) return null
+  const code = nieuweBeheerderCode()
+  const { data, error } = await admin
+    .from('club_beheerders')
+    .update({ code, pin_status: 'wacht', pin_aangevraagd_op: nu.toISOString() })
+    .eq('id', b.id)
+    .eq('actief', true)
+    .not('wachtwoord_hash', 'is', null)
+    .select('id')
+  if (error) {
+    console.error('[club] aanvraag nieuw wachtwoord opslaan mislukt', error.code ?? '')
+    return null
+  }
+  return Array.isArray(data) && data.length === 1 ? code : null
+}
+
+/** Staat er voor deze beheerder een geldige aanvraag "wachtwoord vergeten" open? */
+export async function heeftOpenReset(admin: SupabaseClient, b: Beheerder, nu: Date): Promise<boolean> {
+  if (!magBinnen(b)) return false
+  const { data, error } = await admin.from('club_beheerders').select(RESET_KOLOMMEN).eq('id', b.id).eq('code', b.code).maybeSingle()
+  return !error && resetStaatOpen(data, nu)
+}
+
+/**
+ * Met de link uit de mail een nieuw wachtwoord kiezen (compare-and-set op de
+ * code en de openstaande aanvraag, dus een keer). Daarna zijn alle toestellen
+ * uitgelogd, is de rem weer schoon en is dit toestel ingelogd.
+ */
+export async function kiesNieuwBeheerderWachtwoord(admin: SupabaseClient, b: Beheerder, wachtwoordHash: string, nu: Date): Promise<WachtwoordKeuze> {
+  if (!magBinnen(b)) return { staat: 'al_gekozen' }
+  const { data, error } = await admin
+    .from('club_beheerders')
+    .update({ wachtwoord_hash: wachtwoordHash, pin_hash: null, pin_status: 'geen', pin_aangevraagd_op: null, ...TELLERS_SCHOON })
+    .eq('id', b.id)
+    .eq('code', b.code)
+    .eq('actief', true)
+    .eq('pin_status', 'wacht')
+    .gt('pin_aangevraagd_op', resetGrens(nu))
+    .select('id')
+  if (error) return { staat: 'db' }
+  if (!Array.isArray(data) || data.length !== 1) return { staat: 'al_gekozen' }
+  const { error: uitFout } = await admin.from('club_beheerder_sessies').delete().eq('beheerder_id', b.id)
+  if (uitFout) return { staat: 'db' }
   const sessie = await startSessie(admin, { ...b, wachtwoordHash }, nu)
   return sessie ? { staat: 'ok', ...sessie } : { staat: 'db' }
 }

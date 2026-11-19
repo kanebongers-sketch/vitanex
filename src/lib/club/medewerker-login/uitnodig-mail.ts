@@ -44,23 +44,28 @@ export function uitnodigMailTekst(naam: string, sportschool: string, link: strin
   return { onderwerp: `Je uitnodiging voor ${sportschool}`, tekst: regels.join('\n') }
 }
 
-export async function stuurUitnodigMail(m: UitnodigMail, env: Record<string, string | undefined> = process.env): Promise<MailUitkomst> {
+/** Een gewone tekstmail vanaf de afzender van AI Your Gym. `wat` komt in het log, nooit het adres of de tekst. */
+export async function stuurClubMail(naar: string, onderwerp: string, tekst: string, wat: string, env: Record<string, string | undefined> = process.env): Promise<MailUitkomst> {
   const van = mailAfzender(env)
   if (!van) return 'niet_ingesteld'
-  const { onderwerp, tekst } = uitnodigMailTekst(m.naam, m.sportschool, m.link)
   try {
     const resend = new Resend(env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
       from: van,
-      to: m.naar,
+      to: naar,
       subject: onderwerp,
       text: tekst,
       html: `<div style="font-family:system-ui,sans-serif;font-size:15px;line-height:1.6;white-space:pre-line">${escape(tekst)}</div>`,
     })
-    if (error) console.error('[club] uitnodiging medewerker mailen mislukt', error.name)
+    if (error) console.error(`[club] ${wat} mailen mislukt`, error.name)
     return error ? 'mislukt' : 'verstuurd'
   } catch (err) {
-    console.error('[club] uitnodiging medewerker mailen mislukt', err instanceof Error ? err.name : 'onbekend')
+    console.error(`[club] ${wat} mailen mislukt`, err instanceof Error ? err.name : 'onbekend')
     return 'mislukt'
   }
+}
+
+export async function stuurUitnodigMail(m: UitnodigMail, env: Record<string, string | undefined> = process.env): Promise<MailUitkomst> {
+  const { onderwerp, tekst } = uitnodigMailTekst(m.naam, m.sportschool, m.link)
+  return stuurClubMail(m.naar, onderwerp, tekst, 'uitnodiging medewerker', env)
 }

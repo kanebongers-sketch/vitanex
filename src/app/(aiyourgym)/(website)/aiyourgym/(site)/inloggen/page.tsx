@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
+import { mailAfzender } from '@/lib/aiyourgym/config'
 import { AYG_CONTACT, heeftContact, telLink } from '@/lib/aiyourgym/contact'
 import { getSiteTaal, siteTekst } from '@/lib/aiyourgym/taal/server'
 import type { Taal } from '@/lib/aiyourgym/taal/taal'
@@ -8,11 +9,13 @@ import { INLOGGEN } from '@/lib/aiyourgym/taal/woorden/website/inloggen'
 import { Geruststelling, GERUST_BIJ_KNOP } from '@/components/aiyourgym/site/Actie'
 import { Knop, PaginaKop } from '@/components/aiyourgym/site/bouwstenen'
 import { InlogFormulier } from '@/components/aiyourgym/inloggen/InlogFormulier'
+import { WachtwoordVergetenFormulier } from '@/components/aiyourgym/inloggen/WachtwoordVergetenFormulier'
 import { SITE_PADEN } from '@/components/aiyourgym/site/paden'
 
 // /inloggen op aiyourgym.com: een sportschool logt in met e-mailadres en
 // wachtwoord (besluit Kane 23-10-2026). Leden gebruiken de ledenapp van hun
-// eigen sportschool.
+// eigen sportschool. Wachtwoord vergeten: zelf een link aanvragen per mail
+// (WachtwoordVergetenFormulier), met daaronder hoe je ons bereikt als dat niet lukt.
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await siteTekst(INLOGGEN)
@@ -59,6 +62,8 @@ export default async function InloggenPagina() {
           <InlogFormulier />
           <div className="ayg-tekst" role="region" aria-label={t.hulpLabel}>
             <h2>{t.vergetenKop}</h2>
+            {/* Zonder mail-afzender komt er nooit een link: dan alleen hoe je ons bereikt. */}
+            {CLUB_EIGEN_LOGIN && mailAfzender() !== null && <WachtwoordVergetenFormulier />}
             <WachtwoordVergeten taal={taal} />
             <h2>{t.lidKop}</h2>
             <p>{t.lidTekst}</p>

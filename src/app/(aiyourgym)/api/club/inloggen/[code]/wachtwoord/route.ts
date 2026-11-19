@@ -3,6 +3,10 @@
 // keer een sterk wachtwoord en is daarna meteen ingelogd op dit toestel. Daarna
 // werkt de link niet meer en logt hij in op /inloggen met e-mailadres en
 // wachtwoord (besluit Kane 23-10-2026: geen pincode of controlecode meer).
+// Dezelfde link komt ook uit de mail van "wachtwoord vergeten"
+// (/api/club/inloggen/vergeten): alleen dan, en alleen zolang die aanvraag
+// openstaat, vervangt hij een bestaand wachtwoord en logt hij de andere
+// toestellen uit.
 
 import type { NextRequest } from 'next/server'
 import { clubDatabase } from '@/lib/club/kern/database'
@@ -11,7 +15,7 @@ import { isGeremd } from '@/lib/club/kern/rem-db'
 import { leesJsonBegrensd } from '@/lib/club/kern/body'
 import { hashWachtwoord, wachtwoordFout } from '@/lib/club/kern/wachtwoord'
 import { clubFout, clubJson, haalEigenOrganisatie, hostPastBij } from '@/lib/club/toegang'
-import { kiesBeheerderWachtwoord, vindBeheerder } from '@/lib/club/beheerders/beheerder-opslag'
+import { heeftOpenReset, kiesBeheerderWachtwoord, kiesNieuwBeheerderWachtwoord, vindBeheerder } from '@/lib/club/beheerders/beheerder-opslag'
 import { CLUB_EIGEN_LOGIN } from '@/lib/club/beheerders/schakelaar'
 import { zetClubSessie } from '@/lib/club/kern/sessie-cookie'
 
@@ -28,8 +32,12 @@ export async function POST(req: NextRequest, ctx: Context) {
   if (await isGeremd({ soort: 'club-uitnodiging', max: 10, vensterMs: 15 * 60_000, bijStoring: 'geheugen' }, ipVan(req))) return clubFout('Te veel pogingen vanaf dit netwerk. Probeer het over een kwartier opnieuw.', 429)
   const { code } = await ctx.params
   const admin = clubDatabase()
+  const nu = new Date()
   const b = await vindBeheerder(admin, code)
-  if (!b || b.wachtwoordHash) return clubFout('Niet gevonden.', 404)
+  if (!b) return clubFout('Niet gevonden.', 404)
+  // Een bestaand wachtwoord vervangen kan alleen met een openstaande aanvraag "wachtwoord vergeten".
+  const vervangen = b.wachtwoordHash !== null
+  if (vervangen && !(await heeftOpenReset(admin, b, nu))) return clubFout('Niet gevonden.', 404)
   // Op het subdomein van een andere sportschool bestaat deze link niet.
   const { organisatie } = await haalEigenOrganisatie(admin, b.organisatieId)
   if (!organisatie || !(await hostPastBij(organisatie))) return clubFout('Niet gevonden.', 404)
@@ -38,7 +46,8 @@ export async function POST(req: NextRequest, ctx: Context) {
   const fout = wachtwoordFout(wachtwoord, { email: b.email, naam: b.naam })
   if (fout) return clubFout(fout, 400)
 
-  const uit = await kiesBeheerderWachtwoord(admin, b, await hashWachtwoord(String(wachtwoord)), new Date())
+  const hash = await hashWachtwoord(String(wachtwoord))
+  const uit = vervangen ? await kiesNieuwBeheerderWachtwoord(admin, b, hash, nu) : await kiesBeheerderWachtwoord(admin, b, hash, nu)
   if (uit.staat === 'al_gekozen') return clubFout('Met deze link is al een wachtwoord gekozen. Log in met je e-mailadres en wachtwoord.', 409)
   if (uit.staat === 'email_bezet') return clubFout('Met dit e-mailadres is al een account. Vraag de eigenaar om je met een ander adres uit te nodigen.', 409)
   if (uit.staat === 'db') return clubFout('Opslaan mislukt. Probeer het opnieuw.', 502)

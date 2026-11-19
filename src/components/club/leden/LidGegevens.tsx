@@ -8,10 +8,10 @@ import { stuur } from './stuur'
 import { useTekst } from '@/lib/aiyourgym/taal/client'
 import { LIDKAART_BLOKKEN } from '@/lib/aiyourgym/taal/woorden/club/ledenkaart'
 
-// Gegevens van een lid. Contact en geboortedatum komen uit de ledenadministratie
-// (Ledenbestand inlezen) en zijn hier alleen te zien (blok Contact op het
-// tabblad Contact en notities); coach en tags zijn hier te wijzigen. De status
-// staat bij Lidmaatschap. Gezondheidsgegevens staan in de intake, niet hier.
+// Gegevens van een lid. Contact toont e-mail, telefoon en geboortedatum (blok
+// Contact op het tabblad Lidmaatschap); wijzigen gaat met hub/ContactBewerken.
+// Coach en tags zijn hier te wijzigen. De status staat bij Lidmaatschap.
+// Gezondheidsgegevens staan in de intake, niet hier.
 
 interface Keuze {
   id: string

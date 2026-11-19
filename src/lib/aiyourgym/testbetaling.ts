@@ -9,7 +9,7 @@
 // Uit met AIYOURGYM_TESTBETALING=0. Staat Stripe voor een pakket ingesteld, dan
 // telt alleen Stripe en is de testbetaling voor dat pakket vanzelf weg.
 
-import { afsluitbaar, allesAfsluitbaar } from './config'
+import { afsluitbaar, allesAfsluitbaar, stripeLive } from './config'
 import { metBasis, type PakketSleutel } from './pakketten'
 import type { AfgerondeSessie } from './stripe-event'
 
@@ -24,7 +24,7 @@ export function isTestSessie(v: unknown): v is string {
 
 /** Rondt dit pakket nu af met een testbetaling (Stripe ontbreekt en de testbetaling staat niet uit)? */
 export function testbetalen(sleutel: PakketSleutel, env: Env = process.env): boolean {
-  return !afsluitbaar(sleutel, env) && env.AIYOURGYM_TESTBETALING?.trim() !== '0'
+  return !afsluitbaar(sleutel, env) && testbetalingAan(env)
 }
 
 /**
@@ -36,9 +36,14 @@ export function testbetalenVoor(pakketten: readonly PakketSleutel[], env: Env = 
   return pakketten.length > 0 && !allesAfsluitbaar(metBasis(pakketten), env) && testbetalingAan(env)
 }
 
-/** Staat de testbetaling aan (niet uit met AIYOURGYM_TESTBETALING=0)? */
+/**
+ * Staat de testbetaling aan (niet uit met AIYOURGYM_TESTBETALING=0)?
+ * Met een live-sleutel van Stripe altijd uit: zodra er echt verkocht wordt mag
+ * een vergeten prijs-id nooit een gratis sportschool opleveren. Zo'n aanmelding
+ * wordt dan een aanvraag voor Kane.
+ */
 export function testbetalingAan(env: Env = process.env): boolean {
-  return env.AIYOURGYM_TESTBETALING?.trim() !== '0'
+  return env.AIYOURGYM_TESTBETALING?.trim() !== '0' && !stripeLive(env)
 }
 
 /** Kan iemand zich voor dit pakket nu online aanmelden, met Stripe of met een testbetaling? */

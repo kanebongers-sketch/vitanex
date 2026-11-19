@@ -13,6 +13,7 @@ import { afmeldUrl, haalContext, haalWachtrij, logoVoorMail, zorgVoorToken, type
 import { mailHtml, platteTekst } from './mail-html'
 import { isAppSoort, isHerinnering } from './soorten'
 import { ledenappLinkVoorMail } from '@/lib/club/app-uitnodigen/link-voor-mail'
+import { inlogAdresVanLid } from '@/lib/club/ledenlogin/opslag'
 import { KNOP_LABEL } from '@/lib/club/app-uitnodigen/regels'
 import { pushBeslissing } from '@/lib/club/push/beleid'
 import { maakInhoud } from '@/lib/club/push/bericht'
@@ -115,14 +116,28 @@ async function knopVoor(admin: SupabaseClient, rij: WachtrijRij, nu: Date): Prom
   return link.ok ? { knop: { label: KNOP_LABEL, url: link.url } } : { reden: link.reden }
 }
 
+/**
+ * Naar welk adres deze mail gaat. Een mail met een link naar de ledenapp gaat
+ * voor een lid met een eigen login naar het inlogadres, nooit naar het
+ * contactadres uit de ledenlijst (dat kan de sportschool wijzigen; met de link
+ * kies je een nieuw wachtwoord). undefined = niet te lezen, dan geen mail.
+ */
+async function adresVoorMail(admin: SupabaseClient, rij: WachtrijRij, contact: string | null): Promise<string | null | undefined> {
+  if (!isAppSoort(rij.soort)) return contact
+  const inlog = await inlogAdresVanLid(admin, rij.userId, rij.lidId)
+  return inlog === undefined ? undefined : (inlog ?? contact)
+}
+
 async function verwerkMail(admin: SupabaseClient, rij: WachtrijRij, ctx: Context, deps: VerstuurDeps, nu: Date): Promise<Uitkomst> {
   const lid = ctx.leden.get(rij.lidId)
   const org = ctx.orgs.get(rij.userId)
+  const adres = await adresVoorMail(admin, rij, lid?.email ?? null)
+  if (adres === undefined) return overslaan(admin, rij.id, 'Inlogadres niet te lezen')
   // Een zelf aangevraagde link gaat ook naar wie zich voor andere mails afmeldde.
   const voorkeur = rij.soort === 'app_link' ? null : (ctx.voorkeuren.get(`${rij.userId}:${rij.lidId}`) ?? null)
   const besluit = mailBeslissing(
     rij.soort,
-    { organisatieId: rij.userId, organisatieDemo: org?.demo ?? true, lidDemo: lid?.demo ?? true, rijDemo: rij.demo, email: lid?.email ?? null, voorkeur },
+    { organisatieId: rij.userId, organisatieDemo: org?.demo ?? true, lidDemo: lid?.demo ?? true, rijDemo: rij.demo, email: adres, voorkeur },
     deps.omgeving,
   )
   if (!besluit.ok) {

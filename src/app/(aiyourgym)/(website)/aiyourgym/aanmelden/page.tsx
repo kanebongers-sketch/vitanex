@@ -9,6 +9,9 @@ import { AanmeldFormulier } from '@/components/aiyourgym/aanmelden/AanmeldFormul
 import { Geruststelling } from '@/components/aiyourgym/site/Actie'
 import type { PakketKeuze } from '@/components/aiyourgym/aanmelden/types'
 import { getSiteTaal, siteTekst } from '@/lib/aiyourgym/taal/server'
+import { siteAlternates } from '@/lib/aiyourgym/taal/metadata'
+import { OG_LOCALE } from '@/lib/aiyourgym/taal/taal'
+import { SITE_PADEN } from '@/components/aiyourgym/site/paden'
 import { AANMELDEN } from '@/lib/aiyourgym/taal/woorden/website/aanmelden'
 
 // /aiyourgym/aanmelden: een sportschool meldt zich aan. De poort (alleen Kane
@@ -20,8 +23,16 @@ import { AANMELDEN } from '@/lib/aiyourgym/taal/woorden/website/aanmelden'
 export const dynamic = 'force-dynamic'
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await siteTekst(AANMELDEN)
-  return { title: t.metaTitel, description: t.metaOmschrijving }
+  const [t, taal] = await Promise.all([siteTekst(AANMELDEN), getSiteTaal()])
+  // Deze pagina staat buiten (site)/layout.tsx: canonical en deelgegevens hier zelf.
+  return {
+    title: t.metaTitel,
+    description: t.metaOmschrijving,
+    metadataBase: new URL('https://aiyourgym.com'),
+    alternates: siteAlternates(SITE_PADEN.AANMELDEN),
+    openGraph: { title: t.metaTitel, description: t.metaOmschrijving, siteName: 'AI Your Gym', locale: OG_LOCALE[taal], type: 'website' },
+    twitter: { card: 'summary' },
+  }
 }
 
 interface PaginaProps {

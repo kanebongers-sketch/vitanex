@@ -145,6 +145,7 @@ Herhaal stap 2 tot en met 4 en stap 6 in de livemodus van Stripe (nieuwe prijs-i
 
 ## Goed om te weten
 
-- Inloggen voor sportscholen staat uit (`CLUB_EIGEN_LOGIN`). De welkomstpagina zegt dan eerlijk dat inloggen na de lancering opent.
+- Inloggen voor sportscholen staat aan (`CLUB_EIGEN_LOGIN`, sinds 23-10-2026).
+- Met een live-sleutel van Stripe (`sk_live_`) is de testbetaling altijd uit (14-11-2026): een pakket zonder prijs-id wordt dan een aanvraag, nooit een gratis sportschool.
 - Een mislukte betaling of opzegging zet alleen de status in `ayg_aanmeldingen` (`betaling_mislukt`, `gepauzeerd`, `opgezegd`); de sportschool zelf wordt niet automatisch dichtgezet. Dat beslis je zelf.
 - De code praat rechtstreeks met de Stripe-API (`src/lib/aiyourgym/stripe-api.ts`) en controleert de handtekening van de webhook zelf (`stripe-handtekening.ts`, getest).

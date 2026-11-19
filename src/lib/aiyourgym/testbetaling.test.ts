@@ -21,6 +21,16 @@ describe('testbetaling', () => {
     expect(testbetalingAan({ AIYOURGYM_TESTBETALING: '0' })).toBe(false)
     expect(testbetalenVoor(['lessen'], { AIYOURGYM_TESTBETALING: '0' })).toBe(false)
   })
+  it('met een live-sleutel van Stripe nooit een testbetaling, ook niet bij een vergeten prijs', () => {
+    const LIVE = { AIYOURGYM_STRIPE_SECRET_KEY: 'sk_live_abc', AIYOURGYM_STRIPE_PRIJS_LESSEN: 'price_123456' }
+    expect(testbetalingAan(LIVE)).toBe(false)
+    // Groei heeft geen prijs: geen gratis sportschool, de aanmelding wordt een aanvraag.
+    expect(testbetalen('groei', LIVE)).toBe(false)
+    expect(aanmeldbaar('groei', LIVE)).toBe(false)
+    expect(testbetalenVoor(['lessen', 'groei'], LIVE)).toBe(false)
+    // Wat wel een prijs heeft blijft gewoon af te sluiten.
+    expect(aanmeldbaar('lessen', LIVE)).toBe(true)
+  })
   it('een keuze van pakketten: Stripe alleen als elk pakket een prijs heeft, de basis telt altijd mee', () => {
     // Zonder prijs voor de basis: testbetaling, ook al heeft de add-on een prijs (besluit Kane 31-10-2026).
     expect(testbetalenVoor(['lessen'], STRIPE)).toBe(true)

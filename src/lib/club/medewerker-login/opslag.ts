@@ -9,7 +9,9 @@ import { randomBytes } from 'node:crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { MAX_BLOKKADES, MAX_POGINGEN, blokkadeDuurMin, nieuwSessieToken, tokenHash } from '@/lib/club/kern/pin'
 import { hashWachtwoord, normaalEmail, wachtwoordKlopt } from '@/lib/club/kern/wachtwoord'
+import { RESET_MS } from '@/lib/club/beheerders/beheerder'
 import { vindBeheerderOpEmail } from '@/lib/club/beheerders/beheerder-opslag'
+import { meldFout } from '@/lib/club/betrouwbaarheid/melden'
 import {
   MAX_MEDEWERKER_SESSIES, MEDEWERKER_KOLOMMEN, MEDEWERKER_SESSIE_DAGEN, TOEGANG_KOLOMMEN, UITNODIGING_DAGEN, UITNODIGING_TOKEN,
   beoordeelMedewerkerSessie, loginStaat, magMedewerkerBinnen, medewerkerMetOrgUitRij, sessiePastBij, toegangUitRij,
@@ -67,7 +69,9 @@ export type KiesUitkomst = ({ staat: 'ok' } & Sessie) | { staat: 'email_bezet' }
 /**
  * De medewerker kiest zijn wachtwoord (de route controleert of het sterk is).
  * Eenmalig: alleen zolang precies deze uitnodiging nog openstaat. De oude
- * pincode vervalt; daarna meteen een sessie voor dit toestel.
+ * pincode vervalt en elk toestel dat nog ingelogd was gaat uit: na "wachtwoord
+ * vergeten" mag wie het oude wachtwoord kende niet binnen blijven (bij een
+ * eerste uitnodiging is er niets te wissen). Daarna een sessie voor dit toestel.
  */
 export async function kiesWachtwoord(admin: SupabaseClient, { toegang: t }: MedewerkerMetToegang, token: string, wachtwoord: string, nu: Date): Promise<KiesUitkomst> {
   if (!t.email) return { staat: 'verlopen' }
@@ -84,6 +88,7 @@ export async function kiesWachtwoord(admin: SupabaseClient, { toegang: t }: Mede
   if (isUniekFout(error)) return { staat: 'email_bezet' }
   if (error) return { staat: 'db' }
   if (!Array.isArray(data) || data.length !== 1) return { staat: 'verlopen' }
+  if (!(await wisSessiesVanMedewerker(admin, t.userId, t.medewerkerId))) return { staat: 'db' }
   const sessie = await maakSessie(admin, t, nu)
   return sessie ? { staat: 'ok', ...sessie } : { staat: 'db' }
 }
@@ -140,7 +145,20 @@ export async function logInMedewerkerMetWachtwoord(admin: SupabaseClient, { toeg
   const sessie = await maakSessie(admin, t, nu)
   if (!sessie) return { staat: 'db' }
   await admin.from('club_medewerker_toegang').update({ ...TELLERS_SCHOON, laatst_ingelogd_op: nu.toISOString() }).eq('id', t.id)
+  if (t.uitnodigingVerlooptOp) await sluitOpenReset(admin, t)
   return { staat: 'ok', ...sessie }
+}
+
+/**
+ * Wie gewoon inlogt weet zijn wachtwoord: een openstaande link van "wachtwoord
+ * vergeten" vervalt dan. Alleen bij een login die al een wachtwoord heeft (de
+ * database controleert dat opnieuw), dus nooit de eerste uitnodiging van iemand
+ * zonder wachtwoord. Lukt het niet, dan gaat het inloggen gewoon door; de fout
+ * gaat zonder persoonsgegevens naar de foutregistratie.
+ */
+async function sluitOpenReset(admin: SupabaseClient, t: MedewerkerToegang): Promise<void> {
+  const { error } = await admin.from('club_medewerker_toegang').update(UITNODIGING_LEEG).eq('id', t.id).eq('user_id', t.userId).not('wachtwoord_hash', 'is', null)
+  if (error) await meldFout({ fout: 'Wachtwoord vergeten: openstaande link van een medewerker sluiten na inloggen mislukte.', route: '/api/club/inloggen', methode: 'POST', soort: 'route' }, admin)
 }
 
 async function blokkeer(admin: SupabaseClient, t: MedewerkerToegang, nu: Date): Promise<InlogUitkomst> {
@@ -162,6 +180,35 @@ async function wisSessiesVanMedewerker(admin: SupabaseClient, userId: string, me
   const { error } = await admin.from('club_medewerker_sessies').delete().eq('user_id', userId).eq('medewerker_id', medewerkerId)
   if (error) console.error('[club] sessies van medewerker wissen mislukt', error.message)
   return !error
+}
+
+// ─── Wachtwoord vergeten: zelf een nieuwe link aanvragen ────────────────────
+
+/**
+ * Een verse eenmalige link voor een medewerker die al een wachtwoord heeft
+ * (zelfde soort token als een uitnodiging, maar RESET_MS geldig: een uur).
+ * Anders dan nodigUit laat dit
+ * het wachtwoord, de toestellen EN de tellers van de rem met rust: iedereen kan
+ * een e-mailadres intikken, en dat mag niemand buitensluiten, uitloggen of een
+ * dichtgelopen login weer openzetten. Pas kiesWachtwoord met de link vervangt
+ * het wachtwoord. Null als het niet lukte.
+ */
+export async function vraagMedewerkerReset(admin: SupabaseClient, { toegang: t, medewerker }: MedewerkerMetToegang, nu: Date): Promise<string | null> {
+  if (!t.wachtwoordHash || !t.email || !magMedewerkerBinnen(t, medewerker)) return null
+  const token = nieuweUitnodigingToken()
+  const { data, error } = await admin
+    .from('club_medewerker_toegang')
+    .update({ uitnodiging_hash: tokenHash(token), uitnodiging_verloopt_op: new Date(nu.getTime() + RESET_MS).toISOString(), gewijzigd_op: nu.toISOString() })
+    .eq('id', t.id)
+    .eq('user_id', t.userId)
+    .eq('actief', true)
+    .not('wachtwoord_hash', 'is', null)
+    .select('id')
+  if (error) {
+    console.error('[club] aanvraag nieuw wachtwoord medewerker opslaan mislukt', error.code ?? '')
+    return null
+  }
+  return Array.isArray(data) && data.length === 1 ? token : null
 }
 
 // ─── Sessies ────────────────────────────────────────────────────────────────

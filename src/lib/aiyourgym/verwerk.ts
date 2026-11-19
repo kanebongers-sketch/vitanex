@@ -44,7 +44,11 @@ export async function verwerkSessie(admin: SupabaseClient, s: AfgerondeSessie, d
     // Het adres kan al inloggen: geen tweede sportschool, geen herhaling van Stripe.
     // Een aanvraag voor Kane, die het met de klant oplost (bijvoorbeeld terugbetalen).
     await zetNaarNakijken(admin, a.id)
-    await deps.meld?.('Aanmelding met een e-mailadres dat al een account heeft: Kane kijkt hem na').catch(() => undefined)
+    // Met een abonnement is er echt betaald: dat loopt door tot Kane het stopt.
+    const wat = s.abonnementId
+      ? 'Aanmelding met een e-mailadres dat al een account heeft, en er is betaald: abonnement in Stripe stoppen en terugbetalen'
+      : 'Aanmelding met een e-mailadres dat al een account heeft: Kane kijkt hem na'
+    await deps.meld?.(wat).catch(() => undefined)
     return 'nakijken'
   }
   if (!uit.ok) {

@@ -8,7 +8,7 @@ import { woordenboek } from '../../woordenboek'
 export const AANMELDEN = woordenboek({
   nl: {
     metaTitel: 'Aanmelden | AI Your Gym',
-    metaOmschrijving: 'Meld je sportschool aan bij AI Your Gym en start meteen in je eigen omgeving. Er wordt niets afgeschreven zolang online betalen nog niet gekoppeld is.',
+    metaOmschrijving: 'Meld je sportschool aan bij AI Your Gym en start meteen in je eigen omgeving.',
     label: 'Aanmelden',
     titel: 'Start je club in vier korte stappen.',
     lead: 'Pakket, adres en eigenaar. Daarna staat je omgeving direct klaar.',
@@ -16,7 +16,7 @@ export const AANMELDEN = woordenboek({
   },
   en: {
     metaTitel: 'Sign up | AI Your Gym',
-    metaOmschrijving: 'Sign your gym up for AI Your Gym and start straight away in your own environment. Nothing is charged while online payment is not yet connected.',
+    metaOmschrijving: 'Sign your gym up for AI Your Gym and start straight away in your own environment.',
     label: 'Sign up',
     titel: 'Start your club in four short steps.',
     lead: 'Plan, address and owner. Then your environment is ready straight away.',
@@ -85,6 +85,7 @@ export const AANMELD_FORMULIER = woordenboek({
     uitlegTest: 'Hierna start je je club. Online betalen is nog niet gekoppeld: er wordt nu niets afgeschreven en we spreken samen af hoe je betaalt.',
     uitlegStripe: 'Hierna ga je naar de beveiligde betaalpagina van Stripe. Daar zie je het bedrag voor je betaalt. Jaarcontract, per maand betaald per vestiging.',
     uitlegAanvraag: 'Online aanmelden voor dit pakket is nog niet open. Verstuur je aanvraag, dan nemen we zelf contact met je op. Je betaalt nu niets.',
+    zonderIncasso: 'Goed om te weten: incasso en abonnementen van je leden zitten er nog niet in. Die blijven in je huidige systeem.',
     akkoord: { voor: 'Ik ga akkoord met de ', voorwaarden: 'algemene voorwaarden', midden: ' en heb de ', privacy: 'privacyverklaring', na: ' gelezen.' },
     // Samenvatting
     samenLabel: 'Je aanmelding',
@@ -160,6 +161,7 @@ export const AANMELD_FORMULIER = woordenboek({
     uitlegTest: 'Next, you start your club. Online payment is not connected yet: nothing is charged for now, and together we agree how you pay.',
     uitlegStripe: 'Next, you go to the secure Stripe payment page, where you see the amount before you pay. Annual contract, paid monthly per location.',
     uitlegAanvraag: 'Online sign-up for this plan is not open yet. Send your request and we will get in touch with you ourselves. You pay nothing now.',
+    zonderIncasso: 'Good to know: direct debit and member subscriptions are not included yet. Those stay in your current system.',
     akkoord: { voor: 'I accept the ', voorwaarden: 'terms and conditions', midden: ' and have read the ', privacy: 'privacy statement', na: '.' },
     samenLabel: 'Your sign-up',
     jouwgym: 'yourgym',

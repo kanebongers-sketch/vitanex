@@ -50,6 +50,9 @@ export function StapAkkoord({ invoer, pakket, fouten, wijzig, naarStap, subdomei
         <p className="aan-uitleg">{t.uitlegAanvraag}</p>
       )}
 
+      {/* Eerlijk voor het betalen (verbeterlijst 2.2): wat er niet in zit. */}
+      <p className="aan-uitleg">{t.zonderIncasso}</p>
+
       <div className="aan-akkoord" data-fout={fouten.akkoord ? 'ja' : undefined}>
         <input id="akkoord" type="checkbox" checked={invoer.akkoord} onChange={(e) => wijzig('akkoord', e.target.checked)}
           aria-invalid={fouten.akkoord ? true : undefined} aria-describedby={fouten.akkoord ? 'akkoord-fout' : undefined} />

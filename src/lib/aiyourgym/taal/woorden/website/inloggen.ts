@@ -32,6 +32,13 @@ export const INLOGGEN = woordenboek({
     wachtwoordLeeg: 'Vul je wachtwoord in.',
     mislukt: 'Inloggen lukte niet. Probeer het opnieuw.',
     geenVerbinding: 'Geen verbinding. Controleer je internet en probeer het opnieuw.',
+    // Zelf een link aanvragen (WachtwoordVergetenFormulier)
+    vergetenOpen: 'Wachtwoord vergeten? Vraag een link aan',
+    vergetenUitleg: 'Vul het e-mailadres van je account in. Je krijgt een mail met een link om een nieuw wachtwoord te kiezen. De link is een uur geldig. Tot die tijd blijft je oude wachtwoord werken.',
+    vergetenKnop: 'Stuur mij een link',
+    vergetenVerstuurd: 'Als dit adres bij ons bekend is, staat er binnen een paar minuten een mail met een link in je inbox.',
+    vergetenTeVaak: 'Te veel aanvragen. Probeer het over een kwartier opnieuw.',
+    vergetenMislukt: 'Aanvragen lukte niet. Probeer het opnieuw.',
   },
   en: {
     metaTitel: 'Sign in',
@@ -59,5 +66,11 @@ export const INLOGGEN = woordenboek({
     wachtwoordLeeg: 'Enter your password.',
     mislukt: 'Signing in did not work. Please try again.',
     geenVerbinding: 'No connection. Check your internet and try again.',
+    vergetenOpen: 'Forgotten your password? Request a link',
+    vergetenUitleg: 'Enter the email address of your account. We will email you a link to choose a new password. The link is valid for one hour. Until then your old password keeps working.',
+    vergetenKnop: 'Send me a link',
+    vergetenVerstuurd: 'If we know this address, an email with a link will be in your inbox within a few minutes.',
+    vergetenTeVaak: 'Too many requests. Please try again in fifteen minutes.',
+    vergetenMislukt: 'The request did not go through. Please try again.',
   },
 })

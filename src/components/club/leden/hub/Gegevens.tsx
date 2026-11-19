@@ -4,7 +4,7 @@ import type { ClubToegang } from '@/lib/club/toegang'
 import { clubPad, type Vestiging } from '@/lib/club/kern/vestiging'
 import type { Lid } from '@/lib/club/kern/lid'
 import type { LidKaart } from '@/lib/club/leden/kaart'
-import { datumUitSleutel, leeftijd } from '@/lib/club/leden/tijd'
+import { dagSleutel, datumUitSleutel, leeftijd } from '@/lib/club/leden/tijd'
 import { haalBerichtenVoorLid } from '@/lib/club/berichten/data'
 import { SOORT_CHIP } from '@/lib/club/berichten/model'
 import type { KaartRechten } from '@/lib/club/leden/hub/rechten'
@@ -13,7 +13,7 @@ import { formatDatum } from '@/lib/aiyourgym/taal/formaat'
 import { getTaal } from '@/lib/aiyourgym/taal/server'
 import { tekst } from '@/lib/aiyourgym/taal/woordenboek'
 import { LEDENKAART, LIDKAART_BLOKKEN } from '@/lib/aiyourgym/taal/woorden/club/ledenkaart'
-import { Contact } from '../LidGegevens'
+import { ContactBewerken } from './ContactBewerken'
 import { FotoKiezer } from '@/components/club/profielfoto/FotoKiezer'
 import { PROFIELFOTO } from '@/lib/aiyourgym/taal/woorden/club/profielfoto'
 import { minstens } from '@/lib/club/rollen/typen'
@@ -115,7 +115,8 @@ function Feit({ label, waarde, onbekend }: { label: string; waarde: ReactNode; o
 }
 
 /**
- * Lidmaatschap, sectie Gegevens (#gegevens): contact, nummers en waar geld en
+ * Lidmaatschap, sectie Gegevens (#gegevens): contact (te wijzigen voor wie
+ * Leden mag bewerken, ContactBewerken), nummers en waar geld en
  * contract staan, de profielfoto, en coach en labels (LidGegevens).
  */
 export async function GegevensSectie({ t, kaart, vestiging, rechten, nu, coach }: GegevensProps & { coach: ReactNode }) {
@@ -130,18 +131,31 @@ export async function GegevensSectie({ t, kaart, vestiging, rechten, nu, coach }
         <div className="club-leden-kolom">
           <section className="club-kaart" aria-labelledby="contact-kop">
             <h2 id="contact-kop">{w.contact.gegevens}</h2>
-            <Contact email={lid.email} telefoon={lid.telefoon} geboortedatum={datumUitSleutel(lid.geboortedatum, taal)} leeftijd={leeftijd(lid.geboortedatum, nu)} />
-            <dl className="club-lidhub-feiten club-lidhub-feiten--rand">
-              <Feit label={w.kop.lidSinds} waarde={datum(lid.lidSinds)} onbekend={w.kop.onbekend} />
-              <Feit label={w.kop.lidnummer} waarde={lid.lidnummer} onbekend={w.kop.onbekend} />
-              {lid.sportivityId ? <Feit label={w.kop.extern} waarde={lid.sportivityId} onbekend={w.kop.onbekend} /> : null}
-              <Feit
-                label={w.kop.geld}
-                waarde={rechten.betalen ? <Link href={lidKaartPad(lid.id, vestiging, 'lidmaatschap', 'betalen')}>{w.kop.geldHier}</Link> : w.kop.geldElders}
-                onbekend={w.kop.onbekend}
+            <div className="club-lidhub-blok">
+              <ContactBewerken
+                lidId={lid.id}
+                voornaam={lid.voornaam}
+                achternaam={lid.achternaam}
+                email={lid.email}
+                telefoon={lid.telefoon}
+                geboortedatum={lid.geboortedatum}
+                geboortedatumTekst={datumUitSleutel(lid.geboortedatum, taal)}
+                leeftijd={leeftijd(lid.geboortedatum, nu)}
+                vandaag={dagSleutel(nu)}
+                alleenLezen={!rechten.bewerk.leden}
               />
-            </dl>
-            <p className="club-hint">{w.contact.contactHint}</p>
+              <dl className="club-lidhub-feiten club-lidhub-feiten--rand">
+                <Feit label={w.kop.lidSinds} waarde={datum(lid.lidSinds)} onbekend={w.kop.onbekend} />
+                <Feit label={w.kop.lidnummer} waarde={lid.lidnummer} onbekend={w.kop.onbekend} />
+                {lid.sportivityId ? <Feit label={w.kop.extern} waarde={lid.sportivityId} onbekend={w.kop.onbekend} /> : null}
+                <Feit
+                  label={w.kop.geld}
+                  waarde={rechten.betalen ? <Link href={lidKaartPad(lid.id, vestiging, 'lidmaatschap', 'betalen')}>{w.kop.geldHier}</Link> : w.kop.geldElders}
+                  onbekend={w.kop.onbekend}
+                />
+              </dl>
+              <p className="club-hint">{w.contact.contactHint}</p>
+            </div>
           </section>
           <Profielfoto t={t} lid={lid} />
         </div>

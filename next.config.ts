@@ -108,6 +108,8 @@ const nextConfig: NextConfig = {
   experimental: {
     globalNotFound: true,
   },
+  // Geen kop X-Powered-By: de buitenwereld hoeft niet te zien waarop de site draait.
+  poweredByHeader: false,
 
   env: {
     MENTAFORCE_ROUTES: mentaforceRoutes().join(','),
@@ -361,6 +363,14 @@ const nextConfig: NextConfig = {
       // Cache static assets aggressively — alleen in productie.
       // In dev zijn Turbopack-chunknamen stabiel: immutable caching laat de
       // browser dan voor altijd oude code serveren.
+      // Beelden uit public/ kregen max-age=0: de browser vroeg elk beeld bij elk
+      // bezoek opnieuw op. Een dag bewaren, daarna op de achtergrond verversen.
+      ...(isProd
+        ? ['/oefenbeelden/:pad*', '/aiyourgym/avatars/:pad*'].map((source) => ({
+            source,
+            headers: [{ key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' }],
+          }))
+        : []),
       ...(isProd ? [{
         source: '/_next/static/(.*)',
         headers: [
