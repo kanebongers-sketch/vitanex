@@ -17,6 +17,16 @@ const TABEL = 'club_platform_accounts'
 const SESSIES = 'club_platform_sessies'
 const TELLERS_SCHOON = { mislukt: 0, geblokkeerd_tot: null, blokkades: 0 } as const
 
+/** De e-mailadressen van de actieve platform-accounts, voor meldingen over nieuwe aanvragen. Leeg bij een fout. */
+export async function platformMeldAdressen(admin: SupabaseClient): Promise<string[]> {
+  const { data, error } = await admin.from(TABEL).select('email').eq('actief', true).limit(5)
+  if (error) {
+    console.error('[club] platform-adressen lezen mislukt', error.code)
+    return []
+  }
+  return (data ?? []).map((r) => (r as { email?: unknown }).email).filter((e): e is string => typeof e === 'string')
+}
+
 /** Het account achter een link, alleen als het actief is. */
 export async function vindPlatformAccount(admin: SupabaseClient, code: string): Promise<PlatformAccount | null> {
   if (!PLATFORM_CODE.test(code)) return null

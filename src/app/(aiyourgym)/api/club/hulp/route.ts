@@ -1,13 +1,17 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse, after, type NextRequest } from 'next/server'
 import { clubFout, clubJson } from '@/lib/club/toegang'
 import { leesJsonOfTeGroot } from '@/lib/club/kern/body'
 import { isGeremd } from '@/lib/club/kern/rem-db'
 import { MAX_BODY_BYTES, leesMelding } from '@/lib/club/hulp/melding'
+import { aygUrl } from '@/lib/club/kern/subdomein'
+import { hulpMeldingMail } from '@/lib/aiyourgym/aanvraag-melding'
+import { mailPlatform } from '@/lib/aiyourgym/aanvraag-melding-versturen'
 import { bewaarMelding, eigenMeldingen, teVeelMeldingen, vereisHulpToegang } from '@/lib/club/hulp/opslag'
 
 // GET  /api/club/hulp   de eigen meldingen (met het antwoord van Kane)
 // POST /api/club/hulp   { soort, onderwerp, beschrijving, pagina? } een vraag, probleem of wens melden
-// Iedereen die in Club binnen is; opgeslagen in club_support, er gaat geen mail naar buiten.
+// Iedereen die in Club binnen is; opgeslagen in club_support. Na het antwoord krijgt
+// het platform een mail (niet als het platform zelf meldt).
 
 export const dynamic = 'force-dynamic'
 
@@ -30,5 +34,10 @@ export async function POST(req: NextRequest) {
   if (teVeel === null) return clubFout('Melden lukte niet. Probeer het later opnieuw.', 500)
   if (teVeel) return clubFout('Er zijn het afgelopen uur al veel meldingen gedaan. Probeer het later opnieuw.', 429)
   const melding = await bewaarMelding(t, invoer.waarde)
-  return melding ? clubJson({ melding }, 201) : clubFout('Melden lukte niet. Probeer het later opnieuw.', 500)
+  if (!melding) return clubFout('Melden lukte niet. Probeer het later opnieuw.', 500)
+  if (!t.isPlatformEigenaar) {
+    const mail = hulpMeldingMail(invoer.waarde, { sportschool: t.organisatie.naam, melder: t.naam || 'Onbekend' }, aygUrl('/club/hulp/meldingen'))
+    after(() => mailPlatform(t.admin, mail, '/api/club/hulp'))
+  }
+  return clubJson({ melding }, 201)
 }

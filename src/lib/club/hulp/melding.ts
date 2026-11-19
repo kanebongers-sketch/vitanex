@@ -1,7 +1,8 @@
 // ─── Club: een vraag of probleem melden (PUUR) ──────────────────────────────
-// Invoer controleren en rijen uit club_support (migratie 427) lezen. Er gaat
-// geen mail naar buiten: Kane leest de meldingen op /club/hulp/meldingen en
-// zijn antwoord staat bij de melder in het helpcentrum.
+// Invoer controleren en rijen uit club_support (migratie 427) lezen. Het platform
+// krijgt een mail bij een nieuwe melding (src/lib/aiyourgym/aanvraag-melding.ts),
+// leest ze op /club/hulp/meldingen en zijn antwoord staat bij de melder in het
+// helpcentrum.
 
 export const SOORTEN = ['vraag', 'probleem', 'wens'] as const
 export type MeldingSoort = (typeof SOORTEN)[number]

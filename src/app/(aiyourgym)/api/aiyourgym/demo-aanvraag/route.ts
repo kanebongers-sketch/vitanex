@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server'
+import { after, type NextRequest } from 'next/server'
 import { ipVan, isZelfdeOorsprong } from '@/lib/club/kern/verzoek'
 import { isGeremd } from '@/lib/club/kern/rem-db'
 import { leesJsonBegrensd } from '@/lib/club/kern/body'
@@ -9,11 +9,15 @@ import { bewaarDemoAanvraag, ipHash, teVeelDemoAanvragen } from '@/lib/aiyourgym
 import { adminOfNull, aygFout, aygJson, poortOpen } from '@/lib/aiyourgym/api'
 import { metEngels } from '@/lib/aiyourgym/taal/woorden/website/meldingen'
 import { meldFout } from '@/lib/club/betrouwbaarheid/melden'
+import { aygUrl } from '@/lib/club/kern/subdomein'
+import { demoMeldingMail } from '@/lib/aiyourgym/aanvraag-melding'
+import { mailPlatform } from '@/lib/aiyourgym/aanvraag-melding-versturen'
 
 // POST /api/aiyourgym/demo-aanvraag
 // Een sportschool vraagt een gratis demo aan. We bewaren de aanvraag in
 // ayg_demo_aanvragen (migratie 436); Kane ziet hem op /club/platform en
-// neemt zelf contact op. Er gaat geen mail naar buiten.
+// neemt zelf contact op. Na het antwoord krijgt het platform een mail (alleen
+// naar het eigen adres, nooit naar de aanvrager).
 // Met doel 'prijs' komt hij van /aiyourgym/prijs-op-maat: dezelfde tabel en rem,
 // met pakket en aantal leden in de opmerking (src/lib/aiyourgym/prijs-aanvraag.ts).
 
@@ -38,7 +42,8 @@ export async function POST(req: NextRequest) {
   if (body === 'te-groot') return aygFout('Het verzoek is te groot.', 413)
   // Een robot krijgt hetzelfde antwoord als een mens, maar we bewaren niets.
   if (isRobot(body)) return aygJson({ ok: true })
-  const invoer = isPrijsAanvraag(body) ? leesPrijsAanvraag(body) : leesDemoAanvraag(body)
+  const isPrijs = isPrijsAanvraag(body)
+  const invoer = isPrijs ? leesPrijsAanvraag(body) : leesDemoAanvraag(body)
   if (!invoer.ok) return aygJson(metEngels({ fout: 'Controleer de gemarkeerde velden.', fouten: invoer.fouten }), 400)
 
   const admin = adminOfNull()
@@ -50,5 +55,7 @@ export async function POST(req: NextRequest) {
   if (teVeel === null) return mislukt('rem lezen')
   if (teVeel) return aygFout(TE_VEEL, 429)
   if (!(await bewaarDemoAanvraag(admin, invoer.waarde, hash, nu))) return mislukt('bewaren')
+  const aanvraag = invoer.waarde
+  after(() => mailPlatform(admin, demoMeldingMail(aanvraag, isPrijs, aygUrl('/club/platform')), '/api/aiyourgym/demo-aanvraag'))
   return aygJson({ ok: true })
 }
