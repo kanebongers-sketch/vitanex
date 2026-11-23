@@ -9,7 +9,8 @@ import type { LinkRol } from '@/lib/lifeos/leads/links'
 // echte app), vanaf tablet een rij bovenaan. Actief = aria-current. Een eigenaar
 // krijgt dezelfde tabs, maar "Home" heet "Team" (ook actief op /team/<id>); de
 // beheerder (Kane) krijgt daarnaast "Beheer". Een clubmanager ziet zijn club:
-// geen Coach (coachgesprekken zijn tussen Kane en de PT'er). PT'ers en
+// geen Coach (coachgesprekken zijn tussen Kane en de PT'er), een PT'er ook niet
+// (die ziet niets van de coachgesprekken, besluit Kane 23-11-2026). PT'ers en
 // clubmanagers hebben een tab "Groei" (het groeiplan); eigenaren en Kane zitten
 // al op zes tabs en komen er via de kaart op hun Team-scherm. PT'ers zien het
 // groeiplan voorlopig niet (zie zietGroeiplan).
@@ -30,7 +31,8 @@ const BASIS: Item[] = [
   { pad: '/bibliotheek', label: 'Kennis', icoon: BookOpen },
 ]
 const GROEI: Item = { pad: '/groeiplan', label: 'Groei', icoon: TrendingUp }
-const ITEMS: Item[] = BASIS
+// PT'ers zien niets van de coachgesprekken (besluit Kane 23-11-2026): geen tab Coach.
+const ITEMS: Item[] = BASIS.filter((i) => i.pad !== '/coach')
 
 const TEAM_ITEMS: Item[] = BASIS.map((i) => (i.pad === '' ? { ...i, label: 'Team', ook: '/team' } : i))
 // Eigenaren: ook Kleding (Kane bereikt die via Beheer; zes tabs is het maximum op een telefoon).
